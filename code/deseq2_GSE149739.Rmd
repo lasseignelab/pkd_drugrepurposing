@@ -1,0 +1,389 @@
+---
+title: "DESeq2 GSE149739: nf-core aligned"
+author: "Lizzy Ramsey"
+date: "3/30/2022"
+output:
+    html_document:
+      toc: true
+      toc_float: true
+      toc_depth: 5
+
+---
+
+```{r setup, include=FALSE}
+#filepath for code and data
+knitr::opts_knit$set(root.dir = "/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing")
+```
+### Purpose  
+This markdown uses nf-core for RNAseq alignment and DESeq2 DDS output  
+Dataset: [GSE149739](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE149739)  
+Processed data filepath: /data/project/lasseigne_lab/Lizzy/PKD_drugrepurposing_220324/  
+
+#### Load in libraries
+```{r message=FALSE, warning = FALSE}
+library(DESeq2)
+library(stringr)
+library(apeglm)
+library(pheatmap)
+library(dplyr)
+library(ggrepel)
+library(signatureSearch)
+library(ExperimentHub); library(rhdf5)
+library(biomaRt)
+```
+
+#### Custom functions  
+
+__salmon2dds__: Salmon merged gene counts from nf-core RNAseq pipeline (results/star_salmon/salmon.merged.gene_counts.rds) and SRA metadata as inputs, function data wrangles and runs DESeq2, resulting in a dds object with design by genotype    
+
+```{r}
+#Salmon merged gene counts to dds results
+salmon2dds <- function(counts, metadata) {
+  #count matrix in the sumarized experiment object
+  cts <- counts@assays@data@listData[["counts"]]
+  #round, salmon outputs have decimals
+  cts <- round(cts)
+  #colnames(cts) <- str_sub(colnames(cts), 1, -2) ##ALTERATION just for GSE69556
+  #remove version numbers from transcript id's
+  rownames(cts) <- gsub("\\..*", "", rownames(cts))
+  
+  #remove all non-alphanumeric characters from Genotype
+  metadata$Genotype <- str_replace_all(metadata$Genotype, "[^[:alnum:]]", "")
+  #contrasts need to be factor levels
+  metadata$Genotype <- as.factor(metadata$Genotype)
+#print(rownames(metadata))
+#print(colnames(cts))
+  dds <- DESeqDataSetFromMatrix(cts, metadata, design = ~ Genotype)
+return(dds)
+}
+```
+
+__uplfc__ & __downlfc__: Formats deseq2 res() output to select for upregulated and downregulated genes by log2 fold change threshold > 2 and < -2.  
+
+```{r}
+uplfc <- function(res){
+  #NAs removed first
+  res <- res[!is.na(res$log2FoldChange),]
+  #p-adjusted value cutoff 0.05 and log2fc greater than 2.0 and less than -2.0
+  upfc <- res[res$log2FoldChange > 2.0,]
+
+  #pull just logfold change values from DESeqResults object and name the values by associated gene
+  up <- upfc$log2FoldChange
+  #names(up) <- rownames(upfc)
+  up <- cbind(Mouse.gene.stable.ID = rownames(upfc), UpLFC = up)
+  
+return(as.data.frame(up))
+}
+
+downlfc <- function(res){
+  #NAs removed first
+  res <- res[!is.na(res$log2FoldChange),]
+  #p-adjusted value cutoff 0.05 and log2fc greater than 2.0 and less than -2.0
+  downfc <- res[res$log2FoldChange < -2.0,]
+
+  #pull just logfold change values from DESeqResults object and name the values by associated gene
+  down <- downfc$log2FoldChange
+  #names(down) <- rownames(downfc)
+  down <- cbind(Mouse.gene.stable.ID = rownames(downfc), DownLFC = down)
+  
+return(as.data.frame(down))
+}
+```
+
+__convertMouseGeneList__: Uses Ensembl human GRCh38.p13 and Ensembl mouse C57BL_6NJ_v1 genes and to find human orthologous genes (more details [here](https://docs.google.com/document/d/1jU3EOVaZXJMzxwH9SsssHoArz8pMdcfW8MSr8hbeE4Q/edit) ), and biomart to convert to human entrez  
+
+```{r}
+convertMouseGeneList <- function(lfc){
+  #read in mose to human ens annotation
+  ens_annot <- read.csv("/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/data/annot_ens_humanmouse.csv")
+  #conversion table
+  ens_mouse2human <- merge(lfc, ens_annot, by = "Mouse.gene.stable.ID")
+  #biomart to conver human ens to human entrez
+  human <- useEnsembl("ensembl", dataset = "hsapiens_gene_ensembl", mirror = "useast")
+  genes <- getBM(filters = "ensembl_gene_id", attributes = c("ensembl_gene_id","entrezgene_id"), values = ens_mouse2human$Gene.stable.ID, mart = human)
+  
+  names(ens_mouse2human) <- c("mouse_ensembl_gene_id", "LFC", "ensembl_gene_id")
+  conv_tbl <- merge(genes, ens_mouse2human, by = "ensembl_gene_id")
+
+return(conv_tbl)
+}
+```
+
+__toplincs__: Uses uplfc and downlfc outputs to then find top 100 genes that are available in LINCS (best input for signature reversion)  
+```{r message=FALSE}
+eh <- ExperimentHub()
+lincs <- eh[["EH3226"]]; lincs_expr <- eh[["EH3227"]]
+
+lincs_genes <- rhdf5:::h5read(lincs, "rownames", drop=TRUE)
+
+toplincs <- function(conv_tbl, direction){
+  lincs_genes <- cbind(entrezgene_id = lincs_genes)
+  conv_tbl <- merge(conv_tbl, lincs_genes, by = "entrezgene_id")
+  conv_tbl$LFC <- as.numeric(conv_tbl$LFC)
+  if(direction == "up"){
+  top100 <- slice_max(conv_tbl, n = 100, order_by = LFC)
+  }
+  else{
+    top100 <- slice_min(conv_tbl, n = 100, order_by = LFC)
+  }
+return(top100)
+}
+```
+
+__lincsGenes__: Wraps convertMouseGeneList to map orthologs, and toplincs to filter for LINCS-available genes 
+```{r}
+lincsGenes <- function(lfc, direction){
+  conv_tbl <- convertMouseGeneList(lfc)
+  top100 <- toplincs(conv_tbl, direction = direction)
+  return(top100)
+}
+```
+
+#### Read in data  
+Filepath to counts data: /data/project/lasseigne_lab/Lizzy/PKD_drugrepurposing_220324/  
+Metadata: https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE149739 
+
+```{r}
+cts_39 <- readRDS("~/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/data/GSE149739_salmonmerged_gene_counts.rds")
+
+meta_39 <- read.csv("~/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/data/GSE149739_metadata.txt", row.names = 1)
+```
+
+Remove IFT88
+```{r}
+cts_39_2 <- cts_39@assays@data@listData[["counts"]]
+  #round, salmon outputs have decimals
+cts_39_2 <- round(cts_39_2)
+  #colnames(cts) <- str_sub(colnames(cts), 1, -2) ##ALTERATION just for GSE69556
+  #remove version numbers from transcript id's
+  rownames(cts_39_2) <- gsub("\\..*", "", rownames(cts_39_2))
+  
+  
+meta_39_2 <- meta_39
+  #remove all non-alphanumeric characters from Genotype
+meta_39_2$Genotype <- str_replace_all(meta_39_2$Genotype, "[^[:alnum:]]", "")
+
+#remove IFT88
+meta_39_2 <- dplyr::filter(meta_39_2, Genotype != "Ift88flflPkd2flflPax8rtTATetOcre")
+  #contrasts need to be factor levels
+  meta_39_2$Genotype <- as.factor(meta_39_2$Genotype)
+#print(rownames(metadata))
+#print(colnames(cts))
+  
+cts_39_2 <- dplyr::select(cts_39_2, c(rownames(meta_39_2)))
+
+#check ordering matches
+colnames((cts_39_2)) == rownames(meta_39_2) #TRUE, good to proceed to DESeq2!
+  
+dds <- DESeqDataSetFromMatrix(cts_39_2, meta_39_2, design = ~ Genotype)
+
+dds$Genotype <- relevel(dds$Genotype, ref = "Wildtype")
+
+#run DESeq: estimates size factors, estimates dispersion, fits negative binomial GLM's and performs Wald stats
+dds <- DESeq(dds) 
+
+res <- results(dds, alpha = 0.05, contrast = c("Genotype", "Pkd2flflPax8rtTATetOcre", "Wildtype"))
+
+resultsNames(res)
+```
+
+### DDS
+```{r}
+dds_39 <- salmon2dds(cts_39, meta_39)
+```
+
+
+#### Run DESeq2
+```{r}
+#relevel to make wildtype the reference instead of first alphabetical factor
+dds_39$Genotype <- relevel(dds_39$Genotype, ref = "Wildtype")
+
+#run DESeq: estimates size factors, estimates dispersion, fits negative binomial GLM's and performs Wald stats
+dds_39 <- DESeq(dds_39) #can also look at setting replaceOutliers lower for dealing with outliers flagged by extreme Cook's distances
+#save(ds, file = "./res/deseq2_outputs/GSE149739_dds_kasi2021alignment.rds")
+```
+
+#### Results  
+
+```{r}
+#extract results table with log2 fold changes, p values and adjusted p values for desired coefficients
+#alpha 0.05 cutoff
+res_nf <- results(dds_39, alpha = 0.05, contrast = c("Genotype", "Pkd2flflPax8rtTATetOcre", "Wildtype"))
+
+#Shrinkage of effect size (LFC estimates) is useful for visualization and ranking of genes. To shrink the LFC, we pass the ddds_39_nf object to the function lfcShrink
+resultsNames(dds_39) #prints coefficients
+
+```
+
+DESeq2 results
+```{r}
+dsq2_39 <- as.data.frame(res_nf)
+
+dsq2_39_up <- dplyr::filter(dsq2_39, log2FoldChange > 2.0)
+
+dsq2_39_down <- dplyr::filter(dsq2_39, log2FoldChange < -2.0)
+```
+
+Save full deseq results
+```{r eval=FALSE, include=FALSE}
+write.csv(dsq2_39, file = "./res/deseq2_outputs/deseq2_fullres_39.csv")
+
+write.csv(dsq2_39_up, file = "./res/deseq2_outputs/deseq2_upgenes_res_39.csv")
+
+write.csv(dsq2_39_down, file = "./res/deseq2_outputs/deseq2_downgenes_res_39.csv")
+```
+
+#### LFC cutoffs
+Using < -2 and > 2 LFC threshold for up and downregulated genes 
+```{r}
+musdegs_39_UP <- uplfc(res_nf)
+head(musdegs_39_UP)
+musdegs_39_DOWN <- downlfc(res_nf)
+head(musdegs_39_DOWN)
+```
+
+
+Variance stabilized transformation  
+vst() uses a parametric fit for the dispersion. In this case, the closed-form expression for the variance stabilizing transformation is used by the vst function. If a local fit is used (option fitType="locfit" to estimateDispersions) a numerical integration is used instead. The transformed data should be approximated variance stabilized and also includes correction for size factors or normalization factors. The transformed data is on the log2 scale for large counts.  
+  
+rlog() is better to use for this dataset -- better for high count variance by sample (in this case, one sample has over 2x the reads compared to the others) and for smaller datasets "if you have many samples (e.g. 100s), the rlog function might take too long, and so the vst function will be a faster choice. The rlog and VST have similar properties, but the rlog requires fitting a shrinkage term for each sample and each gene which takes time. See the DESeq2 paper for more discussion on the differences (Love, Huber, and Anders 2014)."  
+```{r}
+#vsd_nf <- vst(dds_39, blind = FALSE) #if blind, could minimize large count differences due to anticipated experimental variation
+
+rld_nf <- rlog(dds_39, blind = FALSE) 
+```
+
+PCA
+```{r}
+plotPCA(rld_nf, intgroup=c("Genotype")) + geom_label_repel(aes(label = rld_nf@colData@rownames), box.padding   = 0.15, label.padding = 0.15, point.padding = 0.3, segment.color = 'grey50') + scale_colour_viridis_d() + theme(axis.title.x = element_text(size = 20)) + theme_minimal()
+```
+
+Modify DESeq2::plotPCA
+```{r}
+plotPCA2 <- function(object, intgroup="condition", ntop=500, returnData=FALSE)
+{
+  # calculate the variance for each gene
+  rv <- rowVars(assay(object))
+
+  # select the ntop genes by variance
+  select <- order(rv, decreasing=TRUE)[seq_len(min(ntop, length(rv)))]
+
+  # perform a PCA on the data in assay(x) for the selected genes
+  pca <- prcomp(t(assay(object)[select,]))
+
+  # the contribution to the total variance for each component
+  percentVar <- pca$sdev^2 / sum( pca$sdev^2 )
+
+  if (!all(intgroup %in% names(colData(object)))) {
+    stop("the argument 'intgroup' should specify columns of colData(dds)")
+  }
+
+  intgroup.df <- as.data.frame(colData(object)[, intgroup, drop=FALSE])
+  
+  # add the intgroup factors together to create a new grouping factor
+  group <- if (length(intgroup) > 1) {
+    factor(apply( intgroup.df, 1, paste, collapse=":"))
+  } else {
+    colData(object)[[intgroup]]
+  }
+
+  # assembly the data for the plot
+  d <- data.frame(PC1=pca$x[,1], PC2=pca$x[,2], group=group, intgroup.df, name=colnames(object))
+
+  if (returnData) {
+    attr(d, "percentVar") <- percentVar[1:2]
+    return(d)
+  }
+  
+  ggplot(data=d, aes_string(x="PC1", y="PC2", color="group")) + geom_point(size=3) + 
+    scale_colour_viridis_d() +
+    xlab(paste0("PC1: ",round(percentVar[1] * 100),"% variance")) +
+      ylab(paste0("PC2: ",round(percentVar[2] * 100),"% variance")) +
+        coord_fixed()
+}
+```
+
+PC's 1 and 3
+```{r}
+p <- plotPCA2(rld_nf, intgroup=c("Genotype")) + geom_label_repel(aes(label = rld_nf@colData@rownames), box.padding   = 0.15, label.padding = 0.15, point.padding = 0.3, segment.color = 'grey50') 
+p
+#ggsave(p, filename = "./res/pca/GSE149739_nfalign_pc1pc4.pdf")
+```
+
+Explore PC1, PC3, PC4
+```{r eval=FALSE, include=FALSE}
+rv <- rowVars(assay(rld_nf))
+select <- order(rv, decreasing = TRUE)[seq_len(min(1000, length(rv)))]
+pca <- prcomp(t(assay(rld_nf)[select, ]))
+
+genesPC1 <- as.data.frame(pca$rotation[,1]) 
+colnames(genesPC1) <- c("PC1_Rotation")
+#Genes that contribute positively vs negatively towards this PC
+genesPC1_UP <- dplyr::filter(genesPC1, PC1_Rotation > 0)
+genesPC1_DOWN <- dplyr::filter(genesPC1, PC1_Rotation < 0)
+
+```
+
+### Mouse to Human Ortholog Mapping
+Map to human entrez and filter by LINCS genes
+```{r}
+hom_degs_UP <- lincsGenes(musdegs_39_UP, "up")
+
+hom_degs_DOWN <-  lincsGenes(musdegs_39_DOWN, "down")
+```
+
+
+Orthologous mapping highest weighted genes in PC1
+```{r eval=FALSE, include=FALSE}
+#orthologous mapping
+#hom_pc1UP <- convertMouseGeneList(rownames(genesPC1_UP))
+#hom_pc1DOWN <- convertMouseGeneList(rownames(genesPC1_DOWN))
+
+```
+
+
+```{r eval=FALSE, include=FALSE}
+#save(hom_pc1UP, file = "/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/deseq2_outputs/GSE149739_nfpipeline_PC1_UP_220405.rds")
+#save(hom_pc1DOWN, file = "/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/deseq2_outputs/GSE149739_nfpipeline_PC1_DOWN_220405.rds")
+```
+
+
+```{r eval=FALSE, include=FALSE}
+write.csv(hom_degs_UP, file = "/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/deseq2_outputs/GSE149739_nfpipeline_degs_UP_220421.csv")
+write.csv(hom_degs_DOWN, file = "/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/deseq2_outputs/GSE149739_nfpipeline_degs_DOWN_220421.csv")
+```
+
+Tweaks for working with Ryan
+```{r eval=FALSE, include=FALSE}
+conversion <- as.data.frame(cts_39@elementMetadata)
+conversion$gene_id <- gsub("\\..*", "", conversion$gene_id)
+cts_df <- as.data.frame(assays((rld_nf)))
+cts_df <- tibble:::rownames_to_column(cts_df, var = "gene_id")
+
+conv_cts <- merge(cts_df, conversion, by = "gene_id")
+conv_cts <- conv_cts[,!(colnames(conv_cts) %in% c("gene_id", "group", "group_name"))]
+conv_cts <- dplyr::distinct(conv_cts, gene_name, .keep_all = TRUE)
+conv_cts <- tibble:::column_to_rownames(conv_cts, "gene_name")
+#conv_cts <- round(conv_cts)
+
+test <- apply(conv_cts, 1, var)
+#top 100 most variable genes
+top <- names(sort(test, decreasing = TRUE))[1:20]
+
+#need to convert the gene IDs here also
+#genes <- order(resLFC_nf$log2FoldChange, decreasing=TRUE)[1:20]
+
+pheatmap(conv_cts[top,], cluster_rows=TRUE, show_rownames=TRUE,
+         cluster_cols=FALSE) #, annotation_col=meta_39$Genotype)
+```
+
+#### Versions  
+```{r}
+R.Version()
+```
+
+
+```{r}
+installed.packages()[names(sessionInfo()$otherPkgs), "Version"]
+```
+  

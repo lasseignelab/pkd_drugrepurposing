@@ -1,0 +1,978 @@
+---
+title: 'DESeq2/LIMMA Comparison'
+author: "Lizzy Ramsey"
+date: "5/31/2022"
+output:
+    html_document:
+      toc: true
+      toc_depth: 4
+      toc_float: true
+
+---
+
+```{r setup, include=FALSE}
+#filepath for code and data
+knitr::opts_knit$set(root.dir = "/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing")
+
+```
+
+Libraries
+
+```{r message=FALSE, warning = FALSE}
+library(gprofiler2)
+library(viridis)
+library(stringr)
+library(signatureSearch)
+library(ggplot2)
+library(dplyr)
+library(clusterProfiler)
+library(org.Hs.eg.db)
+library(org.Mm.eg.db)
+library(GOSemSim)
+library(enrichplot)
+```
+
+#### Custom functions  
+MOUSE GENES Enrichment function for up and down genes  
+Runs an ordered query (altered from other uses)
+```{r}
+fea <- function(genelist, topreturned){
+  fea <- gost(genelist, organism = "mmusculus", ordered_query = FALSE, multi_query = FALSE, evcodes = TRUE, correction_method = "bonferroni", sources = c("GO:BP", "GO:MF", "GO:CC", "WIKI", "KEGG", "TF"))
+  #remove abitrary pathways -- any pathways with > 1000 genes
+  fea <- fea$result %>% dplyr::filter(., term_size < 500 & term_size > 10)
+return(fea)
+}
+
+mouseenrich <- function(upgenes, downgenes, topreturned) {
+  #upgenes$UpLFC <- sort(as.numeric(upgenes$UpLFC), decreasing = TRUE)
+  up_fea <- fea(upgenes$Mouse.gene.stable.ID, topreturned)
+  up_fea <- dplyr::mutate(up_fea, .keep = "all", direction = "upregulated")
+  
+  #downgenes$DownLFC <- sort(as.numeric(downgenes$DownLFC))
+  down_fea <- fea(downgenes$Mouse.gene.stable.ID, topreturned)
+  down_fea <- dplyr::mutate(down_fea, .keep = "all", direction = "downregulated")
+  
+  up_mat <- up_fea  %>% dplyr::arrange(., desc(p_value)) %>% dplyr::slice_head(., n = topreturned)
+  down_mat <- down_fea  %>% dplyr::arrange(., desc(p_value)) %>% dplyr::slice_head(., n = topreturned)
+  combined_fea <- rbind(up_mat, down_mat)
+  fea_res <- list(downregulated = down_fea, upregulated = up_fea, topcompared = combined_fea)
+
+return(fea_res)
+}
+
+```
+
+barplot, up and down merged, colored by p-value, terms on y axis and # genes on x axis
+```{r}
+barplot <- function(combined_fea){
+  barplot <- ggplot(combined_fea, aes(x=intersection_size, y=term_name,  fill = recall)) + 
+    geom_bar( stat = "identity") + 
+    scale_fill_continuous(type = "viridis") + 
+    labs(x = "Number of Genes Matched to Term", y = "Functional Terms", title = "Top Enriched Terms") + 
+    theme_minimal(base_size = 8)
+return(barplot)
+}
+
+```
+
+wrapper for tree_plot and ora
+```{r}
+#input is df with $entrez_id column
+fea_ora <- function(dea){
+        ora <- enrichGO(gene = as.character(dea$entrezgene_id),
+                OrgDb = org.Hs.eg.db,
+                keyType = "ENTREZID",
+                ont = "all", 
+                pAdjustMethod = "BH",
+                pvalueCutoff  = 0.05,
+                qvalueCutoff  = 0.05,
+        readable      = TRUE)
+
+return(ora)
+}
+
+dsq2_fea_ora <- function(dea, backgroundgenes){
+        ora <- enrichGO(gene = as.character(dea$Mouse.gene.stable.ID),
+                OrgDb = org.Mm.eg.db,
+                keyType = "ENSEMBL",
+                ont = "all", 
+                pAdjustMethod = "BH",
+                universe = backgroundgenes,
+                pvalueCutoff  = 0.05,
+                qvalueCutoff  = 0.05,
+        readable      = TRUE)
+
+return(ora)
+}
+
+#wrapper for treeplot
+tplot <- function(ora, nclusters, clustmethod){
+        ora_sim <- pairwise_termsim(ora)
+        p1 <- treeplot(ora_sim, nCluster = nclusters)
+        p2 <- treeplot(ora_sim, hclust_method = clustmethod, nCluster = nclusters)
+        aplot <- aplot::plot_list(p1, p2, tag_levels='A', output = "patchwork")
+return(aplot)
+}
+
+#wrapper for treeplot
+
+#input is df with $entrez_id column
+
+ora_tplot <- function(dea, nclusters, clustmethod){
+        ora <- fea_ora(dea)
+        
+        aplot <- tplot(ora, nclusters, clustmethod)
+return(aplot)
+}
+
+```
+
+#### Read in data  
+LIMMA '39  
+```{r}
+lm_39_up <- read.csv("/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/limma_outputs/GSE149739_LIMMA_degs_UP_220512.csv")
+
+lm_39_down <- read.csv("/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/limma_outputs/GSE149739_LIMMA_degs_DOWN_220512.csv")
+```
+
+DESeq2 '39 
+```{r}
+dsq2_39_UP <- read.csv("/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/deseq2_outputs/GSE149739_nfpipeline_mus_degs_UP_220421.csv")
+
+dsq2_39_DOWN <- read.csv("/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/deseq2_outputs/GSE149739_nfpipeline_mus_degs_DOWN_220421.csv")
+```
+
+
+LIMMA '56  
+```{r}
+lm_56_up <- read.csv("/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/limma_outputs/LIMMA_56_degs_UP_220517.csv")
+
+lm_56_down <- read.csv("/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/limma_outputs/LIMMA_56_degs_DOWN_220517.csv")
+
+```
+
+DESeq2 '56
+```{r}
+dsq2_56_UP <- read.csv("/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/deseq2_outputs/GSE69556_mus_degs_UP_220421.csv")
+
+dsq2_56_DOWN <- read.csv("/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/deseq2_outputs/GSE69556_mus_degs_DOWN_220421.csv")
+```
+
+
+LIMMA '19  
+```{r}
+lm_19_up <- read.csv("/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/limma_outputs/LIMMA_19_degs_UP_220516.csv")
+
+lm_19_down <- read.csv("/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/limma_outputs/LIMMA_19_degs_DOWN_220516.csv")
+```
+
+DESeq2 '19
+```{r}
+dsq2_19_UP <- read.csv("/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/deseq2_outputs/GSE134719_mus_degs_UP_220421.csv")
+
+dsq2_19_DOWN <- read.csv("/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/deseq2_outputs/GSE134719_mus_degs_DOWN_220421.csv")
+```
+
+Mouse ensembl genes measured from deseq2 for background genes
+```{r}
+backgroundgenes <- read.csv("/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/deseq2_outputs/deseq2_fullres_19.csv")
+
+```
+
+#### Gene Overlaps of Methods
+LIMMA and DESeq2 for '19
+```{r}
+geneoverlap_19_up <- merge(dsq2_19_UP, lm_19_up, by = "Mouse.gene.stable.ID")
+
+geneoverlap_19_down <- merge(dsq2_19_DOWN, lm_19_down, by = "Mouse.gene.stable.ID")
+```
+
+LIMMA and DESeq2 for '56
+```{r}
+geneoverlap_56_up <- merge(dsq2_56_UP, lm_56_up, by = "Mouse.gene.stable.ID")
+
+geneoverlap_56_down <- merge(dsq2_56_DOWN, lm_56_down, by = "Mouse.gene.stable.ID")
+```
+
+LIMMA and DESeq2 for '39
+```{r}
+geneoverlap_39_up <- merge(dsq2_39_UP, lm_39_up, by = "Mouse.gene.stable.ID")
+
+geneoverlap_39_down <- merge(dsq2_39_DOWN, lm_39_down, by = "Mouse.gene.stable.ID")
+```
+
+Save overlapped DEGs
+```{r eval=FALSE, include=FALSE}
+##39
+write.csv(geneoverlap_39_up, file = "/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/overlap_limma_deseq2/geneoverlap_39_up.csv")
+
+write.csv(geneoverlap_39_down, file = "/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/overlap_limma_deseq2/geneoverlap_39_down.csv")
+
+##19
+write.csv(geneoverlap_19_up, file = "/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/overlap_limma_deseq2/geneoverlap_19_up.csv")
+
+write.csv(geneoverlap_19_down, file = "/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/overlap_limma_deseq2/geneoverlap_19_down.csv")
+
+##56
+write.csv(geneoverlap_56_up, file = "/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/overlap_limma_deseq2/geneoverlap_56_up.csv")
+
+write.csv(geneoverlap_56_down, file = "/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/overlap_limma_deseq2/geneoverlap_56_down.csv")
+
+```
+
+###FEA '39  
+```{r}
+fea_lmdsq2_39 <- mouseenrich(geneoverlap_39_up, geneoverlap_39_down, 30)
+
+dim(fea_lmdsq2_39$upregulated)
+dim(fea_lmdsq2_39$downregulated)
+```
+
+```{r}
+barplot(fea_lmdsq2_39$topcompared)
+
+ggplot(fea_lmdsq2_39$topcompared, aes(x=intersection_size, y=term_name,  fill = recall)) + 
+    geom_bar( stat = "identity") + 
+    scale_fill_continuous(type = "viridis") + 
+    labs(x = "Number of Genes Matched to Term", y = "Functional Terms", title = "Top Enriched Terms") + 
+    theme_minimal(base_size = 8)
+```
+
+###FEA '19  
+```{r}
+fea_lmdsq2_19 <- mouseenrich(geneoverlap_19_up, geneoverlap_19_down, 30)
+
+dim(fea_lmdsq2_19$upregulated)
+dim(fea_lmdsq2_19$downregulated)
+```
+
+###FEA '56  
+```{r}
+fea_lmdsq2_56 <- mouseenrich(geneoverlap_56_up, geneoverlap_56_down, 30)
+
+dim(fea_lmdsq2_56$upregulated)
+dim(fea_lmdsq2_56$downregulated)
+```
+
+###Save gprofiler results
+```{r eval=FALSE, include=FALSE}
+#fea 39
+fea_lmdeseq2_overlap_39_upterms <- apply(fea_lmdsq2_39$upregulated, 2, as.character)
+write.csv(fea_lmdeseq2_overlap_39_upterms, file = "./res/fea/fea_lmdeseq2_overlap_39_upterms.csv")
+
+fea_lmdeseq2_overlap_39_downterms <- apply(fea_lmdsq2_39$downregulated, 2, as.character)
+write.csv(fea_lmdeseq2_overlap_39_downterms, file = "./res/fea/fea_lmdeseq2_overlap_39_downterms.csv")
+
+##fea_lmdeseq2_overlap_56
+fea_lmdeseq2_overlap_56_upterms <- apply(fea_lmdsq2_56$upregulated, 2, as.character)
+write.csv(fea_lmdeseq2_overlap_56_upterms, file = "./res/fea/fea_lmdeseq2_overlap_56_upterms.csv")
+
+fea_lmdeseq2_overlap_56_downterms <- apply(fea_lmdsq2_56$downregulated, 2, as.character)
+write.csv(fea_lmdeseq2_overlap_56_downterms, file = "./res/fea/fea_lmdeseq2_overlap_56_downterms.csv")
+
+##fea_lmdeseq2_overlap_19
+fea_lmdeseq2_overlap_19_upterms <- apply(fea_lmdsq2_19$upregulated, 2, as.character)
+write.csv(fea_lmdeseq2_overlap_19_upterms, file = "./res/fea/fea_lmdeseq2_overlap_19_upterms.csv")
+
+fea_lmdeseq2_overlap_19_downterms <- apply(fea_lmdsq2_19$downregulated, 2, as.character)
+write.csv(fea_lmdeseq2_overlap_19_downterms, file = "./res/fea/fea_lmdeseq2_overlap_19_downterms.csv")
+```
+
+### clusterProfiler  
+Following GO classification from the (vignette)[https://yulab-smu.top/biomedical-knowledge-mining-book/clusterprofiler-go.html]  
+##### Toy data
+```{r eval=FALSE, include=FALSE}
+data(geneList, package = "DOSE")
+
+gene <- names(geneList)[abs(geneList) > 2]
+
+ggo <- groupGO(gene     = gene,
+               OrgDb    = org.Hs.eg.db,
+               ont      = "CC",
+               level    = 3,
+               readable = TRUE)
+
+head(ggo)
+
+###ORA
+ego <- enrichGO(gene          = gene,
+                universe      = names(geneList),
+                OrgDb         = org.Hs.eg.db,
+                ont           = "CC",
+                pAdjustMethod = "BH",
+                pvalueCutoff  = 0.01,
+                qvalueCutoff  = 0.05,
+        readable      = TRUE)
+head(ego)
+
+#Any gene ID type that is supported in OrgDb can be directly used in GO analyses. Users need to specify the keyType parameter to specify the input gene ID type. 
+gene.df <- bitr(gene, fromType = "ENTREZID",
+        toType = c("ENSEMBL", "SYMBOL"),
+        OrgDb = org.Hs.eg.db)
+
+ego2 <- enrichGO(gene         = gene.df$ENSEMBL,
+                OrgDb         = org.Hs.eg.db,
+                keyType       = 'ENSEMBL',
+                ont           = "CC",
+                pAdjustMethod = "BH",
+                pvalueCutoff  = 0.01,
+                qvalueCutoff  = 0.05)
+head(ego2, 3)      
+
+
+###GSEA
+ego3 <- gseGO(geneList     = geneList,
+              OrgDb        = org.Hs.eg.db,
+              ont          = "CC",
+              minGSSize    = 100,
+              maxGSSize    = 500,
+              pvalueCutoff = 0.05,
+              verbose      = FALSE)              
+
+goplot(ego)
+```
+
+15.5 Tree plot
+The treeplot() function performs hierarchical clustering of enriched terms. It relies on the pairwise similarities of the enriched terms calculated by the pairwise_termsim() function, which by default using Jaccard’s similarity index (JC). Users can also use semantic similarity values if it is supported (e.g., GO, DO and MeSH).
+
+The default agglomeration method in treeplot() is ward.D and users can specify other methods via the hclust_method parameter (e.g., ‘average’, ‘complete’, ‘median’, ‘centroid’, etc., see also the document of the hclust() function). The treeplot() function will cut the tree into several subtrees (specify by the nCluster parameter (default is 5)) and labels subtrees using high-frequency words. This will reduce the complexity of the enriched result and improve user interpretation ability.
+```{r eval=FALSE, include=FALSE}
+library(DOSE)
+library(enrichplot)
+library(ggnewscale)
+data(geneList)
+de <- names(geneList)[abs(geneList) > 2]
+
+edo <- enrichDGN(de)
+
+## convert gene ID to Symbol
+edox <- setReadable(edo, 'org.Hs.eg.db', 'ENTREZID')
+
+edox2 <- pairwise_termsim(edox)
+p1 <- treeplot(edox2)
+p2 <- treeplot(edox2, hclust_method = "average")
+a <- aplot::plot_list(p1, p2, tag_levels='A', output = "patchwork")
+a
+```
+
+
+##### cProfiler '39 overlaps
+```{r eval=FALSE, include=FALSE}
+#GO profile at a specific level
+groupedgo_39 <- groupGO(gene     = as.character(geneoverlap_39_up$entrezgene_id),
+               OrgDb    = org.Hs.eg.db,
+               keyType = "ENTREZID",
+               ont      = "BP",
+               level    = 3,
+               readable = TRUE)
+
+head(groupedgo)
+
+###ORA
+ora_39 <- enrichGO(gene = as.character(geneoverlap_39_up$entrezgene_id),
+                OrgDb = org.Hs.eg.db,
+                keyType = "ENTREZID",
+                ont = "all", ##Can you "all" for all three! can then 'pool' all 3
+                pAdjustMethod = "BH",
+                pvalueCutoff  = 0.05,
+                qvalueCutoff  = 0.05,
+        readable      = TRUE, pool = TRUE)
+head(ora_39)
+
+
+###GSEA
+gsea_39 <- gseGO(geneList = as.character(geneoverlap_39_up$entrezgene_id),
+              OrgDb = org.Hs.eg.db,
+              keyType = "ENTREZID",
+              ont = "BP",
+              minGSSize = 10,
+              maxGSSize = 500,
+              pvalueCutoff = 0.05,
+              verbose      = FALSE)              
+
+goplot(ora_39)
+```
+
+Tree plot
+```{r eval=FALSE, include=FALSE}
+#semdata to compare for similarities
+#do once
+hsGO <- godata('org.Hs.eg.db', ont="BP")
+
+##############3
+#enrichment NCG categories with FDR control
+disgen_39 <- enrichDGN(as.character(geneoverlap_39_up$entrezgene_id))
+
+## convert gene ID to Symbol
+edox <- setReadable(disgen_39, 'org.Hs.eg.db', 'ENTREZID')
+
+#semantic similarity calculations, look at methods (default JC), might need to add semData, first use godata() from GOSemSim package
+edox2_39 <- pairwise_termsim(edox, semData = hsGO)
+#functional grouping tree diagram
+p1_39 <- treeplot(edox2_39, nCluster = 4)
+p2_39 <- treeplot(edox2_39, hclust_method = "complete", nCluster = 4)
+a <- aplot::plot_list(p1_39, p2_39, tag_levels='A', output = "patchwork")
+a
+#################3
+
+#ora_tree_39 <- setReadable(ora_39, 'org.Hs.eg.db', 'ENTREZID')
+ora_tree_39 <- pairwise_termsim(ora_39)
+p1_39 <- treeplot(ora_tree_39)
+p2_39 <- treeplot(ora_tree_39, hclust_method = "complete")
+a <- aplot::plot_list(p1_39, p2_39, tag_levels='A', output = "patchwork")
+a
+
+```
+
+Overlapped upregulated '39 LIMMA/DESeq2 enrichment
+```{r}
+ora_39_up <- fea_ora(geneoverlap_39_up)
+
+goplot(ora_39_up)
+```
+
+
+```{r}
+treeplot_39_up <- tplot(ora_39_up, 5, "complete")
+treeplot_39_up
+
+```
+
+Overlapped downregulated '39 LIMMA/DESeq2 enrichment
+```{r}
+ora_39_down <- fea_ora(geneoverlap_39_down)
+
+treeplot_39_down <- tplot(ora_39_down, 5, "complete")
+treeplot_39_down
+
+```
+
+
+##### cProfiler '19 overlaps
+```{r eval=FALSE, include=FALSE}
+#GO profile at a specific level
+#groupedgo_19 <- groupGO(gene     = as.character(geneoverlap_19_up$entrezgene_id),
+#               OrgDb    = org.Hs.eg.db,
+#               keyType = "ENTREZID",
+#               ont      = "BP",
+#               level    = 3,
+#               readable = TRUE)
+
+#head(groupedgo)
+
+###ORA
+ora_19 <- enrichGO(gene = as.character(geneoverlap_19_up$entrezgene_id),
+                OrgDb = org.Hs.eg.db,
+                keyType = "ENTREZID",
+                ont = "BP",
+                pAdjustMethod = "BH",
+                pvalueCutoff  = 0.01,
+                qvalueCutoff  = 0.05,
+        readable      = TRUE)
+head(ora_19)
+```
+
+'19 treeplot - upregulated
+```{r}
+ora_19_up <- fea_ora(geneoverlap_19_up)
+
+treeplot_19_up <- tplot(ora_19_up, 5, "complete")
+treeplot_19_up
+```
+
+Overlapped downregulated '19 LIMMA/DESeq2 enrichment
+```{r}
+ora_19_down <- fea_ora(geneoverlap_19_down)
+
+treeplot_19_down <- tplot(ora_19_down, 5, "complete")
+treeplot_19_down
+
+```
+
+##### cProfiler '56 overlaps
+```{r eval=FALSE, include=FALSE}
+#GO profile at a specific level
+groupedgo <- groupGO(gene     = as.character(geneoverlap_56_up$entrezgene_id),
+               OrgDb    = org.Hs.eg.db,
+               keyType = "ENTREZID",
+               ont      = "BP",
+               level    = 3,
+               readable = TRUE)
+
+head(groupedgo)
+
+###ORA
+ora_56 <- enrichGO(gene = as.character(geneoverlap_56_up$entrezgene_id),
+                OrgDb = org.Hs.eg.db,
+                keyType = "ENTREZID",
+                ont = "BP",
+                pAdjustMethod = "BH",
+                pvalueCutoff  = 0.01,
+                qvalueCutoff  = 0.05,
+        readable      = TRUE)
+head(ora_56)
+
+
+###GSEA
+gsea_56 <- gseGO(geneList = geneList,
+              OrgDb = org.Hs.eg.db,
+              keyType = "ENTREZID",
+              ont = "BP",
+              minGSSize = 10,
+              maxGSSize = 500,
+              pvalueCutoff = 0.05,
+              verbose      = FALSE)              
+
+goplot(ora_56)
+```
+
+'56 treeplot upregulated
+```{r}
+ora_56_up <- fea_ora(geneoverlap_56_up)
+
+treeplot_56_up <- tplot(ora_56_up, 5, "complete")
+treeplot_56_up
+
+```
+
+'56 treeplot downregulated
+```{r}
+ora_56_down <- fea_ora(geneoverlap_56_down)
+
+treeplot_56_down <- tplot(ora_56_down, 5, "complete")
+treeplot_56_down
+
+```
+
+#####Save res
+FEA res from clusterProfiler
+```{r}
+
+
+```
+
+Treeplots from clusterProfiler
+```{r}
+
+
+```
+
+
+###Genes Specific to Methods
+Analysis of genes only picked up as DE in LIMMA OR DEseq2 but not both
+
+##### LIMMA '39
+```{r}
+lmunique_39_up <- dplyr::anti_join(lm_39_up, dsq2_39_UP, by = "Mouse.gene.stable.ID")
+
+lmunique_39_down <- dplyr::anti_join(lm_39_down, dsq2_39_DOWN, by = "Mouse.gene.stable.ID")
+```
+
+'39 LIMMA unique enrichment
+```{r}
+ora_lmunique_39_up <- fea_ora(lmunique_39_up)
+
+treeplot_lmunique_39_up <- tplot(ora_lmunique_39_up, 5, "average")
+treeplot_lmunique_39_up
+
+#goplot(ora_lmunique_39_up)
+```
+
+Overlapped downregulated '39 LIMMA/DESeq2 enrichment
+```{r}
+ora_lmunique_39_down <- fea_ora(lmunique_39_down)
+
+treeplot_39_down <- tplot(ora_lmunique_39_down, 5, "complete")
+treeplot_39_down
+
+```
+
+##### DESeq2 '39
+```{r}
+dsq2unique_39_up <- dplyr::anti_join(dsq2_39_UP, lm_39_up, by = "Mouse.gene.stable.ID")
+
+dsq2unique_39_down <- dplyr::anti_join(dsq2_39_DOWN, lm_39_down, by = "Mouse.gene.stable.ID")
+```
+
+'39 DESeq2-specific up enrichment
+```{r}
+ora_dsq2unique_39_up <- dsq2_fea_ora(dsq2unique_39_up)
+
+treeplot_dsq2unique_39_up <- tplot(ora_dsq2unique_39_up, 5, "complete")
+treeplot_dsq2unique_39_up
+
+#up_fea <- gost(dsq2unique_39_up$, multi_query = FALSE, correction_method = "bonferroni", evcodes = TRUE)
+```
+
+'39 DESeq2-specific down enrichment
+```{r}
+ora_dsq2unique_39_down <- dsq2_fea_ora(dsq2unique_39_down)
+
+#no results? 
+gprofiler_dsq2unique_39_down <- gost(dsq2unique_39_down$Mouse.gene.stable.ID, organism = "mmusculus")
+
+treeplot_dsq2unique_39_down <- tplot(ora_dsq2unique_39_down, 5, "complete")
+treeplot_dsq2unique_39_down
+
+```
+
+
+##### LIMMA '19
+```{r}
+lmunique_19_up <- dplyr::anti_join(lm_19_up, dsq2_19_UP, by = "Mouse.gene.stable.ID")
+
+lmunique_19_down <- dplyr::anti_join(lm_19_down, dsq2_19_DOWN, by = "Mouse.gene.stable.ID")
+```
+
+'19 LIMMA unique enrichment
+```{r}
+ora_lmunique_19_up <- fea_ora(lmunique_19_up)
+
+treeplot_lmunique_19_up <- tplot(ora_lmunique_19_up, 5, "average")
+treeplot_lmunique_19_up
+
+```
+
+Overlapped downregulated '19 LIMMA/DESeq2 enrichment
+```{r}
+ora_lmunique_19_down <- fea_ora(lmunique_19_down)
+
+# tons of mitochondrial terms ...
+
+treeplot_19_down <- tplot(ora_lmunique_19_down, 5, "average")
+treeplot_19_down
+
+```
+
+##### DESeq2 '19
+```{r}
+dsq2unique_19_up <- dplyr::anti_join(dsq2_19_UP, lm_19_up, by = "Mouse.gene.stable.ID")
+
+dsq2unique_19_down <- dplyr::anti_join(dsq2_19_DOWN, lm_19_down, by = "Mouse.gene.stable.ID")
+```
+
+'19 DESeq2-specific up enrichment
+```{r}
+ora_dsq2unique_19_up <- dsq2_fea_ora(dsq2unique_19_up)
+
+treeplot_dsq2unique_19_up <- tplot(ora_dsq2unique_19_up, 5, "complete")
+treeplot_dsq2unique_19_up
+
+```
+
+'19 DESeq2-specific down enrichment
+```{r}
+ora_dsq2unique_19_down <- dsq2_fea_ora(dsq2unique_19_down)
+
+treeplot_dsq2unique_19_down <- tplot(ora_dsq2unique_19_down, 5, "complete")
+treeplot_dsq2unique_19_down
+
+```
+
+
+
+##### LIMMA '56
+```{r}
+lmunique_56_up <- dplyr::anti_join(lm_56_up, dsq2_56_UP, by = "Mouse.gene.stable.ID")
+
+lmunique_56_down <- dplyr::anti_join(lm_56_down, dsq2_56_DOWN, by = "Mouse.gene.stable.ID")
+```
+
+'56 LIMMA unique enrichment
+```{r}
+ora_lmunique_56_up <- fea_ora(lmunique_56_up)
+
+treeplot_lmunique_56_up <- tplot(ora_lmunique_56_up, 5, "complete")
+treeplot_lmunique_56_up
+
+```
+
+Overlapped downregulated '56 LIMMA/DESeq2 enrichment
+```{r}
+ora_lmunique_56_down <- fea_ora(lmunique_56_down)
+
+treeplot_56_down <- tplot(ora_lmunique_56_down, 5, "complete")
+treeplot_56_down
+
+```
+
+##### DESeq2 '56
+```{r}
+dsq2unique_56_up <- dplyr::anti_join(dsq2_56_UP, lm_56_up, by = "Mouse.gene.stable.ID")
+
+dsq2unique_56_down <- dplyr::anti_join(dsq2_56_DOWN, lm_56_down, by = "Mouse.gene.stable.ID")
+```
+
+'56 DESeq2-specific up enrichment
+```{r eval=FALSE, include=FALSE}
+ora_dsq2unique_56_up <- dsq2_fea_ora(dsq2unique_56_up)
+
+
+treeplot_dsq2unique_56_up <- tplot(ora_dsq2unique_56_up, 5, "complete")
+treeplot_dsq2unique_56_up
+
+```
+
+'56 DESeq2-specific down enrichment
+```{r eval=FALSE, include=FALSE}
+ora_dsq2unique_56_down <- dsq2_fea_ora(dsq2unique_56_down)
+
+treeplot_dsq2unique_56_down <- tplot(ora_dsq2unique_56_down, 5, "complete")
+treeplot_dsq2unique_56_down
+
+```
+
+#####Save res
+LIMMA-unique DEGs
+```{r eval=FALSE, include=FALSE}
+#'39
+write.csv(lmunique_39_up, file = "/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/unique_limma_deseq2/lmunique_39_up.csv")
+
+write.csv(lmunique_39_down, file = "/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/unique_limma_deseq2/lmunique_39_down.csv")
+
+#'19
+write.csv(lmunique_19_up, file = "/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/unique_limma_deseq2/lmunique_19_up.csv")
+
+write.csv(lmunique_19_down, file = "/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/unique_limma_deseq2/lmunique_19_down.csv")
+
+#'56
+write.csv(lmunique_56_up, file = "/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/unique_limma_deseq2/lmunique_56_up.csv")
+
+write.csv(lmunique_56_down, file = "/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/unique_limma_deseq2/lmunique_56_down.csv")
+```
+
+FEA res from clusterProfiler
+```{r}
+##'39
+write.csv(ora_lmunique_39_up@result, file = "/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/unique_limma_deseq2/ora_lmunique_39_up.csv")
+
+write.csv(ora_lmunique_39_down@result, file = "/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/unique_limma_deseq2/ora_lmunique_39_down.csv")
+
+##'19
+write.csv(ora_lmunique_19_up@result, file = "/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/unique_limma_deseq2/ora_lmunique_19_up.csv")
+
+write.csv(ora_lmunique_19_down@result, file = "/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/unique_limma_deseq2/ora_lmunique_19_down.csv")
+
+##'56
+write.csv(ora_lmunique_56_up@result, file = "/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/unique_limma_deseq2/ora_lmunique_56_up.csv")
+
+write.csv(ora_lmunique_56_down@result, file = "/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/unique_limma_deseq2/ora_lmunique_56_down.csv")
+
+```
+
+Treeplots from clusterProfiler
+```{r}
+ggsave("/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/unique_limma_deseq2/treeplot_lmunique_39_up.pdf", treeplot_lmunique_39_up)
+
+```
+
+### Compare signature-genes  
+Load in top LINCS up and down DEGs DESeq2  
+```{r}
+hom_degs_UP <- read.csv("/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/deseq2_outputs/GSE149739_nfpipeline_degs_UP_220421.csv")
+
+hom_degs_DOWN <- read.csv("/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/deseq2_outputs/GSE149739_nfpipeline_degs_DOWN_220421.csv")
+
+hom_degs_19_UP <- read.csv("/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/deseq2_outputs/GSE134719_degs_UP_220421.csv")
+
+hom_degs_19_DOWN <- read.csv("/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/deseq2_outputs/GSE134719_degs_DOWN_220421.csv")
+
+hom_degs_56_UP <- read.csv("/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/deseq2_outputs/GSE69556_degs_UP_220421.csv")
+
+hom_degs_56_DOWN <- read.csv("/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/deseq2_outputs/GSE69556_degs_DOWN_220421.csv")
+```
+
+Load in top LINCS up and down DEGs LIMMA
+```{r}
+lincs_ss_UP <- read.csv("/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/limma_outputs//GSE149739_LIMMA_lincs_UP_220512.csv")
+
+lincs_ss_DOWN <- read.csv("/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/limma_outputs/GSE149739_LIMMA_lincs_DOWN_220512.csv")
+
+lincs_ss_19_UP <- read.csv("/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/limma_outputs/LIMMA_19_lincs_UP_220516.csv")
+
+lincs_ss_19_DOWN <- read.csv("/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/limma_outputs/LIMMA_19_lincs_DOWN_220516.csv")
+
+lincs_ss_56_UP <- read.csv("/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/limma_outputs/LIMMA_56_lincs_UP_220517.csv")
+
+lincs_ss_56_DOWN <- read.csv("/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/limma_outputs/LIMMA_56_lincs_DOWN_220517.csv")
+```
+
+Comparison of overlapped genes in 100-gene signatures 
+```{r}
+lmdsq2_ss_up_overlap <- inner_join(hom_degs_UP, lincs_ss_UP, by = "entrezgene_id")
+dim(lmdsq2_ss_up_overlap) #19
+lmdsq2_ss_down_overlap <- inner_join(hom_degs_DOWN, lincs_ss_DOWN, by = "entrezgene_id")
+dim(lmdsq2_ss_down_overlap) #12
+
+lmdsq2_ss_19_up_overlap <- inner_join(hom_degs_19_UP, lincs_ss_19_UP, by = "entrezgene_id")
+dim(lmdsq2_ss_19_up_overlap) #78
+lmdsq2_ss_19_down_overlap <- inner_join(hom_degs_19_DOWN, lincs_ss_19_DOWN, by = "entrezgene_id")
+dim(lmdsq2_ss_19_down_overlap) #94
+
+lmdsq2_ss_56_up_overlap <- inner_join(hom_degs_56_UP, lincs_ss_56_UP, by = "entrezgene_id")
+dim(lmdsq2_ss_56_up_overlap) #2
+lmdsq2_ss_56_down_overlap <- inner_join(hom_degs_56_DOWN, lincs_ss_56_DOWN, by = "entrezgene_id")
+dim(lmdsq2_ss_56_down_overlap) #0
+
+```
+
+
+### DESeq2-Only  
+Read in
+```{r}
+dsq2_39_UP <- read.csv("./res/deseq2_outputs/GSE149739_nfpipeline_mus_degs_UP_220421.csv")
+
+dsq2_39_DOWN <- read.csv("./res/deseq2_outputs/GSE149739_nfpipeline_mus_degs_DOWN_220421.csv")
+
+```
+
+
+Full DESeq2 results ClusterProfiler
+```{r}
+#Mouse.gene.stable.ID
+dsq2_39_up_ora <- dsq2_fea_ora(dsq2_39_UP, backgroundgenes = backgroundgenes$X)
+
+#tplot(dsq2_39_up_ora, 5, "average")
+
+ora_sim <- pairwise_termsim(dsq2_39_up_ora)
+plot <- treeplot(ora_sim, hclust_method = "average", nCluster = 6) 
+plot
+```
+
+downregulated clusterprofiler
+```{r}
+
+dsq2_39_down_ora <- dsq2_fea_ora(dsq2_39_DOWN, backgroundgenes = backgroundgenes$X)
+#no results
+ora_sim2 <- pairwise_termsim(dsq2_39_down_ora)
+treeplot(ora_sim2, hclust_method = "average", nCluster = 6) 
+
+```
+
+LINCS 100 only
+```{r eval=FALSE, include=FALSE}
+lincs_ora_39_up <- dsq2_fea_ora(hom_degs_UP, backgroundgenes = backgroundgenes$X)
+
+tplot(lincs_ora_39_up, 5, "average")
+```
+
+gprofiler and barplot
+```{r}
+gprofiler_39 <- mouseenrich(dsq2_39_UP, dsq2_39_DOWN, 20)
+
+
+barplot(dplyr::slice_max(gprofiler_39$upregulated, order_by = recall, n = 30)) + theme(plot.title = element_text(size = 20), axis.text.y = element_text(size = 12), axis.title.y =element_text(size = 17), axis.text.x = element_text(size = 7), axis.title.x =element_text(size = 17), )
+
+
+```
+bubbleplot
+```{r}
+gprofiler_39_top <- dplyr::slice_min(gprofiler_39$topcompared, order_by = p_value, n = 20)
+gprofiler_39_top$term_name <- stringr::str_wrap(gprofiler_39_top$term_name, width = 50)
+
+bubble <- ggplot(gprofiler_39_top, aes(x=direction, y=term_name, size = intersection_size, fill = p_value)) +
+  geom_point(alpha=0.7, shape = 21) +
+  scale_size(range = c(2, 10), name = "# Genes Matched to Term") + 
+  #scale_fill_distiller(palette = "Purples", direction = -1) + 
+  scale_colour_brewer(palette="BuPu") +
+  labs(x = "Differential Expression Direction", y = "Functional Enrichment Terms", title = "Top Enriched Terms for Pkd2-KO Mice", fill = "P-Adjust")  + 
+  #geom_text(size = 7.5, fontface = "bold", aes(label = after_stat())) +#, plot.title = element_text(size = 25), axis.text.y = element_text(size = 12), axis.title.y =element_text(size = 20), axis.text.x = element_text(size = 7), axis.title.x =element_text(size = 17), ) +
+  theme(axis.text.y = element_text(size = 10)) +
+  theme_minimal(base_size = 8) 
+
+bubble
+```
+
+
+```{r}
+bubble <- ggplot(dsq2_39_up_ora@result, aes(x=direction, y=Description, size = Count, fill = pvalue)) +
+  geom_point(alpha=0.7, shape = 21) +
+  scale_size(range = c(2, 10), name = "# Genes Matched to Term") + 
+  #scale_fill_distiller(palette = "Purples", direction = -1) + 
+  scale_colour_brewer(palette="BuPu") +
+  labs(x = "Differential Expression Direction", y = "Functional Enrichment Terms", title = "Top Enriched Terms for Mouse PKD-KO", fill = "P-Adjust")  + 
+  #geom_text(size = 7.5, fontface = "bold", aes(label = after_stat())) +#, plot.title = element_text(size = 25), axis.text.y = element_text(size = 12), axis.title.y =element_text(size = 20), axis.text.x = element_text(size = 7), axis.title.x =element_text(size = 17), ) +
+  theme(axis.text.y = element_text(size = 10)) +
+  theme_minimal(base_size = 8) 
+
+bubble
+
+
+```
+
+```{r eval=FALSE, include=FALSE}
+ggsave()
+
+```
+
+downregulated
+```{r eval=FALSE, include=FALSE}
+barplot(dplyr::slice_max(gprofiler_39$downregulated, order_by = recall, n = 20))
+```
+
+
+### GSEA  
+Use full list from DEA with ranked genes for GSEA  
+Read in data
+```{r eval=FALSE, include=FALSE}
+fullres_39 <- read.csv("/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/deseq2_outputs/deseq2_fullres_39.csv")
+
+fullres_19 <- read.csv("/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/deseq2_outputs/deseq2_fullres_19.csv")
+
+fullres_56 <- read.csv("/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/deseq2_outputs/deseq2_fullres_56.csv")
+```
+
+gene list prep
+```{r eval=FALSE, include=FALSE}
+#entrez conversion
+#conversion table
+#fullres_39 <- merge(fullres_39, conversion, by.x = "X", by.y = "gene_id")
+
+mouse <- biomaRt::useEnsembl("ensembl", dataset = "mmusculus_gene_ensembl", mirror = "useast")
+genes <- biomaRt::getBM(filters = "ensembl_gene_id", attributes = c("ensembl_gene_id","entrezgene_id"), values = fullres_39$X, mart = mouse)
+#write.csv(genes, file = "./data/mouse_ens_to_entrez.csv")
+fullres_39 <- merge(fullres_39, genes, by.x = "X", by.y = "ensembl_gene_id")
+fullres_39 <- tidyr::drop_na(fullres_39, log2FoldChange)
+
+  
+fullres_39 <- dplyr::distinct(fullres_39, entrezgene_id, .keep_all = TRUE)
+#conv_cts <- tibble:::column_to_rownames(conv_cts, "entrezgene_id")
+
+## feature 1: numeric vector
+geneList = fullres_39$log2FoldChange
+
+## feature 2: named vector
+names(geneList) = as.character(fullres_39$entrezgene_id)
+
+## feature 3: decreasing orde
+geneList = sort(geneList, decreasing = TRUE)
+
+```
+
+
+
+```{r eval=FALSE, include=FALSE}
+gsea_39 <- gseGO(geneList = geneList, OrgDb = org.Mm.eg.db, ont = "MF")
+
+```
+
+
+```{r eval=FALSE, include=FALSE}
+library(enrichplot)
+pw_39 <- pairwise_termsim(gsea_39)
+treeplot(pw_39)
+
+enrichplot::barplot(gsea_39,showCategory=20)
+
+```
+
+#### Versions  
+```{r}
+R.Version()
+```
+
+
+```{r}
+installed.packages()[names(sessionInfo()$otherPkgs), "Version"]
+```
+  

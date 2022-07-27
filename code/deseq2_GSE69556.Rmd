@@ -1,0 +1,233 @@
+---
+title: "DESeq2 GSE69556"
+author: "Lizzy Ramsey"
+date: "4/05/2022"
+output:
+    html_document:
+      toc: true
+      toc_float: true
+      toc_depth: 5
+
+---
+
+```{r setup, include=FALSE}
+#filepath for code and data
+knitr::opts_knit$set(root.dir = "/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing")
+```
+### Purpose  
+This markdown uses nf-core for RNAseq alignment and DESeq2 DDS output  
+Dataset: [GSE69556](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE69556)  
+Processed data filepath: /data/project/lasseigne_lab/Lizzy/PKD_drugrepurposing_220324/  
+
+#### Load in libraries
+```{r message=FALSE, warning = FALSE}
+library(DESeq2)
+library(stringr)
+library(apeglm)
+library(pheatmap)
+library(dplyr)
+library(ggrepel)
+library(signatureSearch)
+library(ExperimentHub); library(rhdf5)
+library(biomaRt)
+```
+
+#### Custom functions  
+
+__salmon2dds__: Salmon merged gene counts from nf-core RNAseq pipeline (results/star_salmon/salmon.merged.gene_counts.rds) and SRA metadata as inputs, function data wrangles and runs DESeq2, resulting in a dds object with design by genotype    
+
+```{r}
+#Salmon merged gene counts to dds results
+salmon2dds_56 <- function(counts, metadata) {
+  #count matrix in the sumarized experiment object
+  cts <- counts@assays@data@listData[["counts"]]
+  #round, salmon outputs have decimals
+  cts <- round(cts)
+  colnames(cts) <- str_sub(colnames(cts), 1, -2) ##ALTERATION just for GSE69556
+  #remove version numbers from transcript id's
+  rownames(cts) <- gsub("\\..*", "", rownames(cts))
+  
+  #remove all non-alphanumeric characters from Genotype
+  metadata$Genotype <- str_replace_all(metadata$Genotype, "[^[:alnum:]]", "")
+  #contrasts need to be factor levels
+  metadata$Genotype <- as.factor(metadata$Genotype)
+#print(rownames(metadata))
+#print(colnames(cts))
+  dds <- DESeqDataSetFromMatrix(cts, metadata, design = ~ Genotype)
+return(dds)
+}
+```
+
+__uplfc__ & __downlfc__: Formats deseq2 res() output to select for upregulated and downregulated genes by log2 fold change threshold > 2 and < -2.  
+
+```{r}
+uplfc <- function(res){
+  #NAs removed first
+  res <- res[!is.na(res$log2FoldChange),]
+  #p-adjusted value cutoff 0.05 and log2fc greater than 2.0 and less than -2.0
+  upfc <- res[res$log2FoldChange > 2.0,]
+
+  #pull just logfold change values from DESeqResults object and name the values by associated gene
+  up <- upfc$log2FoldChange
+  #names(up) <- rownames(upfc)
+  up <- cbind(Mouse.gene.stable.ID = rownames(upfc), UpLFC = up)
+  
+return(as.data.frame(up))
+}
+
+downlfc <- function(res){
+  #NAs removed first
+  res <- res[!is.na(res$log2FoldChange),]
+  #p-adjusted value cutoff 0.05 and log2fc greater than 2.0 and less than -2.0
+  downfc <- res[res$log2FoldChange < -2.0,]
+
+  #pull just logfold change values from DESeqResults object and name the values by associated gene
+  down <- downfc$log2FoldChange
+  #names(down) <- rownames(downfc)
+  down <- cbind(Mouse.gene.stable.ID = rownames(downfc), DownLFC = down)
+  
+return(as.data.frame(down))
+}
+```
+
+__convertMouseGeneList__: Uses Ensembl human GRCh38.p13 and Ensembl mouse C57BL_6NJ_v1 genes and to find human orthologous genes (more details [here](https://docs.google.com/document/d/1jU3EOVaZXJMzxwH9SsssHoArz8pMdcfW8MSr8hbeE4Q/edit) ), and biomart to convert to human entrez  
+
+```{r}
+convertMouseGeneList <- function(lfc){
+  #read in mose to human ens annotation
+  ens_annot <- read.csv("/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/data/annot_ens_humanmouse.csv")
+  #conversion table
+  ens_mouse2human <- merge(lfc, ens_annot, by = "Mouse.gene.stable.ID")
+  #biomart to conver human ens to human entrez
+  human <- useEnsembl("ensembl", dataset = "hsapiens_gene_ensembl", mirror = "useast")
+  genes <- getBM(filters = "ensembl_gene_id", attributes = c("ensembl_gene_id","entrezgene_id"), values = ens_mouse2human$Gene.stable.ID, mart = human)
+  
+  names(ens_mouse2human) <- c("mouse_ensembl_gene_id", "LFC", "ensembl_gene_id")
+  conv_tbl <- merge(genes, ens_mouse2human, by = "ensembl_gene_id")
+
+return(conv_tbl)
+}
+```
+
+__toplincs__: Uses uplfc and downlfc outputs to then find top 100 genes that are available in LINCS (best input for signature reversion)  
+```{r message=FALSE}
+eh <- ExperimentHub()
+lincs <- eh[["EH3226"]]; lincs_expr <- eh[["EH3227"]]
+
+lincs_genes <- rhdf5:::h5read(lincs, "rownames", drop=TRUE)
+
+toplincs <- function(conv_tbl, direction){
+  lincs_genes <- cbind(entrezgene_id = lincs_genes)
+  conv_tbl <- merge(conv_tbl, lincs_genes, by = "entrezgene_id")
+  conv_tbl$LFC <- as.numeric(conv_tbl$LFC)
+  if(direction == "up"){
+  top100 <- slice_max(conv_tbl, n = 100, order_by = LFC)
+  }
+  else{
+    top100 <- slice_min(conv_tbl, n = 100, order_by = LFC)
+  }
+return(top100)
+}
+```
+
+__lincsGenes__: Wraps convertMouseGeneList to map orthologs, and toplincs to filter for LINCS-available genes 
+```{r}
+lincsGenes <- function(lfc, direction){
+  conv_tbl <- convertMouseGeneList(lfc)
+  top100 <- toplincs(conv_tbl, direction = direction)
+  return(top100)
+}
+```
+
+### Read in data  
+__Filepath to fastq's and metadata__: /data/project/lasseigne_lab/DATASET_dir/pkdDrugRepurposing/pkd2/GSE69556/SraRunTable.txt  
+__Filepath to counts data__: /data/project/lasseigne_lab/Lizzy/PKD_drugrepurposing_220324/GSE69556_nfcore/results/star_salmon/salmon.merged.gene_counts.rds  
+```{r}
+cts_56 <- readRDS("~/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/data/GSE69556_salmonmerged_gene_counts.rds")
+#cts_56 <- GSE69556_salmonmerged_gene_counts
+#colnames(cts_56) <- str_sub(colnames(cts_56), 1, -2)
+
+meta_56 <- read.csv("./data/GSE69556_metadata.txt", row.names = 1)
+```
+
+#### Run DDS
+```{r}
+dds_56 <- salmon2dds_56(cts_56, meta_56)
+str(dds_56)
+```
+
+#### Run DESeq2
+```{r}
+#relevel to make wildtype the reference instead of first alphabetical factor
+dds_56$Genotype <- relevel(dds_56$Genotype, ref = "wildtype")
+
+#run DESeq: estimates size factors, estimates dispersion, fits negative binomial GLM's and performs Wald stats
+dds_56 <- DESeq(dds_56) #can also look at setting replaceOutliers lower for dealing with outliers 
+```
+
+#### Results  
+
+```{r}
+#extract results table with log2 fold changes, p values and adjusted p values for desired coefficients
+res_56 <- results(dds_56, alpha = 0.05, contrast = c("Genotype", "Pkhd1CrePkd2FF", "wildtype"))
+
+```
+
+```{r eval=FALSE, include=FALSE}
+write.csv(res_56, file = "/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/deseq2_outputs/deseq2_fullres_56.csv")
+
+```
+
+
+LFC cutoffs
+```{r}
+#NAs removed  p-adjusted value cutoff 0.05 and log2fc greater than 2.0 and less than -2.0
+musdegs_56_UP <- uplfc(res_56)
+
+musdegs_56_DOWN <- downlfc(res_56)
+```
+
+Map to human entrez and filter by LINCS genes
+```{r}
+hom_56_UP <- lincsGenes(musdegs_56_UP, "up")
+
+hom_56_DOWN <-  lincsGenes(musdegs_56_DOWN, "down")
+```
+
+
+```{r eval=FALSE, include=FALSE}
+write.csv(hom_56_UP, file = "/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/deseq2_outputs/GSE69556_degs_UP_220421.csv")
+write.csv(hom_56_DOWN, file = "/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/deseq2_outputs/GSE69556_degs_DOWN_220421.csv")
+```
+
+
+Variance stabilized transformation  
+
+rlog() may be better to use for this dataset -- better for high count variance by sample (in this case, one sample has over 2x the reads compared to the others) and for smaller datasets "if you have many samples (e.g. 100s), the rlog function might take too long, and so the vst function will be a faster choice. The rlog and VST have similar properties, but the rlog requires fitting a shrinkage term for each sample and each gene which takes time. See the DESeq2 paper for more discussion on the differences (Love, Huber, and Anders 2014)."  
+```{r}
+rld_56 <- rlog(dds_56, blind = FALSE) 
+```
+
+
+#### Visualizations  
+
+PCA
+```{r}
+#regularized log transformation
+plotPCA(rld_56, intgroup=c("Genotype"))
+#label samples
+plotPCA(rld_56, intgroup=c("Genotype")) + geom_label_repel(aes(label = rld_56@colData@rownames), box.padding   = 0.15, label.padding = 0.15, point.padding = 0.3, segment.color = 'grey50') 
+```
+
+
+
+#### Versions  
+```{r}
+R.Version()
+```
+
+
+```{r}
+installed.packages()[names(sessionInfo()$otherPkgs), "Version"]
+```
+  
