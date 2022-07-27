@@ -23,9 +23,7 @@ library(ggalluvial)
 ```
 
 ### Purpose  
-Run signatureSearch on original (2021 aligned by Kasi using NBI_RNA-seq_pipeline) and newly aligned (nfcore RNAseq 3.6) and processed GSE149739 data  
-Code for up and down genes for new nfcore aligned: deseq2_GSE149739_nfalign.Rmd  
-Code for up and down genes for original NBI aligned: deseq2_GSE149739_2021align.Rmd  
+Run signatureSearch on GSE149739 data  
 
 ```{r message=FALSE, warning = FALSE}
 library(readr)
@@ -98,31 +96,26 @@ return(aplot)
 
 ```
 
+Group by MOA 
+```{r eval=FALSE, include=FALSE}
+moa_breakdown <- function(rhub_res){
+  moa_list <- rhub_res$MOA
+  moa_list <- stringr::str_split(moa_list, ",")
+  moa_unlist <- unlist(moa_list)
+
+  moa_df <- as.data.frame(moa_unlist)
+
+  moa_19 <- dplyr::summarise(group_by(moa_df, MOA = moa_unlist), MOA_Freq = length(moa_unlist))
+
+  top_moa <- dplyr::filter(moa_19, MOA_Freq > 1)
+  
+return(top_moa)
+}
+
+```
+
 
 ### GSE149739 (precystic dataset)
-
-Load in top up and down DEGs
-```{r}
-hom_origalign_degs_UP <- read_csv("/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/deseq2_outputs/GSE149739_origalign_degs_UP_220421.csv")
-
-hom_origalign_degs_DOWN <- read_csv("/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/deseq2_outputs/GSE149739_origalign_degs_DOWN_220421.csv")
-```
-
-Run signatureSearch, filter for kidney cell lines  
-```{r}
-gess_kidneycells_39_orig <- ssRun(upgenes = hom_origalign_degs_UP$entrezgene_id, downgenes = hom_origalign_degs_DOWN$entrezgene_id, cells = "kidney")
-```
-
-#### Visualize Top 20
-```{r}
-gess_res_vis(gess_kidneycells_39_orig, drugs = unique(gess_kidneycells_39_orig$pert)[1:20], col = "WTCS")
-```
-```{r}
-knitr::kable(gess_kidneycells_39_orig, col.names = colnames(gess_kidneycells_39_orig))
-
-```
-
-## GSE149739 nf-aligned  
 
 Load in top up and down DEGs  
 ```{r}
@@ -208,7 +201,6 @@ write.csv(gess_kidneycells_19, "./res/sigsearch_outputs/gess_kidneycells_19_2204
 ## Compare datasets  
 Dimensions  
 ```{r}
-dim(gess_kidneycells_39_orig)
 dim(gess_kidneycells_39)
 dim(gess_kidneycells_56)
 dim(gess_kidneycells_19)
@@ -216,20 +208,16 @@ dim(gess_kidneycells_19)
 
 Drug overlaps  
 ```{r}
-origalign_nfcore_overlap_39 <- dplyr::intersect(gess_kidneycells_39_orig$pert, gess_kidneycells_39$pert) 
-
 overlap_39_56 <- dplyr::intersect(gess_kidneycells_39$pert, gess_kidneycells_56$pert) 
 
 overlap_39_19 <- dplyr::intersect(gess_kidneycells_39$pert, gess_kidneycells_19$pert) 
 
 overlap_56_19 <- dplyr::intersect(gess_kidneycells_56$pert, gess_kidneycells_19$pert) 
 
-overlap_all <- dplyr::intersect(origalign_nfcore_overlap_39, overlap_56_19) 
 ```
 
 Number of drug overlaps  
 ```{r}
-length(origalign_nfcore_overlap_39)
 length(overlap_39_56)
 length(overlap_39_19)
 length(overlap_56_19)
@@ -255,12 +243,8 @@ tsea_GO_39 <- tsea_dup_hyperG(drugs = gess_kidneycells_39$pert[1:100], universe 
 
 tsea_KEGG_39 <- tsea_dup_hyperG(drugs = gess_kidneycells_39$pert[1:50], universe = "Default", type = "KEGG", pvalueCutoff=0.05, pAdjustMethod="BH")
 
-dtnetplot(drugs = drugs(tsea_GO_39), set = "GO:0008528", ont = "MF", desc="G protein-coupled peptide receptor activity")
 ```
 
-```{r warning = FALSE}
-dtnetplot(drugs = drugs(tsea_GO_39), set = "GO:0008081", ont = "MF", desc="phosphoric diester hydrolase activity")
-```
 
 ```{r warning = FALSE}
 dtnetplot(drugs = drugs(tsea_KEGG_39), set = "hsa04024", ont = "MF", desc="cAMP signaling pathway")
@@ -288,8 +272,6 @@ dtnetplot(drugs = drugs(tsea_GO_56), set = "GO:0004708", ont = "MF", desc="MAP k
 ```
 
 ```{r warning = FALSE}
-dtnetplot(drugs = drugs(tsea_GO_56), set = "GO:0008227", ont = "MF", desc="G protein-coupled amine receptor activity")
-
 dtnetplot(drugs = drugs(tsea_GO_56), set = "GO:0016712", ont = "MF", desc="oxidoreductase activity, acting on paired donors,")
 
 dtnetplot(drugs = drugs(tsea_GO_56), set = "GO:0005262", ont = "MF", desc="calcium channel activity")
@@ -335,33 +317,8 @@ tsea_GO_39 <- read.csv(file = "./res/sigsearch_outputs/tsea_go_39.csv", row.name
 
 ```
 
-Bubbleplot
-```{r eval=FALSE, include=FALSE}
-tsea_bubble <- function(tsea){
-  bubbleplot <- ggplot(slice_min(tsea, order_by = p.adjust, n = 20), aes(x=Count, y=Description, size = pvalue, fill = p.adjust)) +
-  geom_point(alpha=0.7, shape = 21) +
-  scale_size(range = c(2, 10), name = "P-value") + 
-  scale_fill_distiller(palette = "Purples") + 
-  labs(x = "Number of Gene Targets", y = "Target Enrichment Terms") + 
-  theme_minimal(base_size = 8)
-return(bubbleplot)
-}
 
-tsea_bubble(tsea_GO_39)
-
-```
-
-Barplot
-```{r}
-ggplot(data = dplyr::slice_max(tsea_GO_39, order_by = Count, n = 20)) + 
-  geom_bar(aes(x = Count, y = Description, fill = p.adjust), stat = "identity") +
-  scale_fill_continuous(type = "viridis") + 
-  labs(x = "Number of Gene Targets", y = "Target Enrichment Terms", title = "Top Drug Candidate Target Enrichment") + 
-    theme_minimal(base_size = 8)
-
-```
-
-Pivot for gene targets
+TSEA gene target plot
 ```{r eval=FALSE, include=FALSE}
 tsea_GO_39_top <- dplyr::slice_min(tsea_GO_39@result, order_by = p.adjust, n = 20)
 
@@ -381,14 +338,9 @@ ggplot(data = tsea_GO_39_long,
 clusterProfiler treeplots
 ```{r eval=FALSE, include=FALSE}
 ss_drugtargets <- tidyr::separate_rows(gess_kidneycells_39, t_gn_sym, sep = "; ")
-#ss_drugtargets <- stringr::str_replace_all(gess_kidneycells_39$t_gn_sym, pattern = ";", replacement = "") 
-#ss_drugtargets <- unlist(ss_drugtargets)
 ssres_cpro <- ss_fea(unique(ss_drugtargets$t_gn_sym))
 
 ora_sim <- pairwise_termsim(ssres_cpro)
-
-#cusotm label format
-
 
 p <- treeplot(ora_sim, hclust_method = "average", nCluster = 5, offset = rel(2), nWords = 3, label_format_tiplab = 60)
 p
@@ -425,42 +377,6 @@ dsea_39 <- read.csv(file = "./res/sigsearch_outputs/dsea_39.csv")
 ```
 
 
-Barplot
-```{r}
-dsea_39<- dsea_39@result 
-
-dsea_39$Description <- stringr::str_wrap(dsea_39$Description, width = 50)
-dsea_39 <- dplyr::slice_max(dsea_39, order_by = Count, n = 17)
-
-dsea_enrichment <- ggplot(data = dsea_39) + 
-  geom_bar(aes(x = Count, y = Description, fill = p.adjust), stat = "identity") +
-  scale_fill_continuous(type = "viridis") + 
-  labs(x = "Number of Drug Targets Matched to Term", y = "Target Enrichment Terms", title = "Drug Candidate Enrichment") + 
-    theme_minimal(base_size = 8)+ 
-  theme(plot.title = element_text(size = 20), axis.text.y = element_text(size = 12), axis.title.y =element_text(size = 17), axis.text.x = element_text(size = 12), axis.title.x =element_text(size = 17), )
-
-dsea_enrichment
-```
-
-Poster plot
-```{r eval=FALSE, include=FALSE}
-barplot <- function(combined_fea){
-  barplot <- ggplot(combined_fea, aes(x=intersection_size, y=term_name,  fill = recall)) + 
-    geom_bar( stat = "identity") + 
-    scale_fill_continuous(type = "viridis") + 
-    labs(x = "Number of Genes Matched to Term", y = "Functional Terms", title = "PKD Upregulated Genes Top Enriched Terms") + 
-    theme_minimal(base_size = 8)
-return(barplot)
-}
-
-#filter for terms with < 700 to match drug query
-gprofiler_39_up <- dplyr::filter(gprofiler_39$upregulated, term_size < 501)
-
-pkd_up_enrichment <- barplot(dplyr::slice_max(gprofiler_39_up, order_by = intersection_size, n = 17)) + theme(plot.title = element_text(size = 20), axis.text.y = element_text(size = 12), axis.title.y =element_text(size = 17), axis.text.x = element_text(size = 12), axis.title.x =element_text(size = 17), )
-
-pkd_up_enrichment
-```
-
 #### Drug Annotations  
 LINCS Drug RepurposingHub, contains drug names, MOAs, original indications, and targets
 ```{r}
@@ -482,9 +398,7 @@ write.csv(rhub_launched_39, "./res/sigsearch_outputs/rhub_launcheddrugs_39.csv")
 
 Alluvial plot of drugs-targets with just launched drugs
 ```{r}
-
 rhub_launched_39_top30 <- dplyr::slice_min(rhub_launched_39, order_by = Tau, n = 30)
-
 
 rhub_launched_39_top_septarget <- tidyr::separate_rows(rhub_launched_39_top30, Target, sep = ", ")
 #remove drugs with empty 'target' field
@@ -501,27 +415,11 @@ write.csv(gene_drug_targets, file = "./res/sigsearch_outputs/gene_drug_targets_3
 
 MOA's separated, string wrap labels
 ```{r}
-
 rhub_launched_39_top_moasep <- tidyr::separate_rows(rhub_launched_39_top30, MOA, sep = ",")
 
 rhub_launched_39_top_moasep$MOA <- stringr::str_wrap(rhub_launched_39_top_moasep$MOA, width = 20)
 
 rhub_launched_39_top_moasep$Disease.Area <- stringr::str_wrap(rhub_launched_39_top_moasep$Disease.Area, width = 30)
-```
-
-plot
-```{r eval=FALSE, include=FALSE}
-ggplot(data = rhub_launched_39_top_moasep,
-       aes(axis1 = pert, axis2 = MOA)) +
-  geom_alluvium(color = "black", aes(fill = WTCS)) + # , colour = trend)) + 
-  geom_stratum(width = 1/6, color = "black") + #the border of the stratum
-  #scale_x_discrete(breaks = 1:2, limits = c("Drug", "MOA"), expand = c(.05, .05), labels = c(pert = "Drug", MOA = "MOA")) + 
-  #scale_y_discrete(expand = c(.07, .007)) + 
-  scale_fill_viridis_c(aesthetics = c("colour", "fill")) +
-  geom_text(stat = "stratum", size = 3.5, fontface = "bold", aes(label = after_stat(stratum))) +
-  labs(title = "MOA of Top 30 Launched Drugs") +
-  theme_void() 
-
 ```
 
 plot
@@ -547,7 +445,7 @@ ggsave("./figures/moa_alluvial_wtcs_2.pdf", moa_alluvial, width = 10, height = 1
 ```
 
 
-Combined early-dataset drugs
+Combined repurposing hub annotated dataset drugs
 ```{r}
 rHub_19_and_56 <-  merge(rHub_19, rHub_56, by = "pert")
 
@@ -578,24 +476,6 @@ rHub_39 <- read.csv(file = "./res/sigsearch_outputs/ssresults_rHub_39.csv", row.
 rHub_56 <- read.csv(file = "./res/sigsearch_outputs/ssresults_rHub_56.csv", row.names = 1)
 
 rHub_19 <- read.csv(file = "./res/sigsearch_outputs/ssresults_rHub_19.csv", row.names = 1)
-```
-
-Group by MOA 
-```{r eval=FALSE, include=FALSE}
-moa_breakdown <- function(rhub_res){
-  moa_list <- rhub_res$MOA
-  moa_list <- stringr::str_split(moa_list, ",")
-  moa_unlist <- unlist(moa_list)
-
-  moa_df <- as.data.frame(moa_unlist)
-
-  moa_19 <- dplyr::summarise(group_by(moa_df, MOA = moa_unlist), MOA_Freq = length(moa_unlist))
-
-  top_moa <- dplyr::filter(moa_19, MOA_Freq > 1)
-  
-return(top_moa)
-}
-
 ```
 
 '39 / P70
