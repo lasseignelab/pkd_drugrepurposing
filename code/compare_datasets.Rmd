@@ -107,7 +107,7 @@ barplot <- function(combined_fea){
   barplot <- ggplot(combined_fea, aes(x=intersection_size, y=term_name,  fill = recall)) + 
     geom_bar( stat = "identity") + 
     scale_fill_continuous(type = "viridis") + 
-    labs(x = "Number of Genes Matched to Term", y = "Functional Terms", title = "Top Enriched Terms") + 
+    labs(x = "Number of Genes Matched to Term", y = "Functional Terms") + 
     theme_minimal(base_size = 8)
 return(barplot)
 }
@@ -269,9 +269,9 @@ Load in top 100 up and down genes used as signatures for signatureSearch
 
 '39 precystic p70
 ```{r}
-hom_degs_UP <- read.csv("/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/deseq2_outputs/GSE149739_nfpipeline_degs_UP_220421.csv")
+hom_degs_UP <- read.csv("/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/deseq2_outputs/GSE149739_degs_UP_220421.csv")
 
-hom_degs_DOWN <- read.csv("/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/deseq2_outputs/GSE149739_nfpipeline_degs_DOWN_220421.csv")
+hom_degs_DOWN <- read.csv("/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/deseq2_outputs/GSE149739_degs_DOWN_220421.csv")
 ```
 
 '19 cystic p28
@@ -457,9 +457,9 @@ Using ALL mouse DEGs (0.05 alpha and -2 and 2 LFC cutoff) before mapping to huma
 
 '39 nf-core aligned
 ```{r}
-musdegs_39_UP <- read.csv("/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/deseq2_outputs/GSE149739_nfpipeline_mus_degs_UP_220421.csv")
+musdegs_39_UP <- read.csv("/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/deseq2_outputs/GSE149739_mus_degs_UP_220421.csv")
 
-musdegs_39_DOWN <- read.csv("/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/deseq2_outputs/GSE149739_nfpipeline_mus_degs_DOWN_220421.csv")
+musdegs_39_DOWN <- read.csv("/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/deseq2_outputs/GSE149739_mus_degs_DOWN_220421.csv")
 ```
 
 '19
@@ -490,10 +490,24 @@ degs_19_56_39_overlap_down <- merge(degs_19_56_overlap_down, musdegs_39_DOWN, by
 ```{r}
 fea_mouse_39 <- mouseenrich(musdegs_39_UP, musdegs_39_DOWN, 35)
 
-bp_mouse_39_overall <- barplot(dplyr::filter(fea_mouse_39$topcompared, intersection_size > 10))
+bp_mouse_39_overall <- barplot(dplyr::filter(fea_mouse_39$topcompared, intersection_size > 10)) + ggtitle("Pre-Cystic Top Upregulated ") + 
 bp_mouse_39_overall
 
+fea_mouse_39$topcompared$term_name <- stringr::str_wrap(fea_mouse_39$topcompared$term_name, width = 70)
+
+p70_fea_plot <- ggplot(dplyr::filter(fea_mouse_39$topcompared, intersection_size > 10), aes(x=intersection_size, y=term_name,  fill = recall)) + 
+    geom_bar( stat = "identity") + 
+    scale_fill_continuous(type = "viridis") + 
+    labs(x = "Number of Genes Matched to Term", y = "Functional Terms", title = "Pre-Cystic Top Upregulated Enrichment") + 
+    theme(text = element_text(size = 14), plot.title = element_text(size = 24))# +
+    #theme_minimal(base_size = 8)
+p70_fea_plot
 ```
+
+```{r}
+ggsave(p70_fea_plot, filename = "./res/fea/p70_fea_plot.pdf")
+```
+
 bubbleplot top
 ```{r}
 bubbleplot(dplyr::filter(fea_mouse_39$topcompared, intersection_size > 10)) #+ labs(title = "")
@@ -539,14 +553,14 @@ immune_mouse_39_plot
 
 
 Save plots
-```{r eval=FALSE, include=FALSE}
+```{r}
 ggsave(filename = "/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/fea/mouse_39_overall.pdf", bp_mouse_39_overall)
 
-ggsave(filename = "/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/fea/cilia_mouse_39_plot.pdf", cilia_mouse_39_plot)
+#ggsave(filename = "/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/fea/cilia_mouse_39_plot.pdf", cilia_mouse_39_plot)
 
-ggsave(filename = "/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/fea/mito_mouse_39_plot.pdf", mito_mouse_39_plot)
+#ggsave(filename = "/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/fea/mito_mouse_39_plot.pdf", mito_mouse_39_plot)
 
-ggsave(filename = "/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/fea/mouse_39_soce.pdf", mouse_39_soce)
+#ggsave(filename = "/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/fea/mouse_39_soce.pdf", mouse_39_soce)
 
 ```
 
@@ -560,7 +574,10 @@ bp_mouse_56_overall
 
 bubbleplot
 ```{r}
-bubbleplot(dplyr::filter(fea_mouse_56$topcompared, intersection_size > 10)) + labs(title = "Top Enriched Terms for Cystic P21 Dataset")
+fea_mouse_56$topcompared$term_name <- stringr::str_wrap(fea_mouse_56$topcompared$term_name, width = 70)
+
+
+bubbleplot(dplyr::filter(fea_mouse_56$topcompared, intersection_size > 10)) + labs(title = "Top Enriched Terms for Cystic P21 Dataset") + theme(text = element_text(size = 14), plot.title = element_text(size = 24))
 ```
 
 Cilia-related pathways
@@ -600,14 +617,14 @@ mouse_56_soce <- bubbleplot(soce_56) + labs(title = "Store-operated CA 2+ Entry-
 mouse_56_soce
 ```
 Save plots
-```{r eval=FALSE, include=FALSE}
+```{r}
 ggsave(filename = "/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/fea/mouse_56_overall.pdf", bp_mouse_56_overall)
 
-ggsave(filename = "/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/fea/cilia_mouse_56_plot.pdf", cilia_mouse_56_plot)
+#ggsave(filename = "/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/fea/cilia_mouse_56_plot.pdf", cilia_mouse_56_plot)
 
-ggsave(filename = "/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/fea/mito_mouse_56_plot.pdf", mito_mouse_56_plot)
+#ggsave(filename = "/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/fea/mito_mouse_56_plot.pdf", mito_mouse_56_plot)
 
-ggsave(filename = "/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/fea/mouse_56_soce.pdf", mouse_56_soce)
+#ggsave(filename = "/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/fea/mouse_56_soce.pdf", mouse_56_soce)
 
 ```
 
@@ -621,7 +638,10 @@ bp_mouse_19
 
 bubbleplot
 ```{r}
-bubbleplot(dplyr::filter(fea_mouse_19$topcompared, intersection_size > 10)) + labs(title = "Top Enriched Terms for Cystic P28 Dataset")
+fea_mouse_19$topcompared$term_name <- stringr::str_wrap(fea_mouse_19$topcompared$term_name, width = 70)
+
+
+bubbleplot(dplyr::filter(fea_mouse_19$topcompared, intersection_size > 10)) + labs(title = "Top Enriched Terms for Cystic P28 Dataset") + theme(text = element_text(size = 14), plot.title = element_text(size = 24))
 ```
 
 Cilia-related pathways
@@ -686,14 +706,14 @@ write.csv(fea_mouse_19_downterms, file = "./res/fea/fea_mouse_19_downterms.csv")
 ```
 
 Save plots
-```{r eval=FALSE, include=FALSE}
+```{r}
 ggsave(filename = "/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/fea/mouse_19_overall.pdf", bp_mouse_19)
 
-ggsave(filename = "/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/fea/cilia_mouse_19_plot.pdf", cilia_mouse_19_plot)
+#ggsave(filename = "/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/fea/cilia_mouse_19_plot.pdf", cilia_mouse_19_plot)
 
-ggsave(filename = "/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/fea/mito_mouse_19_plot.pdf", mito_mouse_19_plot)
+#ggsave(filename = "/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/fea/mito_mouse_19_plot.pdf", mito_mouse_19_plot)
 
-ggsave(filename = "/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/fea/mouse_19_soce.pdf", mouse_19_soce)
+#ggsave(filename = "/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/fea/mouse_19_soce.pdf", mouse_19_soce)
 
 ```
 
@@ -785,7 +805,7 @@ fea_overap_all_down <- merge(fea_mouse_39$downregulated, fea_overlap_19_56_down,
 ```
 
 Save
-```{r eval=FALSE, include=FALSE}
+```{r}
 fea_overlap_19_56_upterms <- apply(fea_overlap_19_56_up, 2, as.character)
 write.csv(fea_overlap_19_56_upterms, file = "./res/fea/fea_overlap_19_56_upterms.csv")
 

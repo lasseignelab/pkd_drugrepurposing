@@ -213,13 +213,64 @@ hom_19_DOWN <-  lincsGenes(musdegs_19_DOWN, "down")
 head(hom_19_DOWN)
 ```
 
-
-```{r eval=FALSE, include=FALSE}
+```{r}
 write.csv(musdegs_19_UP, file = "/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/deseq2_outputs/GSE134719_mus_degs_UP_220421.csv")
 write.csv(musdegs_19_DOWN, file = "/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/deseq2_outputs/GSE134719_mus_degs_DOWN_220421.csv")
 
 write.csv(hom_19_UP, file = "/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/deseq2_outputs/GSE134719_degs_UP_220421.csv")
 write.csv(hom_19_DOWN, file = "/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/deseq2_outputs/GSE134719_degs_DOWN_220421.csv")
+
+```
+
+
+__Start of Ryan's Code__
+
+### Heatmap plotting
+```{r}
+#Call in pheatmap package
+library(pheatmap)
+#formatting for pheatmap
+#Gene_name and Gene ID dataframe for merging
+conversion <- as.data.frame(cts_39@elementMetadata)
+#Remove .# after ENMUSG names
+conversion$gene_id <- gsub("\\..*", "", conversion$gene_id)
+#retrieve counts data and ENMUSG #
+cts_df_19 <- as.data.frame(assays((rld_19)))
+#gene_id into a column
+cts_df_19 <- tibble:::rownames_to_column(cts_df_19, var = "gene_id")
+#Merge gene symbols into counts and gene ID
+conv_cts_19 <- merge(cts_df_19, conversion, by = "gene_id")
+#Remove unnecessary data
+conv_cts_19 <- conv_cts_19[,!(colnames(conv_cts_19) %in% c("gene_id", "group", "group_name"))]
+#Filter out repeating data
+conv_cts_19 <- dplyr::distinct(conv_cts_19, gene_name, .keep_all = TRUE)
+#Convert back to rownames but with gene symbols
+conv_cts_19 <- tibble:::column_to_rownames(conv_cts_19, "gene_name")
+#Rename the count data to correspond with experimental group or control
+colnames(conv_cts_19) <- c("Pkd2KO", "Pkd2KO", "Pkd2KO", "wildtype", "wildtype", "wildtype", "wildtype", "Pkd2KO", "Pkd2KO", "Pkd2KO", "Pkd2KO", "wildtype", "wildtype", "wildtype", "wildtype", "Pkd2KO", "Pkkd2KO", "Pkd2KO", "Pkd2KO", "wildtype", "wildtype", "wildtype", "wildtype")
+
+```
+
+
+greatest LFC, wrangling
+```{r}
+dsq2_19 <- as.data.frame(res_19)
+genes_19 <-  tibble:::rownames_to_column(dsq2_19, var = "gene_id")
+#Merge gene symbols into counts and gene ID
+genes_19 <- merge(genes_19, conversion, by = "gene_id")
+#Remove unnecessary data
+genes_19 <- genes_19[,!(colnames(genes_19) %in% c("gene_id", "group", "group_name"))]
+#Filter out repeating data
+genes_19 <- dplyr::distinct(genes_19, gene_name, .keep_all = TRUE)
+#Convert back to rownames but with gene symbols
+genes_19 <-  tibble:::column_to_rownames(genes_19, "gene_name")
+
+genes_19 <- arrange(genes_19, desc(log2FoldChange))#[1:20]
+top20lfc_19 <- slice_max(genes_19, (log2FoldChange^2), n = 20)
+```
+
+```{r}
+pheatmap(conv_cts_19[rownames(top20lfc_19), ], cluster_rows = TRUE, cluster_cols = TRUE, show_rownames = TRUE, color = viridis(n= 10000, alpha = 1, begin = 0, end = 1, option = "viridis"), border_color = "NA", main = "Top 20 LFC Genes Cystic P28", angle_col = 45)
 
 ```
 

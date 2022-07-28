@@ -173,7 +173,7 @@ res_56 <- results(dds_56, alpha = 0.05, contrast = c("Genotype", "Pkhd1CrePkd2FF
 
 ```
 
-```{r eval=FALSE, include=FALSE}
+```{r}
 write.csv(res_56, file = "/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/deseq2_outputs/deseq2_fullres_56.csv")
 
 ```
@@ -195,7 +195,10 @@ hom_56_DOWN <-  lincsGenes(musdegs_56_DOWN, "down")
 ```
 
 
-```{r eval=FALSE, include=FALSE}
+```{r}
+write.csv(musdegs_56_UP, file = "/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/deseq2_outputs/GSE69556_mus_degs_UP_220421.csv")
+write.csv(musdegs_56_DOWN, file = "/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/deseq2_outputs/GSE69556_mus_degs_DOWN_220421.csv")
+
 write.csv(hom_56_UP, file = "/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/deseq2_outputs/GSE69556_degs_UP_220421.csv")
 write.csv(hom_56_DOWN, file = "/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/deseq2_outputs/GSE69556_degs_DOWN_220421.csv")
 ```
@@ -220,6 +223,55 @@ plotPCA(rld_56, intgroup=c("Genotype")) + geom_label_repel(aes(label = rld_56@co
 ```
 
 
+
+__Start of Ryan's Code__
+
+### Heatmap plotting
+```{r}
+#Call in pheatmap package
+library(pheatmap)
+#formatting for pheatmap
+#Gene_name and Gene ID dataframe for merging
+conversion <- as.data.frame(cts_39@elementMetadata)
+#Remove .# after ENMUSG names
+conversion$gene_id <- gsub("\\..*", "", conversion$gene_id)
+#retrieve counts data and ENMUSG #
+cts_df_56 <- as.data.frame(assays((rld_56)))
+#gene_id into a column
+cts_df_56 <- tibble:::rownames_to_column(cts_df_56, var = "gene_id")
+#Merge gene symbols into counts and gene ID
+conv_cts_56 <- merge(cts_df_56, conversion, by = "gene_id")
+#Remove unnecessary data
+conv_cts_56 <- conv_cts_56[,!(colnames(conv_cts_56) %in% c("gene_id", "group", "group_name"))]
+#Filter out repeating data
+conv_cts_56 <- dplyr::distinct(conv_cts_56, gene_name, .keep_all = TRUE)
+#Convert back to rownames but with gene symbols
+conv_cts_56 <- tibble:::column_to_rownames(conv_cts_56, "gene_name")
+#Rename the count data to correspond with experimental group or control
+colnames(conv_cts_56) <- c("wildtype", "wildtype", "wildtype", "wildtype", "PKD2", "PKD2", "PKD2")
+```
+
+greatest LFC, wrangling
+```{r}
+dsq2_56 <- as.data.frame(res_56)
+genes_56 <-  tibble:::rownames_to_column(dsq2_56, var = "gene_id")
+#Merge gene symbols into counts and gene ID
+genes_56 <- merge(genes_56, conversion, by = "gene_id")
+#Remove unnecessary data
+genes_56 <- genes_56[,!(colnames(genes_56) %in% c("gene_id", "group", "group_name"))]
+#Filter out repeating data
+genes_56 <- dplyr::distinct(genes_56, gene_name, .keep_all = TRUE)
+#Convert back to rownames but with gene symbols
+genes_56 <-  tibble:::column_to_rownames(genes_56, "gene_name")
+
+genes_56 <- arrange(genes_56, desc(log2FoldChange))#[1:20]
+top20lfc_56 <- slice_max(genes_56, (log2FoldChange^2), n = 20)
+```
+
+```{r}
+pheatmap(conv_cts_56[rownames(top20lfc_56), ], cluster_rows = TRUE, cluster_cols = TRUE, show_rownames = TRUE, color = viridis(n= 10000, alpha = 1, begin = 0, end = 1, option = "viridis"), border_color = "NA", main = "Top 20 LFC Genes Cystic P21", angle_col = 45)
+
+```
 
 #### Versions  
 ```{r}
