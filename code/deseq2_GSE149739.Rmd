@@ -280,7 +280,7 @@ write.csv(hom_degs_DOWN, file = "/Users/eramsey/Downloads/kidney_drugrepurposing
 
 __Start of Ryan's Code__
 
-### Heatmap plotting
+#### Heatmap plotting
 ```{r}
 #Call in pheatmap package
 library(pheatmap)
@@ -331,27 +331,6 @@ pheatmap(conv_cts[rownames(top20lfc), ], cluster_rows = TRUE, cluster_cols = TRU
 
 ```
 
-```{r}
-#Create a heatmap of most varied genes
-#sort by variance
-Pre_Cyst_Variance <- apply(conv_cts, 1, var)
-#top 20 most variable genes
-top20_pre_cyst_variable <- names(sort(Pre_Cyst_Variance, decreasing = TRUE))[1:20]
-
-```
-
-```{r}
-#### Versions  
-#create heatmap
-pheatmap(conv_cts[top20_pre_cyst_variable,], cluster_rows=TRUE, cluster_cols=TRUE, show_rownames=TRUE, color = viridis(n= 10000, alpha = 1, begin = 0, end = 1, option = "viridis"), border_color = "NA", main = "20 Most Varied Genes Pre-Cyst", angle_col = 45) #, annotation_col=meta_39$Genotype)
-           
-   #heatmap w/o gene symbols 20 greatest genes
-genestop20 <- order(resLFC_nf$log2FoldChange, decreasing = TRUE)[1:20]
-pheatmap(assay(cts_39)[genestop20, ], cluster_rows = TRUE, show_rownames = TRUE, cluster_cols = TRUE, color = viridis(n= 10000, alpha = 1, begin = 0, end = 1, option = "viridis"), border_color = "NA", main = "Top 20 Positive Genes Pre-Cyst", angle_col = 45)
-#Heatmap w/o gene symbols 20 lowest genes
-genesbottom20 <- order((resLFC_nf$log2FoldChange), decreasing = FALSE)[1:20]
-pheatmap(assay(cts_39)[genesbottom20, ], cluster_rows = TRUE, show_rownames = TRUE, cluster_cols = TRUE, color = viridis(n= 10000, alpha = 1, begin = 0, end = 1, option = "viridis"), border_color = "NA", main = "Bottom 20 Positive Genes Pre-Cyst", angle_col = 45)
-```
 
 NEEDS REVIEW
 Plotting alluvial plot for drug matching
@@ -382,34 +361,88 @@ target_alluvial_plot <- ggplot(data = gene_target_alluvial, aes(axis1 = Drug, ax
 target_alluvial_plot
 ```
 
-Volcano plots
+#### Volcano plots
+
+#####p70 DEGs to p70 targets
+convert from mouse ensembl to human symbol
 ```{r}
-  #Recall enhancedvoclano
   library(EnhancedVolcano)
-  #Plot a basic volcano plot
-  EnhancedVolcano(res_nf, lab = rownames(res_nf), x = 'log2FoldChange', y = 'pvalue', pCutoff = 10e-32, FCcutoff = 0.5, pointSize = 3.0, labSize = 6.0)
-  #Set up data for Pre-Cyst Volcano Plot
-TopT <- as.data.frame(res_nf)
-#ENMUSG names to columns
-TopT_test <- tibble:::rownames_to_column(TopT)
-#Rename column of ENMSUG names
-names(TopT_test)[1] <- "gene_id"
-#Merge gene symbol into dataframe
-TopT_finish <- left_join(TopT_test, conversion, by = "gene_id")
-#ommit NA's
-TopT_finish <- na.omit(TopT_finish)
-#remove unneeded columns
-TopT_finish <- TopT_finish[,!(colnames(TopT_finish) %in% c("gene_id", "baseMean", "lfcSE", "stat"))]
-#Remove all repetitive rows
-TopT_finish <- dplyr::distinct(TopT_finish, gene_name, .keep_all = TRUE)
-#gene symbols to rownames
-TopT_finish <- tibble:::column_to_rownames(TopT_finish, "gene_name")
-View(TopT_finish)
-#volcano plot w/ strict pvalue cutoff
-EnhancedVolcano(TopT_finish, lab = rownames(TopT_finish), x = 'log2FoldChange', y = 'pvalue', pCutoff = 10e-32, FCcutoff = 0.5, pointSize = 3.0, labSize = 6.0, col = c("#440154", "#21918c", "#5ec962", "#fde725"))
-#volcano plot w/ normal cutoffs and viridis colors
-EnhancedVolcano(TopT_finish, lab = rownames(TopT_finish), x = 'log2FoldChange', y = 'pvalue', pointSize = 3.0, labSize = 4.0, col = c("#440154", "#21918c", "#5ec962", "#fde725"))
+
+ens_annot <- read.csv("/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/data/annot_ens_humanmouse.csv")
+ens_mouse2human <- tibble:::rownames_to_column(dsq2_39, var = "Mouse.gene.stable.ID")
+  #conversion table
+ens_mouse2human <- merge(ens_mouse2human, ens_annot, by = "Mouse.gene.stable.ID")
+#biomart to conver human ens to human entrez
+human <- useEnsembl("ensembl", dataset = "hsapiens_gene_ensembl", mirror = "useast")
+convgenes <- getBM(filters = "ensembl_gene_id", attributes = c("ensembl_gene_id","entrezgene_id", "hgnc_symbol"), values = ens_mouse2human$Gene.stable.ID, mart = human)
+  
+conv_tbl <- merge(convgenes, ens_mouse2human, by.x = "ensembl_gene_id", by.y = "Gene.stable.ID")
+
 ```
+
+Drug targets from FDA approved candidates from signature reversion of p70
+```{r}
+targets_39 <- read.csv("./res/sigsearch_outputs/rhub_launcheddrugs_39.csv", row.names = 1)
+targets_39 <- tidyr::separate_rows(targets_39, "t_gn_sym", sep = "; ")
+```
+
+
+```{r}
+conv_tbl <- tidyr::drop_na(conv_tbl)
+
+EnhancedVolcano(conv_tbl, lab = conv_tbl$hgnc_symbol, x = 'log2FoldChange', y = 'padj', selectLab = unique(targets_39$t_gn_sym), pCutoff = 0.05, FCcutoff = 0.5, pointSize = 3.0, labSize = 4.0, col = c("#440154", "#21918c", "#5ec962", "#fde725"), title = "Drug Targets Found in P70 Pre-Cystic DEGs")#, labFace = 'bold', boxedLabels = TRUE,drawConnectors = TRUE,widthConnectors = 0.5,colConnectors = 'black')
+
+```
+
+##### p21 DEGs to p70 Targets
+
+convert from mouse ensembl to human symbol
+```{r}
+dsq2_56 <- read.csv("/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/deseq2_outputs/deseq2_fullres_56.csv", row.names = 1)
+ens_mouse2human_56 <- tibble:::rownames_to_column(dsq2_56, var = "Mouse.gene.stable.ID")
+  #conversion table
+ens_mouse2human_56 <- merge(ens_mouse2human_56, ens_annot, by = "Mouse.gene.stable.ID")
+#biomart to conver human ens to human entrez
+human_56 <- useEnsembl("ensembl", dataset = "hsapiens_gene_ensembl", mirror = "useast")
+convgenes_56 <- getBM(filters = "ensembl_gene_id", attributes = c("ensembl_gene_id","entrezgene_id", "hgnc_symbol"), values = ens_mouse2human_56$Gene.stable.ID, mart = human)
+  
+conv_tbl_56 <- merge(convgenes_56, ens_mouse2human_56, by.x = "ensembl_gene_id", by.y = "Gene.stable.ID")
+
+```
+
+
+```{r}
+conv_tbl_56 <- tidyr::drop_na(conv_tbl_56)
+
+EnhancedVolcano(conv_tbl_56, lab = conv_tbl_56$hgnc_symbol, x = 'log2FoldChange', y = 'padj', selectLab = unique(targets_39$t_gn_sym), pCutoff = 0.05, FCcutoff = 0.5, pointSize = 3.0, labSize = 4.0, col = c("#440154", "#21918c", "#5ec962", "#fde725"), title = "P70 Pre-Cystic Drug Targets Found in P28 Cystic DEGs")#, labFace = 'bold', boxedLabels = TRUE,drawConnectors = TRUE,widthConnectors = 0.5,colConnectors = 'black')
+
+```
+
+##### p28 DEGs to p70 Targets
+
+convert from mouse ensembl to human symbol
+```{r}
+dsq2_19 <- read.csv("/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/deseq2_outputs/deseq2_fullres_19.csv", row.names = 1)
+ens_mouse2human_19 <- tibble:::rownames_to_column(dsq2_19, var = "Mouse.gene.stable.ID")
+  #conversion table
+ens_mouse2human_19 <- merge(ens_mouse2human_19, ens_annot, by = "Mouse.gene.stable.ID")
+#biomart to conver human ens to human entrez
+human_19 <- useEnsembl("ensembl", dataset = "hsapiens_gene_ensembl", mirror = "useast")
+convgenes_19 <- getBM(filters = "ensembl_gene_id", attributes = c("ensembl_gene_id","entrezgene_id", "hgnc_symbol"), values = ens_mouse2human_19$Gene.stable.ID, mart = human)
+  
+conv_tbl_19 <- merge(convgenes_19, ens_mouse2human_19, by.x = "ensembl_gene_id", by.y = "Gene.stable.ID")
+
+```
+
+
+```{r}
+conv_tbl_19 <- tidyr::drop_na(conv_tbl_19)
+
+EnhancedVolcano(conv_tbl_19, lab = conv_tbl_19$hgnc_symbol, x = 'log2FoldChange', y = 'padj', selectLab = unique(targets_39$t_gn_sym), pCutoff = 0.05, FCcutoff = 0.5, pointSize = 3.0, labSize = 4.0, col = c("#440154", "#21918c", "#5ec962", "#fde725"), title = "P70 Pre-Cystic Drug Targets Found in P21 Cystic DEGs")#, labFace = 'bold', boxedLabels = TRUE,drawConnectors = TRUE,widthConnectors = 0.5,colConnectors = 'black') 
+
+```
+
+##### NEEDS REVIEW
 
 ```{r}
 # Read in Drug Targets
