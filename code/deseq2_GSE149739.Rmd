@@ -332,35 +332,6 @@ pheatmap(conv_cts[rownames(top20lfc), ], cluster_rows = TRUE, cluster_cols = TRU
 ```
 
 
-NEEDS REVIEW
-Plotting alluvial plot for drug matching
-```{r}
-#Load in drug target list
-gene_targets <- read.csv("C:\\Users\\mattr\\Documents\\Lasseigne_Lab_KURE\\TFEA_Lasseigne_Lab_Brownlee\\gene_drug_targets_39.csv")
-#Extract drug and target columns
-gene_target_alluvial <- gene_targets[,c(2,19)]
-#Keep rows of drugs and targets that matched dataset results
-gene_target_alluvial <- gene_target_alluvial[c(1,5,15,16,25,49,51,59,62,63,71,76,84,90,93,99,114,116,123,132,144,151,157),]
-#Rename column "pert" to "Drug"
-names(gene_target_alluvial)[1] <- "Drug"
-#Recall packages for alluvial plotting
-library(ggplot2)
-
-library(ggalluvial)
-#Create alluvial plot w/ viridis colors
-target_alluvial_plot <- ggplot(data = gene_target_alluvial, aes(axis1 = Drug, axis2 = Target)) +
-  geom_alluvium(color = "black", aes(fill = Target )) + # , colour = trend)) + 
-  geom_stratum(width = 3/12, color = "black") + #the border of the stratum
-  scale_x_discrete(expand = c(.07, .07)) + 
-  scale_y_discrete(expand = c(.007, .007)) + 
-  scale_fill_viridis_d(aesthetics = c("colour", "fill")) +
-  geom_text(stat = "stratum", size = 3.5, fontface = "bold", aes(label = after_stat(stratum))) +
-  labs(title = "Drug Target Matches") +
-  theme_void() 
-#View alluvial plot
-target_alluvial_plot
-```
-
 #### Volcano plots
 
 #####p70 DEGs to p70 targets
@@ -441,68 +412,6 @@ conv_tbl_19 <- tidyr::drop_na(conv_tbl_19)
 EnhancedVolcano(conv_tbl_19, lab = conv_tbl_19$hgnc_symbol, x = 'log2FoldChange', y = 'padj', selectLab = unique(targets_39$t_gn_sym), pCutoff = 0.05, FCcutoff = 0.5, pointSize = 3.0, labSize = 4.0, col = c("#440154", "#21918c", "#5ec962", "#fde725"), title = "P70 Pre-Cystic Drug Targets Found in P21 Cystic DEGs")#, labFace = 'bold', boxedLabels = TRUE,drawConnectors = TRUE,widthConnectors = 0.5,colConnectors = 'black') 
 
 ```
-
-##### NEEDS REVIEW
-
-```{r}
-# Read in Drug Targets
-gene_targets <- read.csv("C:\\Users\\mattr\\Documents\\Lasseigne_Lab_KURE\\TFEA_Lasseigne_Lab_Brownlee\\gene_drug_targets_39.csv")
-#New dataframe with drug and Target
-gene_targets_unique <- data.frame(gene_targets$pert, gene_targets$Target)
-#Rename columns
-gene_targets_unique <- setNames(gene_targets_unique, c("Drug", "gene_name"))
-#Check for DEG drug targets
-#Dataframe w/ gene symbol and ENMUSG ID
-conversion <- as.data.frame(cts_39@elementMetadata)
-#Remove .#'s following ENMUSG
-conversion$gene_id <- gsub("\\..*", "", conversion$gene_id)
-#dataframe of LFC >2 from results
-deg_39_up <- dsq2_39_up
-#ENMUSG to column
-deg_39_up <- tibble:::rownames_to_column(deg_39_up)
-#rename column
-names(deg_39_up)[1] <- "gene_id"
-#merge gene symbols into dataframe
-deg_39_up <- left_join(deg_39_up, conversion, by = "gene_id")
-#remove unneeded columns
-deg_39_up <- deg_39_up[,!(colnames(deg_39_up) %in% c("gene_id", "baseMean", "lfcSE", "stat"))]
-#remove repeated symbols
-deg_39_up <- dplyr::distinct(deg_39_up, gene_name, .keep_all = TRUE)
-#deg_39_up <- tibble:::column_to_rownames(deg_39_up, "gene_name")
-# deg_39_up is in lowercase and gene_targets_unique_df is uppercase. must fix!
-deg_39_up$gene_name <- toupper(deg_39_up$gene_name)
-#now fixed, merge for similarities in targets
-target_gene_overlap_DESEQ2_39 <- merge(deg_39_up, gene_targets_unique, by = "gene_name")
-View(target_gene_overlap_DESEQ2_39)
-#save to file
-write.csv(target_gene_overlap_DESEQ2_39, file = "C:\\Users\\mattr\\Documents\\Lasseigne_Lab_KURE\\TFEA_Lasseigne_Lab_Brownlee\\target_gene_overlap_DESEQ2_39.csv")
-```
-
-```{r}
-rhub_launched_Drug_Targets <- read.csv("C:\\Users\\mattr\\Documents\\Lasseigne_Lab_KURE\\TFEA_Lasseigne_Lab_Brownlee\\rhub_launcheddrugs_39.csv")
-#separate gene targets into individual rows
-rhub_launched_Drug_Targets <- tidyr::separate_rows(rhub_launched_Drug_Targets, Target, sep = ", ")
-#remove drugs with empty 'target' field
-rhub_launched_Drug_Targets <- dplyr::filter(rhub_launched_Drug_Targets, Target != "")
-#Make new dataframe of just drug and gene name
-Rhub_Launched_Drug_Targets_Unique <- data.frame(rhub_launched_Drug_Targets$pert, rhub_launched_Drug_Targets$Target)
-#rename for merging function
-Rhub_Launched_Drug_Targets_Unique <- setNames(Rhub_Launched_Drug_Targets_Unique, c("Drug", "gene_name"))
-#Same process as mentioned above. refer to previous annotations.
-conversion <- as.data.frame(cts_39@elementMetadata)
-conversion$gene_id <- gsub("\\..*", "", conversion$gene_id)
-deg_39_up <- dsq2_39_up
-deg_39_up <- tibble:::rownames_to_column(deg_39_up)
-names(deg_39_up)[1] <- "gene_id"
-deg_39_up <- left_join(deg_39_up, conversion, by = "gene_id")
-deg_39_up <- deg_39_up[,!(colnames(deg_39_up) %in% c("gene_id", "baseMean", "lfcSE", "stat"))]
-deg_39_up <- dplyr::distinct(deg_39_up, gene_name, .keep_all = TRUE)
-deg_39_up$gene_name <- toupper(deg_39_up$gene_name)
-rhub_target_gene_overlap_DESEQ2_39 <- merge(deg_39_up, Rhub_Launched_Drug_Targets_Unique, by = "gene_name")
-View(rhub_target_gene_overlap_DESEQ2_39)
-#write.csv(rhub_target_gene_overlap_DESEQ2_39, file = "C:\\Users\\mattr\\Documents\\Lasseigne_Lab_KURE\\TFEA_Lasseigne_Lab_Brownlee\\rhub_target_gene_overlap_DESEQ2_39.csv")
-```
-
 
 ```{r}
 R.Version()
