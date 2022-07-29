@@ -327,6 +327,7 @@ genes <- arrange(genes, desc(log2FoldChange))#[1:20]
 top20lfc <- slice_max(genes, (log2FoldChange^2), n = 20)
 ```
 
+
 ```{r}
 heatmap_p70 <- pheatmap(conv_cts[rownames(top20lfc), ], cluster_rows = TRUE, cluster_cols = TRUE, show_rownames = TRUE, color = viridis(n= 10000, alpha = 1, begin = 0, end = 1, option = "viridis"), border_color = "NA", main = "Top 20 LFC Genes Pre-Cyst P70", angle_col = 45)
 
@@ -334,7 +335,6 @@ heatmap_p70 <- pheatmap(conv_cts[rownames(top20lfc), ], cluster_rows = TRUE, clu
 
 ```{r}
 ggsave(heatmap_p70, filename = "./res/fea/heatmap_p70.pdf", height = 7, width = 14)
-
 ```
 
 
@@ -363,6 +363,9 @@ targets_39 <- read.csv("./res/sigsearch_outputs/rhub_launcheddrugs_39.csv", row.
 targets_39 <- tidyr::separate_rows(targets_39, "t_gn_sym", sep = "; ")
 ```
 
+```{r}
+write.csv(targets_39, file = "./res/sigsearch_outputs/drugtargets_p70.csv")
+```
 
 ```{r}
 conv_tbl <- tidyr::drop_na(conv_tbl)

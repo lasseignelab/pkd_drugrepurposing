@@ -119,9 +119,9 @@ return(top_moa)
 
 Load in top up and down DEGs  
 ```{r}
-hom_degs_UP <- read.csv("/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/deseq2_outputs/GSE149739_nfpipeline_degs_UP_220421.csv")
+hom_degs_UP <- read.csv("/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/deseq2_outputs/GSE149739_degs_UP_220421.csv")
 
-hom_degs_DOWN <- read.csv("/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/deseq2_outputs/GSE149739_nfpipeline_degs_DOWN_220421.csv")
+hom_degs_DOWN <- read.csv("/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/deseq2_outputs/GSE149739_degs_DOWN_220421.csv")
 ```
 
 Run signatureSearch, filter for kidney cell lines  
