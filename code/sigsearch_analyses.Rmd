@@ -147,9 +147,9 @@ write.csv(gess_kidneycells_39, "./res/sigsearch_outputs/gess_kidneycells_39_2204
 
 Load in top up and down DEGs  
 ```{r}
-hom_56_UP <- read_csv("/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/deseq2_outputs/GSE69556_degs_UP_220421.csv")
+hom_56_UP <- read.csv("/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/deseq2_outputs/GSE69556_degs_UP_220421.csv")
 
-hom_56_DOWN <- read_csv("/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/deseq2_outputs/GSE69556_degs_DOWN_220421.csv")
+hom_56_DOWN <- read.csv("/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/deseq2_outputs/GSE69556_degs_DOWN_220421.csv")
 ```
 
 Run signatureSearch, filter for kidney cell lines  
@@ -175,8 +175,8 @@ write.csv(gess_kidneycells_56, "./res/sigsearch_outputs/gess_kidneycells_56_2204
 ## GSE134719  
 Read in data  
 ```{r}
-hom_19_UP <- read_csv("/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/deseq2_outputs/GSE134719_degs_UP_220421.csv")
-hom_19_DOWN <- read_csv("/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/deseq2_outputs/GSE134719_degs_DOWN_220421.csv")
+hom_19_UP <- read.csv("/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/deseq2_outputs/GSE134719_degs_UP_220421.csv")
+hom_19_DOWN <- read.csv("/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/deseq2_outputs/GSE134719_degs_DOWN_220421.csv")
 ```
 
 Run signatureSearch, filter for kidney cell lines  
