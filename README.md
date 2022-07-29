@@ -1,9 +1,9 @@
 # pkd_drugrepurposing
 
-PKD drug repurposing analysis. Drug candidate discovery and prioritization for PKD using publicly available PKD2 KO mouse data sets.
-- GSE149739 (https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE149739)
-- GSE134719 (https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE134719)
-- GSE69556 (https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE69556)
+PKD drug repurposing analyses. Drug candidate discovery and prioritization for PKD using publicly available pre-cystic and cystic kidney PKD2 KO mouse data sets.
+- Pre-Cystic P70: [GSE149739](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE149739)
+- Cystic P21: [GSE134719](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE134719)
+- Cystic P28: [GSE69556](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE69556)
 
 ## code/. 
 ### DESeq2. 
@@ -17,6 +17,7 @@ Functional enrichment analyses and data set comparisons.
 - compare_datasets.Rmd
 
 ### Signature Reversion and Drug Annotations. 
+Analyses using [signatureSearch](https://github.com/girke-lab/signatureSearch) for signature reversion and the [Drug Repurposing Hub](https://www.nature.com/articles/nm.4306) and [onSides](https://github.com/tatonetti-lab/onsides) 
 - sigsearch_analyses.Rmd 
 
 ## data/. 
@@ -30,13 +31,14 @@ Functional enrichment analyses and data set comparisons.
 - sigsearch_outputs
 - fea
 
+## Acknowledgements
+
+ - Michal Mrug
+ - Brad Yoder
+
 ### Versions  
-Platform
-```
-x86_64-apple-darwin17.0 
-R version 4.1.1 (2021-08-10)
-```
-Packages
+
+Dependencies
 ```
 ##              biomaRt                rhdf5        ExperimentHub 
 ##             "2.50.3"             "2.38.1"              "2.2.1" 
@@ -56,4 +58,10 @@ Packages
 ##             "1.30.1"             "2.28.0"             "0.32.4" 
 ##         BiocGenerics 
 ##             "0.40.0"
+```
+
+Platform
+```
+x86_64-apple-darwin17.0 
+R version 4.1.1 (2021-08-10)
 ```
