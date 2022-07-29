@@ -222,12 +222,11 @@ length(overlap_39_56)
 length(overlap_39_19)
 length(overlap_56_19)
 
-length(overlap_all)
 ```
 
 ### SignatureSearch Plots  
 ```{r}
-bggenes <- read.csv2(file = "./data/background_genelist.csv", row.names = 1)
+bggenes <- read.csv(file = "./data/background_genelist_genestoLINCSgenes", row.names = 1)
 #KEGG enrichment based on hypergeometric test
 kegg_39 <- enrichKEGG2(gene = as.character(c(hom_degs_UP$entrezgene_id, hom_degs_DOWN$entrezgene_id)), universe = bggenes$entrezgene_id)
 moa_39 <- enrichMOA(gene = as.character(c(hom_degs_UP$entrezgene_id, hom_degs_DOWN$entrezgene_id)))
