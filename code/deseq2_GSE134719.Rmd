@@ -30,6 +30,7 @@ library(ggrepel)
 library(signatureSearch)
 library(ExperimentHub); library(rhdf5)
 library(biomaRt)
+library(viridis)
 ```
 
 #### Custom functions  
