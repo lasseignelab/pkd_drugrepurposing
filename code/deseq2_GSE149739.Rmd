@@ -327,7 +327,12 @@ top20lfc <- slice_max(genes, (log2FoldChange^2), n = 20)
 ```
 
 ```{r}
-pheatmap(conv_cts[rownames(top20lfc), ], cluster_rows = TRUE, cluster_cols = TRUE, show_rownames = TRUE, color = viridis(n= 10000, alpha = 1, begin = 0, end = 1, option = "viridis"), border_color = "NA", main = "Top 20 LFC Genes Pre-Cyst P70", angle_col = 45)
+heatmap_p70 <- pheatmap(conv_cts[rownames(top20lfc), ], cluster_rows = TRUE, cluster_cols = TRUE, show_rownames = TRUE, color = viridis(n= 10000, alpha = 1, begin = 0, end = 1, option = "viridis"), border_color = "NA", main = "Top 20 LFC Genes Pre-Cyst P70", angle_col = 45)
+
+```
+
+```{r}
+ggsave(heatmap_p70, filename = "./res/fea/heatmap_p70.pdf", height = 7, width = 14)
 
 ```
 
@@ -379,13 +384,12 @@ convgenes_56 <- getBM(filters = "ensembl_gene_id", attributes = c("ensembl_gene_
   
 conv_tbl_56 <- merge(convgenes_56, ens_mouse2human_56, by.x = "ensembl_gene_id", by.y = "Gene.stable.ID")
 
+conv_tbl_56 <- tidyr::drop_na(conv_tbl_56)
 ```
 
 
 ```{r}
-conv_tbl_56 <- tidyr::drop_na(conv_tbl_56)
-
-EnhancedVolcano(conv_tbl_56, lab = conv_tbl_56$hgnc_symbol, x = 'log2FoldChange', y = 'padj', selectLab = unique(targets_39$t_gn_sym), pCutoff = 0.05, FCcutoff = 0.5, pointSize = 3.0, labSize = 4.0, col = c("#440154", "#21918c", "#5ec962", "#fde725"), title = "P70 Pre-Cystic Drug Targets Found in P28 Cystic DEGs")#, labFace = 'bold', boxedLabels = TRUE,drawConnectors = TRUE,widthConnectors = 0.5,colConnectors = 'black')
+EnhancedVolcano(conv_tbl_56, lab = conv_tbl_56$hgnc_symbol, x = 'log2FoldChange', y = 'padj', selectLab = unique(targets_39$t_gn_sym), pCutoff = 0.05, FCcutoff = 0.5, pointSize = 3.0, labSize = 4.0, col = c("#440154", "#21918c", "#5ec962", "#fde725"), title = "P70 Pre-Cystic Drug Targets Found in P21 Cystic DEGs")#, labFace = 'bold', boxedLabels = TRUE,drawConnectors = TRUE,widthConnectors = 0.5,colConnectors = 'black')
 
 ```
 
@@ -403,14 +407,50 @@ convgenes_19 <- getBM(filters = "ensembl_gene_id", attributes = c("ensembl_gene_
   
 conv_tbl_19 <- merge(convgenes_19, ens_mouse2human_19, by.x = "ensembl_gene_id", by.y = "Gene.stable.ID")
 
+conv_tbl_19 <- tidyr::drop_na(conv_tbl_19)
+
 ```
 
 
 ```{r}
-conv_tbl_19 <- tidyr::drop_na(conv_tbl_19)
 
-EnhancedVolcano(conv_tbl_19, lab = conv_tbl_19$hgnc_symbol, x = 'log2FoldChange', y = 'padj', selectLab = unique(targets_39$t_gn_sym), pCutoff = 0.05, FCcutoff = 0.5, pointSize = 3.0, labSize = 4.0, col = c("#440154", "#21918c", "#5ec962", "#fde725"), title = "P70 Pre-Cystic Drug Targets Found in P21 Cystic DEGs")#, labFace = 'bold', boxedLabels = TRUE,drawConnectors = TRUE,widthConnectors = 0.5,colConnectors = 'black') 
+EnhancedVolcano(conv_tbl_19, lab = conv_tbl_19$hgnc_symbol, x = 'log2FoldChange', y = 'padj', selectLab = unique(targets_39$t_gn_sym), pCutoff = 0.05, FCcutoff = 0.5, pointSize = 3.0, labSize = 4.0, col = c("#440154", "#21918c", "#5ec962", "#fde725"), title = "P70 Pre-Cystic Drug Targets Found in P28 Cystic DEGs")#, labFace = 'bold', boxedLabels = TRUE,drawConnectors = TRUE,widthConnectors = 0.5,colConnectors = 'black') 
 
+```
+
+
+Number of targets differentially expressed in P21
+```{r}
+targets_p21 <- merge(conv_tbl_56, targets_39, by.x = "hgnc_symbol", by.y = "t_gn_sym")
+targets_p21 <- dplyr::filter(targets_p21, log2FoldChange > 2.0 | log2FoldChange < -2.0)
+
+#number of unique drugs
+length(unique(targets_p21$pert))
+
+#number of unique targets
+length(unique(targets_p21$hgnc_symbol))
+```
+
+Number of targets differentially expressed in P28
+```{r}
+targets_p28 <- merge(conv_tbl_19, targets_39, by.x = "hgnc_symbol", by.y = "t_gn_sym")
+targets_p28 <- dplyr::filter(targets_p28, log2FoldChange > 2.0 | log2FoldChange < -2.0)
+
+#number of unique drugs
+length(unique(targets_p28$pert))
+
+#number of unique targets
+length(unique(targets_p28$hgnc_symbol))
+```
+
+expressed in both
+```{r}
+targets_cystic <- merge(targets_p28, targets_p21, by = "hgnc_symbol")
+#number of unique drugs
+length(unique(targets_cystic$pert))
+
+#number of unique targets
+length(unique(targets_cystic$hgnc_symbol))
 ```
 
 ```{r}

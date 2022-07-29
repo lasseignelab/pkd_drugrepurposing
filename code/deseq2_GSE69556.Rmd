@@ -232,7 +232,7 @@ __Start of Ryan's Code__
 library(pheatmap)
 #formatting for pheatmap
 #Gene_name and Gene ID dataframe for merging
-conversion <- as.data.frame(cts_39@elementMetadata)
+conversion <- as.data.frame(cts_56@elementMetadata)
 #Remove .# after ENMUSG names
 conversion$gene_id <- gsub("\\..*", "", conversion$gene_id)
 #retrieve counts data and ENMUSG #
@@ -269,9 +269,15 @@ top20lfc_56 <- slice_max(genes_56, (log2FoldChange^2), n = 20)
 ```
 
 ```{r}
-pheatmap(conv_cts_56[rownames(top20lfc_56), ], cluster_rows = TRUE, cluster_cols = TRUE, show_rownames = TRUE, color = viridis(n= 10000, alpha = 1, begin = 0, end = 1, option = "viridis"), border_color = "NA", main = "Top 20 LFC Genes Cystic P21", angle_col = 45)
+heatmap_21 <- pheatmap(conv_cts_56[rownames(top20lfc_56), ], cluster_rows = TRUE, cluster_cols = TRUE, show_rownames = TRUE, color = viridis(n= 10000, alpha = 1, begin = 0, end = 1, option = "viridis"), border_color = "NA", main = "Top 20 LFC Genes Cystic P21", angle_col = 45)
 
 ```
+
+```{r}
+ggsave(heatmap_21, filename = "./res/fea/heatmap_p21.pdf", height = 7, width = 14)
+
+```
+
 
 #### Versions  
 ```{r}

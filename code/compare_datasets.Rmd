@@ -484,16 +484,25 @@ degs_19_56_overlap_down <- merge(musdegs_19_DOWN, musdegs_56_DOWN, by = "Mouse.g
 degs_19_56_39_overlap_up <- merge(degs_19_56_overlap_up, musdegs_39_UP, by = "Mouse.gene.stable.ID")
 
 degs_19_56_39_overlap_down <- merge(degs_19_56_overlap_down, musdegs_39_DOWN, by = "Mouse.gene.stable.ID")
+
+degs_39_56_overlap_up <- merge(musdegs_39_UP, musdegs_56_UP, by = "Mouse.gene.stable.ID")
+
+degs_39_56_overlap_down <- merge(musdegs_39_DOWN, musdegs_56_DOWN, by = "Mouse.gene.stable.ID")
+
+
+degs_39_19_overlap_up <- merge(musdegs_39_UP, musdegs_19_UP, by = "Mouse.gene.stable.ID")
+
+degs_39_19_overlap_down <- merge(musdegs_39_DOWN, musdegs_19_DOWN, by = "Mouse.gene.stable.ID")
 ```
 
 ### FEA p70 precystic '39 Mouse (nf-aligned)  
 ```{r}
-fea_mouse_39 <- mouseenrich(musdegs_39_UP, musdegs_39_DOWN, 35)
+fea_mouse_39 <- mouseenrich(musdegs_39_UP, musdegs_39_DOWN, 30)
 
 bp_mouse_39_overall <- barplot(dplyr::filter(fea_mouse_39$topcompared, intersection_size > 10)) + ggtitle("Pre-Cystic Top Upregulated ") + 
 bp_mouse_39_overall
 
-fea_mouse_39$topcompared$term_name <- stringr::str_wrap(fea_mouse_39$topcompared$term_name, width = 70)
+fea_mouse_39$topcompared$term_name <- stringr::str_wrap(fea_mouse_39$topcompared$term_name, width = 60)
 
 p70_fea_plot <- ggplot(dplyr::filter(fea_mouse_39$topcompared, intersection_size > 10), aes(x=intersection_size, y=term_name,  fill = recall)) + 
     geom_bar( stat = "identity") + 
@@ -503,9 +512,17 @@ p70_fea_plot <- ggplot(dplyr::filter(fea_mouse_39$topcompared, intersection_size
     #theme_minimal(base_size = 8)
 p70_fea_plot
 ```
+bubbleplot
+```{r}
+bubbleplot_p70 <- bubbleplot(dplyr::filter(fea_mouse_39$topcompared, intersection_size > 6)) + labs(title = "Top Enriched Terms for Pre-Cystic P70 Dataset") + theme(text = element_text(size = 14), plot.title = element_text(size = 24))
+
+bubbleplot(fea_mouse_39$topcompared) + labs(title = "Top Enriched Terms for Pre-Cystic P70 Dataset") + theme(text = element_text(size = 14), plot.title = element_text(size = 24))
+```
 
 ```{r}
 ggsave(p70_fea_plot, filename = "./res/fea/p70_fea_plot.pdf")
+
+ggsave(bubbleplot_p70, filename = "./res/fea/p70_fea_bubbleplot.pdf", height = 7, width = 14)
 ```
 
 bubbleplot top
@@ -577,7 +594,12 @@ bubbleplot
 fea_mouse_56$topcompared$term_name <- stringr::str_wrap(fea_mouse_56$topcompared$term_name, width = 70)
 
 
-bubbleplot(dplyr::filter(fea_mouse_56$topcompared, intersection_size > 10)) + labs(title = "Top Enriched Terms for Cystic P21 Dataset") + theme(text = element_text(size = 14), plot.title = element_text(size = 24))
+bubbleplot_p21 <- bubbleplot(dplyr::filter(fea_mouse_56$topcompared, intersection_size > 10)) + labs(title = "Top Enriched Terms for Cystic P21 Dataset") + theme(text = element_text(size = 14), plot.title = element_text(size = 24))
+```
+
+```{r}
+ggsave(bubbleplot_p21, filename = "./res/fea/p21_fea_bubbleplot.pdf", height = 7, width = 14)
+
 ```
 
 Cilia-related pathways
@@ -641,8 +663,14 @@ bubbleplot
 fea_mouse_19$topcompared$term_name <- stringr::str_wrap(fea_mouse_19$topcompared$term_name, width = 70)
 
 
-bubbleplot(dplyr::filter(fea_mouse_19$topcompared, intersection_size > 10)) + labs(title = "Top Enriched Terms for Cystic P28 Dataset") + theme(text = element_text(size = 14), plot.title = element_text(size = 24))
+bubbleplot_p28 <- bubbleplot(dplyr::filter(fea_mouse_19$topcompared, intersection_size > 10)) + labs(title = "Top Enriched Terms for Cystic P28 Dataset") + theme(text = element_text(size = 14), plot.title = element_text(size = 24))
 ```
+
+```{r}
+ggsave(bubbleplot_p21, filename = "./res/fea/p28_fea_bubbleplot.pdf", height = 7, width = 14)
+
+```
+
 
 Cilia-related pathways
 ```{r eval=FALSE, include=FALSE}
