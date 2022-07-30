@@ -13,7 +13,7 @@ PKD drug repurposing analysis. DESeq2 analysis was run in separate markdowns for
 - deseq2_GSE69556.Rmd
 
 ### FEA and Comparisons. 
-Functional enrichment analyses and data set comparisons.
+Data set comparisons and functional enrichment analyses with [gprofiler2](https://academic.oup.com/nar/article/47/W1/W191/5486750)
 - compare_datasets.Rmd
 
 ### Signature Reversion and Drug Annotations. 
@@ -21,10 +21,12 @@ Analyses using [signatureSearch](https://github.com/girke-lab/signatureSearch) f
 - sigsearch_analyses.Rmd 
 
 ## data/. 
-- Metadata for all 3 datasets (as .txt files)
-- Processed STAR-salmon count data for all 3 datasets
-- Ensembl human and mouse gene conversion annotation
-- Background gene list (for FEA)
+- Metadata for all 3 datasets (as .txt files) (*_metadata.txt)
+- Processed STAR-salmon count data for all 3 datasets (*_salmonmerged_gene_counts.rds)
+- Ensembl human and mouse gene conversion annotation (annot_ens_humanmouse.csv)
+- Background gene list (for FEA) 
+- Side effects daata from onSides  
+- Data from the Drug Repurposing Hub  
 
 ## res/. 
 - deseq2_outputs (degs)
