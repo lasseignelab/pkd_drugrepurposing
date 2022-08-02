@@ -173,7 +173,7 @@ length(overlap_56_19)
 
 ### SignatureSearch Plots  
 ```{r}
-bggenes <- read.csv(file = "./data/background_genelist_genestoLINCSgenes.csv", row.names = 1)
+bggenes <- read.csv(file = here("data", "background_genelist_genestoLINCSgenes.csv"), row.names = 1)
 #KEGG enrichment based on hypergeometric test
 kegg_39 <- enrichKEGG2(gene = as.character(c(hom_degs_UP$entrezgene_id, hom_degs_DOWN$entrezgene_id)), universe = bggenes$entrezgene_id)
 moa_39 <- enrichMOA(gene = as.character(c(hom_degs_UP$entrezgene_id, hom_degs_DOWN$entrezgene_id)))
@@ -259,7 +259,7 @@ write.csv(tsea_KEGG_19@result, file = here("res", "sigsearch_outputs", "tsea_keg
 
 Read back in  
 ```{r}
-tsea_GO_39 <- read.csv(file = here("res", "sigsearch_outputs", "tsea_go_39.csv"), row.names = 1))
+tsea_GO_39 <- read.csv(file = here("res", "sigsearch_outputs", "tsea_go_39.csv"), row.names = 1)
 
 ```
 

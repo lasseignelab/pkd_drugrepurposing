@@ -64,9 +64,12 @@ salmon2dds <- function(counts, metadata, dataset = "regular") {
   metadata$Genotype <- str_replace_all(metadata$Genotype, "[^[:alnum:]]", "")
   #contrasts need to be factor levels
   metadata$Genotype <- as.factor(metadata$Genotype)
-#print(rownames(metadata))
-#print(colnames(cts))
+
+  #check ordering matches
+  print("Checking order of count column names to metadata rownames... If false, fix and rerun!")
+  colnames((cts)) == rownames(metadata)
   dds <- DESeqDataSetFromMatrix(cts, metadata, design = ~ Genotype)
+
 return(dds)
 }
 
@@ -163,7 +166,7 @@ Metadata: https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE149739
 ```{r}
 cts_39 <- readRDS(here("data", "GSE149739_salmonmerged_gene_counts.rds"))
 
-meta_39 <- read.csv(here("data", "GSE149739_metadata.txt", row.names = 1))
+meta_39 <- read.csv(here("data", "GSE149739_metadata.txt"), row.names = 1)
 ```
 
 Remove IFT88
@@ -347,7 +350,7 @@ heatmap_p70 <- pheatmap(conv_cts[rownames(top20lfc), ], cluster_rows = TRUE, clu
 ```
 
 ```{r}
-ggsave(heatmap_p70, filename = "./res/fea/heatmap_p70.pdf", height = 7, width = 14)
+#ggsave(heatmap_p70, filename = here("res", "fea", "heatmap_p70.pdf", height = 7, width = 14)
 ```
 
 
@@ -370,11 +373,11 @@ conv_tbl <- merge(convgenes, ens_mouse2human, by.x = "ensembl_gene_id", by.y = "
 
 Drug targets from FDA approved candidates from signature reversion of p70
 ```{r}
-targets_39 <- read.csv(here("res", "sigsearch_outputs", "rhub_launcheddrugs_39.csv", row.names = 1))
+targets_39 <- read.csv(here("res", "sigsearch_outputs", "rhub_launcheddrugs_39.csv"), row.names = 1)
 targets_39 <- tidyr::separate_rows(targets_39, "t_gn_sym", sep = "; ")
 ```
 
-```{r}
+```{r eval=FALSE, include=FALSE}
 write.csv(targets_39, file = here("res", "sigsearch_outputs", "drugtargets_p70.csv"))
 
 ```
@@ -398,7 +401,7 @@ cts_56 <- readRDS(here("data", "GSE69556_salmonmerged_gene_counts.rds"))
 #cts_56 <- GSE69556_salmonmerged_gene_counts
 #colnames(cts_56) <- str_sub(colnames(cts_56), 1, -2)
 
-meta_56 <- read.csv(here("data", "GSE69556_metadata.txt", row.names = 1))
+meta_56 <- read.csv(here("data", "GSE69556_metadata.txt"), row.names = 1)
 ```
 
 #### Run DDS
@@ -529,7 +532,7 @@ ggsave(heatmap_21, filename = "./res/fea/heatmap_p21.pdf", height = 7, width = 1
 
 convert from mouse ensembl to human symbol
 ```{r}
-dsq2_56 <- read.csv(here("data", "deseq2_fullres_56.csv", row.names = 1))
+dsq2_56 <- read.csv(here("res", "deseq2_outputs", "deseq2_fullres_56.csv"), row.names = 1)
 ens_mouse2human_56 <- tibble:::rownames_to_column(dsq2_56, var = "Mouse.gene.stable.ID")
   #conversion table
 ens_mouse2human_56 <- merge(ens_mouse2human_56, ens_annot, by = "Mouse.gene.stable.ID")
@@ -557,7 +560,7 @@ __Filepath to counts data__: /data/project/lasseigne_lab/Lizzy/PKD_drugrepurposi
 ```{r}
 cts_19 <- readRDS(here("data", "GSE134719_salmonmerged_gene_counts.rds"))
 
-meta_19 <- read.csv(here("data", "GSE134719_metadata.txt", row.names = 1))
+meta_19 <- read.csv(here("data", "GSE134719_metadata.txt"), row.names = 1)
 ```
 
 #### DDS
@@ -695,7 +698,7 @@ ggsave(heatmap_p28, filename = "./res/fea/heatmap_p28.pdf", height = 7, width = 
 
 convert from mouse ensembl to human symbol
 ```{r}
-dsq2_19 <- read.csv(here("res", "deseq2_outputs/deseq2_fullres_19.csv", row.names = 1))
+dsq2_19 <- read.csv(here("res", "deseq2_outputs", "deseq2_fullres_19.csv"), row.names = 1)
 ens_mouse2human_19 <- tibble:::rownames_to_column(dsq2_19, var = "Mouse.gene.stable.ID")
   #conversion table
 ens_mouse2human_19 <- merge(ens_mouse2human_19, ens_annot, by = "Mouse.gene.stable.ID")
