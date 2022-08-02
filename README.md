@@ -1,6 +1,6 @@
 # Drug Repurposing Analyses in Polycystic Kidney Disease
 ### Authors
-- Elizabeth J. Wilk, Timothy C. Howton, Jennifer L. Fisher, Vishal Oza, Ryan Brownlee, Kasi McPherson, Hanna Cleary, Brittany N. Lasseigne
+- Elizabeth J. Wilk, Timothy C. Howton, Jennifer L. Fisher, Vishal H. Oza, Ryan T. Brownlee, Kasi McPherson, Hanna Cleary, Brittany N. Lasseigne
 
 ## Overview
 
