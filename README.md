@@ -2,10 +2,12 @@
 ### Authors
 - Elizabeth J. Wilk, Timothy C. Howton, Jennifer L. Fisher, Vishal Oza, Ryan Brownlee, Kasi McPherson, Hanna Cleary, Brittany N. Lasseigne
 
+## Overview
+
 PKD drug repurposing analyses. Drug candidate discovery and prioritization for PKD using publicly available pre-cystic and cystic kidney PKD2 KO mouse data sets.
 - Pre-Cystic P70: [GSE149739](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE149739)
 - Cystic P21: [GSE134719](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE134719)
-- Cystic P28: [GSE69556](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE69556)
+- Cystic P28: [GSE69556](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE69556) 
 
 ![alt text](res/biorender/repo_workflow.png)
 
