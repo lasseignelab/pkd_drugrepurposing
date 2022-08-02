@@ -7,6 +7,8 @@ PKD drug repurposing analyses. Drug candidate discovery and prioritization for P
 - Cystic P21: [GSE134719](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE134719)
 - Cystic P28: [GSE69556](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE69556)
 
+![alt text](https://github.com/lasseignelab/pkd_drugrepurposing/res/biorender/repo_workflow.png?raw=true)
+
 ## code/. 
 ### DESeq2. 
 PKD drug repurposing analysis. DESeq2 analysis was run in separate markdowns for each dataset.
