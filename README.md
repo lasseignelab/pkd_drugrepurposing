@@ -1,4 +1,4 @@
-# pkd_drugrepurposing
+# Drug Repurposing Analyses in Polycistic Kidney Disease
 ### Authors
 - Elizabeth J. Wilk, Timothy C. Howton, Jennifer L. Fisher, Vishal Oza, Ryan Brownlee, Kasi McPherson, Hanna Cleary, Brittany N. Lasseigne
 
@@ -49,6 +49,10 @@ Analyses using [signatureSearch](https://github.com/girke-lab/signatureSearch) f
 
  - Michal Mrug
  - Brad Yoder
+
+## License
+
+[MIT](https://choosealicense.com/licenses/mit/)
 
 ### Versions  
 
