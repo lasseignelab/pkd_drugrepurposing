@@ -204,6 +204,12 @@ dds <- DESeq(dds)
 res <- results(dds, alpha = 0.05, contrast = c("Genotype", "Pkd2flflPax8rtTATetOcre", "Wildtype"))
 
 resultsNames(res)
+
+
+test_up <- uplfc(res)
+head(test_up)
+test_down <- downlfc(res)
+head(test_down)
 ```
 
 #### DDS
@@ -350,7 +356,7 @@ heatmap_p70 <- pheatmap(conv_cts[rownames(top20lfc), ], cluster_rows = TRUE, clu
 ```
 
 ```{r}
-#ggsave(heatmap_p70, filename = here("res", "fea", "heatmap_p70.pdf", height = 7, width = 14)
+ggsave(heatmap_p70, filename = here("res", "fea", "heatmap_p70.pdf"), height = 7, width = 14)
 ```
 
 
@@ -523,7 +529,7 @@ heatmap_21 <- pheatmap(conv_cts_56[rownames(top20lfc_56), ], cluster_rows = TRUE
 ```
 
 ```{r eval=FALSE, include=FALSE}
-ggsave(heatmap_21, filename = "./res/fea/heatmap_p21.pdf", height = 7, width = 14)
+ggsave(heatmap_21, filename = here("res", "fea", "heatmap_p21.pdf"), height = 7, width = 14)
 
 ```
 
@@ -689,7 +695,7 @@ heatmap_p28 <- pheatmap(conv_cts_19[rownames(top20lfc_19), ], cluster_rows = TRU
 ```
 
 ```{r eval=FALSE, include=FALSE}
-ggsave(heatmap_p28, filename = "./res/fea/heatmap_p28.pdf", height = 7, width = 14)
+ggsave(heatmap_p28, filename = here("res", "fea", "heatmap_p28.pdf"), height = 7, width = 14)
 
 ```
 
