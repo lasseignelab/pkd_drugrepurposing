@@ -31,14 +31,20 @@ Analyses using [signatureSearch](https://github.com/girke-lab/signatureSearch) f
 - Metadata each dataset (*_metadata.txt)
 - Processed STAR-salmon count data (*_salmonmerged_gene_counts.rds)
 - Ensembl human and mouse gene conversion annotation (annot_ens_humanmouse.csv)
-- Background gene list (for FEA) 
-- Side effects data from onSides  
+- Background gene list (for FEA) (background_genelist_genestoLINCSgenes.csv)
+- Side effects data from onSides (onsides_v01)
+  - Adverse reactions from "ADVERSE REACTIONS" section of most recent labels (adverse_reactions.csv)
+  - Adverse reactions from "BOXED WARNINGS" section most recent labels (boxed_warnings.csv)
+  - Most recent label for each drug/combination of drugs (latest_labels_bydrug.csv)
+- Drug data incuding clinical trial status, MOA, original indication, etc. (Repurposing_Hub_export.txt)
+ 
 - Data from the Drug Repurposing Hub  
 
 ## res/. 
 - deseq2_outputs
 - sigsearch_outputs
-- fea
+- FEA
+- biorender (repo workflow image)
 
 ## Acknowledgements
 
