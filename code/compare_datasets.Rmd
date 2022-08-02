@@ -53,11 +53,11 @@ return(fea)
 }
 
 mouseenrich <- function(upgenes, downgenes, topreturned) {
-  upgenes$UpLFC <- sort(as.numeric(upgenes$UpLFC), decreasing = TRUE)
+  upgenes$LFC <- sort(as.numeric(upgenes$LFC), decreasing = TRUE)
   up_fea <- fea(upgenes$Mouse.gene.stable.ID, topreturned$Mouse.gene.stable.ID)
   up_fea <- dplyr::mutate(up_fea, .keep = "all", direction = "upregulated")
   
-  downgenes$DownLFC <- sort(as.numeric(downgenes$DownLFC))
+  downgenes$LFC <- sort(as.numeric(downgenes$LFC))
   down_fea <- fea(downgenes$Mouse.gene.stable.ID, topreturned$Mouse.gene.stable.ID)
   down_fea <- dplyr::mutate(down_fea, .keep = "all", direction = "downregulated")
   
