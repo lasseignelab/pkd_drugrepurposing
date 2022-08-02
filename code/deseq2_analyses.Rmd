@@ -10,10 +10,7 @@ output:
 
 ---
 
-```{r eval=FALSE, include=FALSE}
-#filepath for code and data
-knitr::opts_knit$set(root.dir = "/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing")
-```
+
 ### Purpose  
 This markdown uses nf-core for RNAseq alignment, STAR salmon counts. All data from publicly available mouse kidney RNAseq data comparing PKD2-KO and WT.  
 __p70__: AKA 39/GSE149739/precystic/p70, induced-KO model, samples collected at p70 when tubules were dilated with no overt cyst formation. Total n = 6 samples, 3 Pkd2fl/fl;Pax8rtTA;TetO-Cre and 3 WT  
@@ -89,7 +86,7 @@ uplfc <- function(res){
   #pull just logfold change values from DESeqResults object and name the values by associated gene
   up <- upfc$log2FoldChange
   #names(up) <- rownames(upfc)
-  up <- cbind(Mouse.gene.stable.ID = rownames(upfc), UpLFC = up)
+  up <- cbind(Mouse.gene.stable.ID = rownames(upfc), LFC = up)
   
 return(as.data.frame(up))
 }
@@ -103,7 +100,7 @@ downlfc <- function(res){
   #pull just logfold change values from DESeqResults object and name the values by associated gene
   down <- downfc$log2FoldChange
   #names(down) <- rownames(downfc)
-  down <- cbind(Mouse.gene.stable.ID = rownames(downfc), DownLFC = down)
+  down <- cbind(Mouse.gene.stable.ID = rownames(downfc), LFC = down)
   
 return(as.data.frame(down))
 }
@@ -123,7 +120,6 @@ convertMouseGeneList <- function(lfc){
   
   names(ens_mouse2human) <- c("mouse_ensembl_gene_id", "LFC", "ensembl_gene_id")
   conv_tbl <- merge(genes, ens_mouse2human, by = "ensembl_gene_id")
-
 return(conv_tbl)
 }
 ```
@@ -188,8 +184,7 @@ meta_39_2$Genotype <- str_replace_all(meta_39_2$Genotype, "[^[:alnum:]]", "")
 meta_39_2 <- dplyr::filter(meta_39_2, Genotype != "Ift88flflPkd2flflPax8rtTATetOcre")
   #contrasts need to be factor levels
   meta_39_2$Genotype <- as.factor(meta_39_2$Genotype)
-#print(rownames(metadata))
-#print(colnames(cts))
+
   
 cts_39_2 <- dplyr::select(cts_39_2, c(rownames(meta_39_2)))
 
@@ -221,7 +216,7 @@ dds_39$Genotype <- relevel(dds_39$Genotype, ref = "Wildtype")
 
 #run DESeq: estimates size factors, estimates dispersion, fits negative binomial GLM's and performs Wald stats
 dds_39 <- DESeq(dds_39) #can also look at setting replaceOutliers lower for dealing with outliers flagged by extreme Cook's distances
-#save(ds, file = "./res/deseq2_outputs/GSE149739_dds_kasi2021alignment.rds")
+#save(ds, file = here("res", "deseq2_outputs", "GSE149739_dds_kasi2021alignment.rds")
 ```
 
 #### Results  
@@ -244,11 +239,11 @@ dsq2_39_down <- dplyr::filter(dsq2_39, log2FoldChange < -2.0)
 
 Save full deseq results
 ```{r}
-write.csv(dsq2_39, file = "./res/deseq2_outputs/deseq2_fullres_39.csv")
+write.csv(dsq2_39, file = here("res", "deseq2_outputs", "deseq2_fullres_39.csv"))
 
-write.csv(dsq2_39_up, file = "./res/deseq2_outputs/deseq2_upgenes_res_39.csv")
+write.csv(dsq2_39_up, file = here("res", "deseq2_outputs", "deseq2_upgenes_res_39.csv"))
 
-write.csv(dsq2_39_down, file = "./res/deseq2_outputs/deseq2_downgenes_res_39.csv")
+write.csv(dsq2_39_down, file = here("res", "deseq2_outputs", "deseq2_downgenes_res_39.csv"))
 ```
 
 #### LFC cutoffs
@@ -262,8 +257,9 @@ head(musdegs_39_DOWN)
 
 
 ```{r eval=FALSE, include=FALSE}
-write.csv(musdegs_39_UP, file = "/res/deseq2_outputs/GSE149739_mus_degs_UP_220421.csv")
-write.csv(musdegs_39_DOWN, file = "/res/deseq2_outputs/GSE149739_mus_degs_DOWN_220421.csv")
+write.csv(musdegs_39_UP, file = here("res", "deseq2_outputs", "GSE149739_mus_degs_UP_220421.csv"))
+
+write.csv(musdegs_39_DOWN, file = here("res", "deseq2_outputs", "GSE149739_mus_degs_DOWN_220421.csv"))
 
 ```
 
@@ -293,8 +289,8 @@ hom_degs_DOWN <-  lincsGenes(musdegs_39_DOWN, "down")
 
 
 ```{r eval=FALSE, include=FALSE}
-write.csv(hom_degs_UP, file = "/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/deseq2_outputs/GSE149739_degs_UP_220421.csv")
-write.csv(hom_degs_DOWN, file = "/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/deseq2_outputs/GSE149739_degs_DOWN_220421.csv")
+write.csv(hom_degs_UP, file = here("res", "deseq2_outputs", "GSE149739_degs_UP_220421.csv"))
+write.csv(hom_degs_DOWN, file = here("res", "deseq2_outputs", "GSE149739_degs_DOWN_220421.csv"))
 ```
 
 
@@ -374,12 +370,13 @@ conv_tbl <- merge(convgenes, ens_mouse2human, by.x = "ensembl_gene_id", by.y = "
 
 Drug targets from FDA approved candidates from signature reversion of p70
 ```{r}
-targets_39 <- read.csv("./res/sigsearch_outputs/rhub_launcheddrugs_39.csv", row.names = 1)
+targets_39 <- read.csv(here("res", "sigsearch_outputs", "rhub_launcheddrugs_39.csv", row.names = 1))
 targets_39 <- tidyr::separate_rows(targets_39, "t_gn_sym", sep = "; ")
 ```
 
 ```{r}
-write.csv(targets_39, file = "./res/sigsearch_outputs/drugtargets_p70.csv")
+write.csv(targets_39, file = here("res", "sigsearch_outputs", "drugtargets_p70.csv"))
+
 ```
 
 ```{r}
@@ -428,7 +425,7 @@ res_56 <- results(dds_56, alpha = 0.05, contrast = c("Genotype", "Pkhd1CrePkd2FF
 ```
 
 ```{r eval=FALSE, include=FALSE}
-write.csv(res_56, file = "/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/deseq2_outputs/deseq2_fullres_56.csv")
+write.csv(res_56, file = here("res", "deseq2_outputs", deseq2_fullres_56.csv"))
 
 ```
 
@@ -449,11 +446,12 @@ hom_56_DOWN <-  lincsGenes(musdegs_56_DOWN, "down")
 
 
 ```{r eval=FALSE, include=FALSE}
-write.csv(musdegs_56_UP, file = "/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/deseq2_outputs/GSE69556_mus_degs_UP_220421.csv")
-write.csv(musdegs_56_DOWN, file = "/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/deseq2_outputs/GSE69556_mus_degs_DOWN_220421.csv")
+write.csv(musdegs_56_UP, file = here("res", "deseq2_outputs", "GSE69556_mus_degs_UP_220421.csv"))
+write.csv(musdegs_56_DOWN, file = here("res", "deseq2_outputs", "GSE69556_mus_degs_DOWN_220421.csv"))
 
-write.csv(hom_56_UP, file = "/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/deseq2_outputs/GSE69556_degs_UP_220421.csv")
-write.csv(hom_56_DOWN, file = "/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/deseq2_outputs/GSE69556_degs_DOWN_220421.csv")
+write.csv(hom_56_UP, file = here("res", "deseq2_outputs", "GSE69556_degs_UP_220421.csv"))
+write.csv(hom_56_DOWN, file = here("res", "deseq2_outputs", "GSE69556_degs_DOWN_220421.csv"))
+
 ```
 
 
@@ -587,9 +585,8 @@ res_19 <- results(dds_19, alpha = 0.05, contrast = c("Genotype", "Pdk2KO", "wild
 
 Save full deseq2 results
 ```{r eval=FALSE, include=FALSE}
-write.csv(res_19, file = "/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/deseq2_outputs/deseq2_fullres_19.csv")
+write.csv(res_19, file = here("res", "deseq2_outputs", "deseq2_fullres_19.csv"))
 
-#write.csv(as.data.frame(res_19), file = "res/biorender/test.csv")
 ```
 
 #### LFC cutoffs
@@ -622,18 +619,17 @@ plotPCA(rld_19, intgroup=c("Genotype")) + geom_label_repel(aes(label = rld_19@co
 Map to human entrez and filter by LINCS genes
 ```{r}
 hom_19_UP <- lincsGenes(musdegs_19_UP, "up")
-head(hom_19_UP)
+
 hom_19_DOWN <-  lincsGenes(musdegs_19_DOWN, "down")
-head(hom_19_DOWN)
 ```
 
 
 ```{r eval=FALSE, include=FALSE}
-write.csv(musdegs_19_UP, file = "/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/deseq2_outputs/GSE134719_mus_degs_UP_220421.csv")
-write.csv(musdegs_19_DOWN, file = "/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/deseq2_outputs/GSE134719_mus_degs_DOWN_220421.csv")
-
-write.csv(hom_19_UP, file = "/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/deseq2_outputs/GSE134719_degs_UP_220421.csv")
-write.csv(hom_19_DOWN, file = "/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/deseq2_outputs/GSE134719_degs_DOWN_220421.csv")
+write.csv(musdegs_19_UP, file = here("res", "deseq2_outputs", "GSE134719_mus_degs_UP_220421.csv"))
+write.csv(musdegs_19_DOWN, file = here("res", "deseq2_outputs", "GSE134719_mus_degs_DOWN_220421.csv"))
+ 
+write.csv(hom_19_UP, file = here("res", "deseq2_outputs", "GSE134719_degs_UP_220421.csv"))
+write.csv(hom_19_DOWN, file = here("res", "deseq2_outputs", "GSE134719_degs_DOWN_220421.csv"))
 
 ```
 
