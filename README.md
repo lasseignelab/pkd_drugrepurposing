@@ -37,8 +37,7 @@ Analyses using [signatureSearch](https://github.com/girke-lab/signatureSearch) f
   - Adverse reactions from "BOXED WARNINGS" section most recent labels (boxed_warnings.csv)
   - Most recent label for each drug/combination of drugs (latest_labels_bydrug.csv)
 - Drug data incuding clinical trial status, MOA, original indication, etc. (Repurposing_Hub_export.txt)
- 
-- Data from the Drug Repurposing Hub  
+
 
 ## res/. 
 - deseq2_outputs
