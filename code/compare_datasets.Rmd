@@ -112,155 +112,6 @@ return(barplot)
 
 ```
 
-subsetting terms that are mitochondria dysfunction-related
-```{r eval=FALSE, include=FALSE}
-mito_terms <- function(fea_res){
-  up <- fea_res$upregulated
-  down <- fea_res$downregulated
-  tbl <- rbind(up, down)
-  
-  metabol <- stringr::str_subset(tbl$term_name, "metabol")
-  mitochon <- stringr::str_subset(tbl$term_name, "mitochon")
-  oxid <- stringr::str_subset(tbl$term_name, "oxid")
-  #signal <- stringr::str_subset(tbl$term_name, "signal")
-  NAD <- stringr::str_subset(tbl$term_name, "NAD")
-  glyc <- stringr::str_subset(tbl$term_name, "glyc")
-  cAMP <- stringr::str_subset(tbl$term_name, "cAMP")
-  mTOR <- stringr::str_subset(tbl$term_name, "mTOR")
-  AMPK <- stringr::str_subset(tbl$term_name, "AMPK")
-  ERK <- stringr::str_subset(tbl$term_name, "ERK")
-  calcium <- stringr::str_subset(tbl$term_name, "calcium")
-  MAPK <- stringr::str_subset(tbl$term_name, "MAPK")
-  ATPase <-  stringr::str_subset(tbl$term_name, "ATPase")
-  ATP <- stringr::str_subset(tbl$term_name, "ATP")
-  STIM1 <- stringr::str_subset(tbl$term_name, "STIM1")
-  #channel <- stringr::str_subset(tbl$term_name, "channel")
-  TRP <-  stringr::str_subset(tbl$term_name, "TRP")
-  NFAT <-  stringr::str_subset(tbl$term_name, "NFAT")
-  
-  mitoterms <- c(metabol, mitochon, oxid, NAD, glyc, cAMP, mTOR, AMPK, ERK, calcium, MAPK, ATPase, ATP, STIM1, TRP, NFAT)
-  mitoterms <- as.data.frame(mitoterms)
-  colnames(mitoterms) <- c("term_name")
-  
-  mitochondrial_terms <- right_join(tbl, mitoterms, by = "term_name")
-return(mitochondrial_terms)
-}
-  
-
-```
-
-subsetting terms that are  ciliopathy-related terms
-```{r eval=FALSE, include=FALSE}
-cilia_terms <- function(fea_res){
-  up <- fea_res$upregulated
-  down <- fea_res$downregulated
-  tbl <- rbind(up, down)
-  
-  gpcr <- stringr::str_subset(tbl$term_name, "GPCR")
-  sens <- stringr::str_subset(tbl$term_name, "sens")
-  trans <- stringr::str_subset(tbl$term_name, "trans") #transduction and transport roles
-  cilia <- c(gpcr, sens, trans)
-  cilia <- as.data.frame(cilia)
-  colnames(cilia) <- c("term_name")
-  #print(mitoterms)
-  cilia_terms <- right_join(tbl, cilia, by = "term_name")
-return(cilia_terms)
-}
-
-
-```
-
-Subsetting for fibrosis-realted terms
-```{r eval=FALSE, include=FALSE}
-fibrosis_terms <- function(fea_res){
-  up <- fea_res$upregulated
-  down <- fea_res$downregulated
-  tbl <- rbind(up, down)
-  
-  mitosis <- stringr::str_subset(tbl$term_name, "mito")
-  cycle <- stringr::str_subset(tbl$term_name, "cell cycle")
-  collagen <- stringr::str_subset(tbl$term_name, "collagen") 
-  ECM <- stringr::str_subset(tbl$term_name, "ECM")
-  extracellular <- stringr::str_subset(tbl$term_name, "extracellular")
-  TGF <- stringr::str_subset(tbl$term_name, "TGF") 
-  growth <- stringr::str_subset(tbl$term_name, "growth")
-  fibro <- stringr::str_subset(tbl$term_name, "fibro")
-  collagen <- stringr::str_subset(tbl$term_name, "collagen")
-  TIMP <- stringr::str_subset(tbl$term_name, "TIMP")
-  PAI <- stringr::str_subset(tbl$term_name, "PAI") 
-  EGFR <- stringr::str_subset(tbl$term_name, "EGFR")
-  prolif <- stringr::str_subset(tbl$term_name, "prolif")
-  miR17 <- stringr::str_subset(tbl$term_name, "miR17") 
-  
-  fibrosis_terms <- c(mitosis, cycle, collagen, ECM, extracellular, TGF, growth, fibro, collagen, TIMP, PAI, EGFR, prolif, miR17)
-  fibrosis_terms <- as.data.frame(fibrosis_terms)
-  colnames(fibrosis_terms) <- c("term_name")
-  #print(mitoterms)
-  fibrosis_terms <- right_join(tbl, fibrosis_terms, by = "term_name")
-return(fibrosis_terms)
-}
-
-```
-
-immune terms
-Subsetting for fibrosis-realted terms
-```{r eval=FALSE, include=FALSE}
-immune_terms <- function(fea_res){
-  up <- fea_res$upregulated
-  down <- fea_res$downregulated
-  tbl <- rbind(up, down)
-  
-  cytok <- stringr::str_subset(tbl$term_name, "cytok")
-  inflam <- stringr::str_subset(tbl$term_name, "inflam")
-  immun <- stringr::str_subset(tbl$term_name, "immun")
-  leuk <- stringr::str_subset(tbl$term_name, "leuk")
-  extracellular <- stringr::str_subset(tbl$term_name, "extracellular")
-  ECM <- stringr::str_subset(tbl$term_name, "ECM")
-  macroph <- stringr::str_subset(tbl$term_name, "macroph")
-  monoc <- stringr::str_subset(tbl$term_name, "monoc")
-  MHC <- stringr::str_subset(tbl$term_name, "MHC")
-  CD <- stringr::str_subset(tbl$term_name, "CD")
-  Tcell <- stringr::str_subset(tbl$term_name, "T cell")
-  complement <- stringr::str_subset(tbl$term_name, "complement")
-  Bcell <- stringr::str_subset(tbl$term_name, "B cell")
-  kcell <- stringr::str_subset(tbl$term_name, "killer cell")
-  hcell <- stringr::str_subset(tbl$term_name, "helper cell")
-  FCERI <- stringr::str_subset(tbl$term_name, "FCERI")
-  
-  immune_terms <- c(cytok, inflam, immun, leuk, extracellular, ECM, macroph, monoc, MHC, CD, Tcell, complement, Bcell, kcell, hcell, FCERI)
-  immune_terms <- as.data.frame(immune_terms)
-  colnames(immune_terms) <- c("term_name")
-
-  immune_terms <- right_join(tbl, immune_terms, by = "term_name")
-return(immune_terms)
-}
-
-```
-
-subsetting terms that are SKF-96365 related (a store-operated Ca2+ entry (SOCE) inhibitor)
-```{r eval=FALSE, include=FALSE}
-soce <- function(up, down){
-  tbl <- rbind(up, down)
-  
-  ERK <- stringr::str_subset(tbl$term_name, "ERK")
-  calc <- stringr::str_subset(tbl$term_name, "calc")
-  MAPK <- stringr::str_subset(tbl$term_name, "MAPK")
-  ATPase <-  stringr::str_subset(tbl$term_name, "ATPase")
-  ATP <- stringr::str_subset(tbl$term_name, "ATP")
-  STIM1 <- stringr::str_subset(tbl$term_name, "STIM1")
-  channel <- stringr::str_subset(tbl$term_name, "channel")
-  TRP <-  stringr::str_subset(tbl$term_name, "TRP")
-  NFAT <-  stringr::str_subset(tbl$term_name, "NFAT")
-  soce <- c(ERK, calc, MAPK, ATPase, ATP, STIM1, channel, TRP, NFAT)
-  soce <- as.data.frame(soce)
-  colnames(soce) <- c("term_name")
-  #print(mitoterms)
-  soce_terms <- right_join(tbl, soce, by = "term_name")
-  
-return(soce_terms)
-}
-
-```
 
  ### Load in (top 100 human) data  
 Load in top 100 up and down genes used as signatures for signatureSearch
@@ -286,11 +137,11 @@ hom_56_DOWN <- read.csv(here("res", "deseq2_outputs", "GSE69556_degs_DOWN_220421
 ```
 
 
-Comparing results across datasets 
+Comparing Human-Entrez results across datasets 
 
 "Hom" refers to homosapiens -- genes that have been mapped from mouse to human
 ### Compare number of DEGs - datasets
-```{r eval=FALSE, include=FALSE}
+```{r}
 #in common, 19 and 56
 comp19vs56_intersect_up <- dplyr::intersect(hom_19_UP$entrezgene_id, hom_56_UP$entrezgene_id) 
 length(comp19vs56_intersect_up)
@@ -336,23 +187,6 @@ bp_39 <- barplot(fea_nf_GSE149739$topcompared)
 bp_39
 ```
 
-Bubbleplot of cilia-related enriched terms
-```{r eval=FALSE, include=FALSE}
-cilia_39 <- cilia_terms(fea_nf_GSE149739)
-bubbleplot(cilia_39) + labs(title = "Cilia-related Enriched Terms")
-```
-
-Bubbleplot of mitochondria-related enriched terms
-```{r eval=FALSE, include=FALSE}
-mito_39 <- mito_terms(fea_nf_GSE149739)
-bubbleplot(mito_39) + labs(title = "Mitochondria-related Enriched Terms")
-```
-
-SOCE-related pathways for '19 and '56 overlap
-```{r eval=FALSE, include=FALSE}
-soce_39 <- soce(fea_nf_GSE149739$upregulated, fea_nf_GSE149739$downregulated)
-bubbleplot(soce_39) + labs(title = "SOCE-related Enriched Terms")
-```
 
 ### FEA p21 cystic GSE69556 (top 100 human orthologs)  
 ```{r}
@@ -365,23 +199,6 @@ bp_56 <- barplot(fea_GSE69556$topcompared)
 bp_56
 ```
 
-Bubbleplot of cilia-related enriched terms
-```{r eval=FALSE, include=FALSE}
-cilia_56 <- cilia_terms(fea_GSE69556)
-bubbleplot(cilia_56) + labs(title = "Cilia-related Enriched Terms")
-```
-
-Bubbleplot of mitochondria-related enriched terms
-```{r eval=FALSE, include=FALSE}
-mito_56 <- mito_terms(fea_GSE69556)
-bubbleplot(mito_56) + labs(title = "Mitochondria-related Enriched Terms")
-```
-
-SOCE-related pathways for '19 and '56 overlap
-```{r eval=FALSE, include=FALSE}
-soce_56 <- soce(fea_GSE69556$upregulated, fea_GSE69556$downregulated)
-bubbleplot(soce_56) + labs(title = "SOCE-related Enriched Terms")
-```
 
 ### FEA p28 cystic GSE134719 (top 100 human orthologs)
 ```{r}
@@ -394,35 +211,6 @@ bar19 <- barplot(fea_GSE134719$topcompared)
 bar19
 ```
 
-Bubbleplot of cilia-related enriched terms
-```{r eval=FALSE, include=FALSE}
-cilia_19 <- cilia_terms(fea_GSE134719)
-bubbleplot(cilia_19) + labs(title = "Cilia-related Enriched Terms")
-```
-
-Bubbleplot of mito-related enriched terms
-```{r eval=FALSE, include=FALSE}
-mito_19 <- mito_terms(fea_GSE134719)
-bubbleplot(mito_19) + labs(title = "Mitochondria-related Enriched Terms")
-```
-
-SOCE-related pathways for '19 and '56 overlap
-```{r eval=FALSE, include=FALSE}
-soce_19 <- soce(fea_GSE134719$upregulated, fea_GSE134719$downregulated)
-bubbleplot(soce_19) + labs(title = "SOCE-related Enriched Terms")
-```
-
-Enrichment comparisons
-```{r eval=FALSE, include=FALSE}
-#enrichment for overlapping genes
-nf_orig_overlap_fea <- enrich(pipecompare_intersect_up, pipecompare_intersect_down, 15) 
-
-#enrichment for original alignment-specific genes
-orig_specifc_fea <- enrich(pipecompare_oldspecific_up, pipecompare_oldspecific_down, 15)
-
-#enrichment for nf alignment-specific genes
-nf_specifc_fea <- enrich(pipecompare_nfspecific_up, pipecompare_nfspecific_down, 15)
-```
 
 Save
 ```{r eval=FALSE, include=FALSE}
@@ -475,6 +263,7 @@ musdegs_56_DOWN <- read.csv(here("res", "deseq2_outputs", "GSE69556_mus_degs_DOW
 ```
 
 #### Gene overlaps
+Overlap comparing DEGs before human ortholog mapping, using Ensembl ID's
 ```{r}
 degs_19_56_overlap_up <- merge(musdegs_19_UP, musdegs_56_UP, by = "Mouse.gene.stable.ID")
 
@@ -530,49 +319,9 @@ bubbleplot top
 bubbleplot(dplyr::filter(fea_mouse_39$topcompared, intersection_size > 10)) #+ labs(title = "")
 ```
 
-
-Cilia-related pathways
-```{r eval=FALSE, include=FALSE}
-cilia_mouse_39 <- cilia_terms(fea_mouse_39)
-cilia_mouse_39_plot  <- bubbleplot(cilia_mouse_39) + labs(title = "Cilia-related Enriched Terms")
-cilia_mouse_39_plot
-```
-
-Mitochondria-related pathways 
-```{r eval=FALSE, include=FALSE}
-mito_mouse_39 <- mito_terms(fea_mouse_39)
-mito_mouse_39_plot <- bubbleplot(mito_mouse_39) + labs(title = "Mitochondria-related Enriched Terms")
-mito_mouse_39_plot
-```
-
-Store-operated CA 2+ Entry pathways
-```{r eval=FALSE, include=FALSE}
-soce_39 <- soce(fea_mouse_39$upregulated, fea_mouse_39$downregulated)
-mouse_39_soce <- bubbleplot(soce_39) + labs(title = "Store-operated CA 2+ Entry-related Enriched Terms")
-mouse_39_soce
-```
-
-Fibrosis-related terms
-```{r eval=FALSE, include=FALSE}
-fibrosis_mouse_39 <- fibrosis_terms(fea_mouse_39)
-fibrosis_mouse_39_plot <- bubbleplot(fibrosis_mouse_39) + labs(title = "Fibrosis-related Enriched Terms")
-fibrosis_mouse_39_plot
-
-```
-
-Immune-related terms
-```{r eval=FALSE, include=FALSE}
-immune_mouse_39 <- immune_terms(fea_mouse_39)
-immune_mouse_39_plot <- bubbleplot(immune_mouse_39) + labs(title = "Immune-related Enriched Terms")
-immune_mouse_39_plot
-
-```
-
-
 Save plots
-```{r}
+```{r eval=FALSE, include=FALSE}
 ggsave(filename = here("res", "fea", "mouse_39_overall.pdf"), bp_mouse_39_overall)
-
 
 ```
 
@@ -592,47 +341,11 @@ fea_mouse_56$topcompared$term_name <- stringr::str_wrap(fea_mouse_56$topcompared
 bubbleplot_p21 <- bubbleplot(dplyr::filter(fea_mouse_56$topcompared, intersection_size > 10)) + labs(title = "Top Enriched Terms for Cystic P21 Dataset") + theme(text = element_text(size = 14), plot.title = element_text(size = 24))
 ```
 
-```{r}
+```{r eval=FALSE, include=FALSE}
 ggsave(bubbleplot_p21, filename = here("res", "fea", "p21_fea_bubbleplot.pdf"), height = 7, width = 14)
 
 ```
 
-Cilia-related pathways
-```{r eval=FALSE, include=FALSE}
-cilia_mouse_56 <- cilia_terms(fea_mouse_56)
-cilia_mouse_56_plot <- bubbleplot(cilia_mouse_56) + labs(title = "Cilia-related Enriched Terms")
-cilia_mouse_56_plot
-```
-
-Mitochondria-related pathways 
-```{r eval=FALSE, include=FALSE}
-mito_mouse_56 <- mito_terms(fea_mouse_56)
-mito_mouse_56_plot <- bubbleplot(mito_mouse_56) + labs(title = "Mitochondria-related Enriched Terms")
-mito_mouse_56_plot
-```
-
-Fibrosis-related terms
-```{r eval=FALSE, include=FALSE}
-fibrosis_mouse_56 <- fibrosis_terms(fea_mouse_56)
-fibrosis_mouse_56_plot <- bubbleplot(fibrosis_mouse_56) + labs(title = "Fibrosis-related Enriched Terms")
-fibrosis_mouse_56_plot
-
-```
-
-Immune-related terms
-```{r eval=FALSE, include=FALSE}
-immune_mouse_56 <- immune_terms(fea_mouse_56)
-immune_mouse_56_plot <- bubbleplot(immune_mouse_56) + labs(title = "Immune-related Enriched Terms")
-immune_mouse_56_plot
-
-```
-
-Store-operated CA 2+ Entry pathways
-```{r eval=FALSE, include=FALSE}
-soce_56 <- soce(fea_mouse_56$upregulated, fea_mouse_56$downregulated)
-mouse_56_soce <- bubbleplot(soce_56) + labs(title = "Store-operated CA 2+ Entry-related Enriched Terms")
-mouse_56_soce
-```
 Save plots
 ```{r}
 ggsave(filename = here("res", "fea", "mouse_56_overall.pdf"), bp_mouse_56_overall)
@@ -660,43 +373,6 @@ ggsave(bubbleplot_p28, filename = here("res", "fea", "p28_fea_bubbleplot.pdf"), 
 
 ```
 
-
-Cilia-related pathways
-```{r eval=FALSE, include=FALSE}
-cilia_mouse_19 <- cilia_terms(fea_mouse_19)
-cilia_mouse_19_plot <- bubbleplot(cilia_mouse_19) + labs(title = "Cilia-related Enriched Terms")
-cilia_mouse_19_plot
-```
-
-Mitochondria-related pathways 
-```{r eval=FALSE, include=FALSE}
-mito_mouse_19 <- mito_terms(fea_mouse_19)
-mito_mouse_19_plot <- bubbleplot(mito_mouse_19) + labs(title = "Mitochondria-related Enriched Terms")
-mito_mouse_19_plot
-```
-
-Fibrosis-related terms
-```{r eval=FALSE, include=FALSE}
-fibrosis_mouse_19 <- fibrosis_terms(fea_mouse_19)
-fibrosis_mouse_19_plot <- bubbleplot(fibrosis_mouse_19) + labs(title = "Fibrosis-related Enriched Terms")
-fibrosis_mouse_19_plot
-
-```
-
-Immune-related terms
-```{r eval=FALSE, include=FALSE}
-immune_mouse_19 <- immune_terms(fea_mouse_19)
-immune_mouse_19_plot <- bubbleplot(immune_mouse_19) + labs(title = "Immune-related Enriched Terms")
-immune_mouse_19_plot
-
-```
-
-Store-operated CA 2+ Entry pathways
-```{r eval=FALSE, include=FALSE}
-soce_19 <- soce(fea_mouse_19$upregulated, fea_mouse_19$downregulated)
-mouse_19_soce <- bubbleplot(soce_19) + labs(title = "Store-operated CA 2+ Entry-related Enriched Terms")
-mouse_19_soce
-```
 
 Save gprofiler results
 ```{r eval=FALSE, include=FALSE}
@@ -829,14 +505,6 @@ write.csv(fea_overap_all_upterms, file = here("res", "fea", "fea_overap_all_upte
 fea_overap_all_downterms <- apply(fea_overap_all_down, 2, as.character)
 write.csv(fea_overap_all_downterms, file = here("res", "fea", "fea_overap_all_downterms.csv"))
 
-```
-
-Mitochondria-related terms overlap
-```{r eval=FALSE, include=FALSE}
-mitoch_overlap_19_56 <- mito_terms(fea_overlap_19_56)
-#mitoch_overlap_19_56_plot <- bubbleplot(mitoch_overlap_19_56) + labs(title = "Mitochondria-related Enriched Terms")
-#mitoch_overlap_19_56_plot
-dim(mitoch_overlap_19_56)
 ```
 
 
