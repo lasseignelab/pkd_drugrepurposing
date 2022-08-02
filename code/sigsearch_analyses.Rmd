@@ -10,11 +10,6 @@ output:
 
 ---
 
-```{r setup, include=FALSE}
-#filepath for code and data
-knitr::opts_knit$set(root.dir = "/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing")
-
-```
 
 ### Purpose  
 This markdown follows differential expression analyses from deseq2_GSE134719.Rmd, deseq2_GSE149739.Rmd, and deseq2_GSE69556.Rmd. DEGs from these markdowns are used as input for signatureSearch. Results are annotated with Drug Repurposing Hub and onSides data.  
@@ -31,6 +26,7 @@ library(ggalluvial)
 library(readr)
 library(signatureSearch)
 library(ExperimentHub); library(rhdf5)
+library(here)
 ```
 
 Pull LINCS data from Experiment Hub
@@ -67,9 +63,9 @@ return(gess_res)
 
 Load in top up and down DEGs  
 ```{r}
-hom_degs_UP <- read.csv("/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/deseq2_outputs/GSE149739_degs_UP_220421.csv")
+hom_degs_UP <- read.csv(here("res", "deseq2_outputs", "GSE149739_degs_UP_220421.csv"))
+hom_degs_DOWN <- read.csv(here("res", "deseq2_outputs", "GSE149739_degs_DOWN_220421.csv"))
 
-hom_degs_DOWN <- read.csv("/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/deseq2_outputs/GSE149739_degs_DOWN_220421.csv")
 ```
 
 Run signatureSearch, filter for kidney cell lines  
@@ -88,16 +84,17 @@ knitr::kable(gess_kidneycells_39, col.names = colnames(gess_kidneycells_39))
 ```
 
 ```{r eval=FALSE, include=FALSE}
-write.csv(gess_kidneycells_39, "./res/sigsearch_outputs/gess_kidneycells_39_220421.csv")
+write.csv(gess_kidneycells_39, file = here("res", "sigsearch_outputs", "gess_kidneycells_39_220421.csv"))
+ 
 ```
 
 ## GSE69556  
 
 Load in top up and down DEGs  
 ```{r}
-hom_56_UP <- read.csv("/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/deseq2_outputs/GSE69556_degs_UP_220421.csv")
+hom_56_UP <- read.csv(here("res", "deseq2_outputs", "GSE69556_degs_UP_220421.csv"))
+hom_56_DOWN <- read.csv(here("res", "deseq2_outputs", "GSE69556_degs_DOWN_220421.csv"))
 
-hom_56_DOWN <- read.csv("/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/deseq2_outputs/GSE69556_degs_DOWN_220421.csv")
 ```
 
 Run signatureSearch, filter for kidney cell lines  
@@ -117,14 +114,16 @@ knitr::kable(gess_kidneycells_56, col.names = colnames(gess_kidneycells_56))
 
 Save gess and filtered gess result
 ```{r eval=FALSE, include=FALSE}
-write.csv(gess_kidneycells_56, "./res/sigsearch_outputs/gess_kidneycells_56_220421.csv")
+write.csv(gess_kidneycells_56, file = here("res", "sigsearch_outputs", "gess_kidneycells_56_220421.csv"))
+
 ```
 
 ## GSE134719  
 Read in data  
 ```{r}
-hom_19_UP <- read.csv("/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/deseq2_outputs/GSE134719_degs_UP_220421.csv")
-hom_19_DOWN <- read.csv("/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/deseq2_outputs/GSE134719_degs_DOWN_220421.csv")
+hom_19_UP <- read.csv(here("res", "deseq2_outputs", "GSE134719_degs_UP_220421.csv"))
+hom_19_DOWN <- read.csv(here("res", "deseq2_outputs", "GSE134719_degs_DOWN_220421.csv"))
+
 ```
 
 Run signatureSearch, filter for kidney cell lines  
@@ -143,7 +142,7 @@ knitr::kable(gess_kidneycells_19, col.names = colnames(gess_kidneycells_19))
 
 Save gess and filtered gess result
 ```{r eval=FALSE, include=FALSE}
-write.csv(gess_kidneycells_19, "./res/sigsearch_outputs/gess_kidneycells_19_220421.csv")
+write.csv(gess_kidneycells_19, here("res", "sigsearch_outputs", "gess_kidneycells_19_220421.csv"))
 ```
 
 ## Compare datasets  
@@ -203,9 +202,9 @@ dtnetplot(drugs = drugs(tsea_KEGG_39), set = "hsa04750", ont = "MF", desc="Infla
 
 Save TSEA tables
 ```{r eval=FALSE, include=FALSE}
-write.csv(tsea_GO_39@result, file = "./res/sigsearch_outputs/tsea_go_39.csv")
+write.csv(tsea_GO_39@result, file = here("res", "sigsearch_outputs", "tsea_go_39.csv")
 
-write.csv(tsea_KEGG_39@result, file = "./res/sigsearch_outputs/tsea_kegg_39.csv")
+write.csv(tsea_KEGG_39@result, file = here("res", "sigsearch_outputs", "tsea_kegg_39.csv"))
 ```
 
 '56 TSEA 
@@ -230,9 +229,9 @@ dtnetplot(drugs = drugs(tsea_KEGG_56), set = "hsa04657", desc="IL-17 signaling p
 
 Save TSEA tables
 ```{r eval=FALSE, include=FALSE}
-write.csv(tsea_GO_56@result, file = "./res/sigsearch_outputs/tsea_go_56.csv")
+write.csv(tsea_GO_56@result, file = here("res", "sigsearch_outputs", "tsea_go_56.csv")
 
-write.csv(tsea_KEGG_56@result, file = "./res/sigsearch_outputs/tsea_kegg_56.csv")
+write.csv(tsea_KEGG_56@result, file = "res", "sigsearch_outputs", "tsea_kegg_56.csv")
 ```
 
 '19 TSEA
@@ -251,16 +250,16 @@ dtnetplot(drugs = drugs(tsea_GO_19), set = "GO:0051117", ont = "MF", desc="ATPas
 
 Save TSEA tables
 ```{r eval=FALSE, include=FALSE}
-write.csv(tsea_GO_19@result, file = "./res/sigsearch_outputs/tsea_go_19.csv")
+write.csv(tsea_GO_19@result, file = here("res", "sigsearch_outputs", "tsea_go_19.csv"))
 
-write.csv(tsea_KEGG_19@result, file = "./res/sigsearch_outputs/tsea_kegg_19.csv")
+write.csv(tsea_KEGG_19@result, file = here("res", "sigsearch_outputs", "tsea_kegg_19.csv"))
 ```
 
 #####Plots TSEA  
 
 Read back in  
 ```{r}
-tsea_GO_39 <- read.csv(file = "./res/sigsearch_outputs/tsea_go_39.csv", row.names = 1)
+tsea_GO_39 <- read.csv(file = here("res", "sigsearch_outputs", "tsea_go_39.csv"), row.names = 1))
 
 ```
 
@@ -280,16 +279,17 @@ dsea_39 <- dsea_hyperG(
 ```
 
 
-```{r eval=FALSE, include=FALSE}
-write.csv(dsea_39@result, file = "./res/sigsearch_outputs/dsea_39.csv")
-dsea_39 <- read.csv(file = "./res/sigsearch_outputs/dsea_39.csv")
+```{r}
+write.csv(dsea_39@result, file = here("res", "sigsearch_outputs", "dsea_39.csv"))
+
+dsea_39 <- read.csv(file = here("res", "sigsearch_outputs", "dsea_39.csv"))
 ```
 
 
 ### Drug Annotations  
 LINCS [Drug Repurposing Hub](https://www.nature.com/articles/nm.4306), contains drug names, MOAs, original indications, and targets
 ```{r}
-repurpHub <- read.delim("./data/Repurposing_Hub_export.txt") #6798 drugs
+repurpHub <- read.delim(here("data", "Repurposing_Hub_export.txt"))
 
 rHub_19 <- dplyr::inner_join(gess_kidneycells_19, repurpHub, by= c("pert" = "Name"))
 
@@ -302,7 +302,7 @@ P70/'39 Already-Launched Drugs
 ```{r}
 rhub_launched_39 <- dplyr::filter(rHub_39, Phase == "Launched")
 
-write.csv(rhub_launched_39, "./res/sigsearch_outputs/rhub_launcheddrugs_39.csv")
+write.csv(rhub_launched_39, file = here("res", "sigsearch_outputs", "rhub_launcheddrugs_39.csv"))
 ```
 
 Alluvial plot of drugs-targets with just launched drugs
@@ -335,7 +335,8 @@ Save
 ```{r eval=FALSE, include=FALSE}
 #target-separated, rhub-annotated drug results for 39
 gene_drug_targets <- rhub_launched_39_top_septarget
-write.csv(gene_drug_targets, file = "./res/sigsearch_outputs/gene_drug_targets_39.csv")
+
+write.csv(gene_drug_targets, file = here("res", "sigsearch_outputs", "gene_drug_targets_39.csv"))
 ```
 
 
@@ -366,7 +367,7 @@ moa_alluvial
 ```
 
 ```{r eval=FALSE, include=FALSE}
-ggsave("./figures/moa_alluvial_wtcs_2.pdf", moa_alluvial, width = 10, height = 15)
+ggsave(here("res", "sigsearch_outputs", "moa_alluvial_wtcs_2.pdf"), moa_alluvial, width = 10, height = 15)
 
 ```
 
@@ -381,16 +382,15 @@ rHub_all_inters <- merge(rHub_19_and_56, rHub_39,  by = "pert")
 
 Save
 ```{r eval=FALSE, include=FALSE}
-write.csv(rHub_19, file = "./res/sigsearch_outputs/ssresults_rHub_19.csv")
+write.csv(rHub_19, file = here("res", "sigsearch_outputs", "ssresults_rHub_19.csv"))
 
-write.csv(rHub_56, file = "./res/sigsearch_outputs/ssresults_rHub_56.csv")
+write.csv(rHub_56, file = here("res", "sigsearch_outputs", "ssresults_rHub_56.csv"))
 
-write.csv(rHub_39, file = "./res/sigsearch_outputs/ssresults_rHub_39.csv")
+write.csv(rHub_39, file = here("res", "sigsearch_outputs", "ssresults_rHub_39.csv"))
 
-write.csv(rHub_19_and_56, file = "./res/sigsearch_outputs/ssresults_rHub_19_and_56.csv")
+write.csv(rHub_19_and_56, file = here("res", "sigsearch_outputs", "ssresults_rHub_19_and_56.csv"))
 
-write.csv(rHub_all_inters, file = "./res/sigsearch_outputs/ssresults_rHub_all_inters.csv")
-
+write.csv(rHub_all_inters, file = here("res", "sigsearch_outputs", "ssresults_rHub_all_inters.csv"))
 ```
 
 
@@ -400,14 +400,12 @@ __adverse_reactions_bylabel__ - All extracted adverse reactions from the ADVERSE
 __label_map__ - Map between the xml_id (xml filename), zip_id (zip filename), and set_id (drug identifier). 45,989 rows.  
 
 ```{r}
-reactions <- read.csv("/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/data/onsides_v01/adverse_reactions.csv")
-
+reactions <- read.csv(here("data", "onsides_v01", "adverse_reactions.csv"))
 reactions_unique <- unique(reactions$concept_name)
 
-warnings <- read.csv("/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/data/onsides_v01/boxed_warnings.csv")
+warnings <- read.csv(here("data", "onsides_v01", "boxed_warnings.csv"))
 
-labels <- read.csv("/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/data/onsides_v01/latest_labels_bydrug.csv")
-
+labels <- read.csv(here("data", "onsides_v01", "latest_labels_bydrug.csv"))
 ```
 
 Looking at reactions for 'launched' drugs from P70/'39 results
@@ -420,7 +418,8 @@ onsides_39 <- dplyr::left_join(onsides_39, reactions, by = c("latest_xml_id" = "
 
 
 ```{r}
-write.csv(onsides_39, file = "./res/sigsearch_outputs/adr_onsides_precystic_drugcandidates")
+write.csv(onsides_39, file = here("res", "sigsearch_outputs", "adr_onsides_precystic_drugcandidates"))
+ 
 ```
 
 #### Versions  
