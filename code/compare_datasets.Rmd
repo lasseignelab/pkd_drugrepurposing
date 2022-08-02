@@ -141,7 +141,7 @@ Comparing Human-Entrez results across datasets
 
 "Hom" refers to homosapiens -- genes that have been mapped from mouse to human
 ### Compare number of DEGs - datasets
-```{r}
+```{r eval=FALSE, include=FALSE}
 #in common, 19 and 56
 comp19vs56_intersect_up <- dplyr::intersect(hom_19_UP$entrezgene_id, hom_56_UP$entrezgene_id) 
 length(comp19vs56_intersect_up)
@@ -308,7 +308,7 @@ bubbleplot_p70 <- bubbleplot(dplyr::filter(fea_mouse_39$topcompared, intersectio
 bubbleplot(fea_mouse_39$topcompared) + labs(title = "Top Enriched Terms for Pre-Cystic P70 Dataset") + theme(text = element_text(size = 14), plot.title = element_text(size = 24))
 ```
 
-```{r}
+```{r eval=FALSE, include=FALSE}
 ggsave(p70_fea_plot, filename = here("res", "fea", "p70_fea_plot.pdf"))
 
 ggsave(bubbleplot_p70, filename = here("res", "fea", "p70_fea_bubbleplot.pdf"), height = 7, width = 14)
@@ -347,7 +347,7 @@ ggsave(bubbleplot_p21, filename = here("res", "fea", "p21_fea_bubbleplot.pdf"), 
 ```
 
 Save plots
-```{r}
+```{r eval=FALSE, include=FALSE}
 ggsave(filename = here("res", "fea", "mouse_56_overall.pdf"), bp_mouse_56_overall)
 
 ```
@@ -368,7 +368,7 @@ fea_mouse_19$topcompared$term_name <- stringr::str_wrap(fea_mouse_19$topcompared
 bubbleplot_p28 <- bubbleplot(dplyr::filter(fea_mouse_19$topcompared, intersection_size > 10)) + labs(title = "Top Enriched Terms for Cystic P28 Dataset") + theme(text = element_text(size = 14), plot.title = element_text(size = 24))
 ```
 
-```{r}
+```{r eval=FALSE, include=FALSE}
 ggsave(bubbleplot_p28, filename = here("res", "fea", "p28_fea_bubbleplot.pdf"), height = 7, width = 14)
 
 ```
@@ -399,7 +399,7 @@ write.csv(fea_mouse_19_downterms, file = here("res", "fea", "fea_mouse_19_downte
 ```
 
 Save plots
-```{r}
+```{r eval=FALSE, include=FALSE}
 ggsave(filename = here("res", "fea", "mouse_19_overall.pdf"), bp_mouse_19)
 
 ```
@@ -445,6 +445,7 @@ ggplot(slice_max(fea_cystic_overlap_up, order_by = recall.y, n = 30), aes(x=inte
 
 
 ```
+
 cystic down overlap
 ```{r}
 ggplot(slice_max(fea_cystic_overlap_down, order_by = recall.y, n = 30), aes(x=intersection_size.y, y=term_name,  fill = p_value.y)) + 
@@ -470,7 +471,7 @@ ggplot(slice_max(fea_cystic_overlap_combined, order_by = recall.x, n = 10), aes(
 
 ```
 
-```{r}
+```{r eval=FALSE, include=FALSE}
 write.csv(fea_cystic_overlap_up, file = here("res", "fea", "fea_cystic_overlap_up.csv"))
 
 write.csv(fea_cystic_overlap_down, file = here("res", "fea", "fea_cystic_overlap_down.csv"))
@@ -492,7 +493,7 @@ fea_overap_all_down <- merge(fea_mouse_39$downregulated, fea_overlap_19_56_down,
 ```
 
 Save
-```{r}
+```{r eval=FALSE, include=FALSE}
 fea_overlap_19_56_upterms <- apply(fea_overlap_19_56_up, 2, as.character)
 write.csv(fea_overlap_19_56_upterms, file = here("res", "fea", "fea_overlap_19_56_upterms.csv"))
 
