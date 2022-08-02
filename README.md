@@ -4,14 +4,17 @@
 
 ## Overview
 
-PKD drug repurposing analyses. Drug candidate discovery and prioritization for PKD using publicly available pre-cystic and cystic kidney PKD2 KO mouse data sets.
+Autosomal dominant polycystic kidney disease (ADPKD) is characterized by renal cyst expansion and is primarily caused by variants in the PKD1 or PKD2 gene that encode the transmembrane proteins Polycystin-1 (PC1) and Polycystin-2 (PC2), respectively.[1](https://pubmed.ncbi.nlm.nih.gov/29326913/) The current only FDA approved drug for ADPKD is Tolvaptan, a vasopressin receptor 2 antagonist that cannot be used as long-term treatment due to liver toxicity side effects.[2](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6873754/) Molecular signature reversion is a method of drug repurposing that could lead to new treatment options for ADPKD patients significantly sooner than traditional drug discovery. As gene expression profiles from ADPKD patients and preclinical models have significantly altered transcriptomic signatures, this approach presents an opportunity to compare ADPKD disease signatures to drug response signatures from cell lines treated with drugs and identify candidates that may reverse ADPKD-associated cellular phenotypes, ultimately slowing or reducing kidney cyst growth. In these analyses, we evaluated transcriptomic signatures to determine drug repurposing candidates for ADPKD using publicly available Pkd2 mouse data by detecting inversely related gene expression signatures from the Library of Integrated Network-Based Cellular Signatures (LINCS)[3](https://pubmed.ncbi.nlm.nih.gov/29195078/) database. Drug candidates were further prioritized based on their known mechanism of action (MOA), FDA status, targets, side effects,[4](https://github.com/tatonetti-lab/onsides) and functional enrichment analysis. 
+  
+ ### Data Sets
 - Pre-Cystic P70: [GSE149739](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE149739)
 - Cystic P21: [GSE134719](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE134719)
 - Cystic P28: [GSE69556](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE69556) 
 
-![alt text](res/biorender/repo_workflow.png)
-
+ 
 ## code/. 
+![alt text](res/biorender/repo_workflow.png)
+ 
 ### DESeq2. 
 PKD drug repurposing analysis. DESeq2 analyses and visualizations, as well as drug target comparison (from pre-cystic p70 data ran through sigsearch_analyses.Rmd) to differential expression of each dataset. 
 - deseq2_analyses.Rmd
