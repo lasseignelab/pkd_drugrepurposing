@@ -17,6 +17,7 @@ library(signatureSearch)
 library(ggplot2)
 library(dplyr)
 library(here)
+library(viridis)
 ```
 
 ## Custom functions for FEA
