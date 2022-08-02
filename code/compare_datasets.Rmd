@@ -7,10 +7,7 @@ output:
 
 ---
 
-```{r setup, include=FALSE}
-#filepath for code and data
-knitr::opts_knit$set(root.dir = "/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing")
-```
+
 
 ```{r message=FALSE, warning = FALSE}
 library(gprofiler2)
@@ -19,6 +16,7 @@ library(stringr)
 library(signatureSearch)
 library(ggplot2)
 library(dplyr)
+library(here)
 ```
 
 ## Custom functions for FEA
@@ -83,7 +81,7 @@ Custom background for FEA (for enrichment using mouse to human to entrez to linc
 #genebg <- convertMouseGeneList(mesgenes)
 #write.csv2(genebg, file = "./data/background_genelist_genestoLINCSgenes.csv")
 
-genebg <- read.csv2(file = "./data/background_genelist_genestoLINCSgenes.csv")
+genebg <- read.csv(file = here("data", "background_genelist_genestoLINCSgenes.csv"))
 ```
 
 
@@ -269,22 +267,22 @@ Load in top 100 up and down genes used as signatures for signatureSearch
 
 '39 precystic p70
 ```{r}
-hom_degs_UP <- read.csv("/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/deseq2_outputs/GSE149739_degs_UP_220421.csv")
+hom_degs_UP <- read.csv(here("res", "deseq2_outputs", "GSE149739_degs_UP_220421.csv"))
 
-hom_degs_DOWN <- read.csv("/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/deseq2_outputs/GSE149739_degs_DOWN_220421.csv")
+hom_degs_DOWN <- read.csv(here("res", "deseq2_outputs", "GSE149739_degs_DOWN_220421.csv"))
 ```
 
 '19 cystic p28
 ```{r}
-hom_19_UP <- read.csv("/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/deseq2_outputs/GSE134719_degs_UP_220421.csv")
-hom_19_DOWN <- read.csv("/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/deseq2_outputs/GSE134719_degs_DOWN_220421.csv")
+hom_19_UP <- read.csv(here("res", "deseq2_outputs", "GSE134719_degs_UP_220421.csv"))
+hom_19_DOWN <- read.csv(here("res", "deseq2_outputs", "GSE134719_degs_DOWN_220421.csv"))
 ```
 
 '56 cystic p21
 ```{r}
-hom_56_UP <- read.csv("/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/deseq2_outputs/GSE69556_degs_UP_220421.csv")
+hom_56_UP <- read.csv(here("res", "deseq2_outputs", "GSE69556_degs_UP_220421.csv"))
 
-hom_56_DOWN <- read.csv("/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/deseq2_outputs/GSE69556_degs_DOWN_220421.csv")
+hom_56_DOWN <- read.csv(here("res", "deseq2_outputs", "GSE69556_degs_DOWN_220421.csv"))
 ```
 
 
@@ -358,7 +356,7 @@ bubbleplot(soce_39) + labs(title = "SOCE-related Enriched Terms")
 
 ### FEA p21 cystic GSE69556 (top 100 human orthologs)  
 ```{r}
-fea_GSE69556 <- enrich(as.character(hom_56_UP$entrezgene_id), as.character(hom_56_DOWN$entrezgene_id), 30)#, filepath = "./res/fea/fea_GSE69556.pdf")
+fea_GSE69556 <- enrich(as.character(hom_56_UP$entrezgene_id), as.character(hom_56_DOWN$entrezgene_id), 30)
 ```
 
 Barplot of overall top enrichment terms
@@ -387,7 +385,7 @@ bubbleplot(soce_56) + labs(title = "SOCE-related Enriched Terms")
 
 ### FEA p28 cystic GSE134719 (top 100 human orthologs)
 ```{r}
-fea_GSE134719 <- enrich(as.character(hom_19_UP$entrezgene_id), as.character(hom_19_DOWN$entrezgene_id), 30)#, filepath = "./res/fea/fea_GSE134719.pdf")
+fea_GSE134719 <- enrich(as.character(hom_19_UP$entrezgene_id), as.character(hom_19_DOWN$entrezgene_id), 30)
 ```
 
 Barplot of overall top enrichment terms
@@ -430,24 +428,25 @@ Save
 ```{r eval=FALSE, include=FALSE}
 ##fea_nf_GSE149739
 fea_nf_GSE149739_upterms <- apply(fea_nf_GSE149739$upregulated, 2, as.character)
-write.csv(fea_nf_GSE149739_upterms, file = "./res/fea/fea_nf_GSE149739_upterms.csv")
+write.csv(fea_nf_GSE149739_upterms, file = here("res", "fea", "fea_nf_GSE149739_upterms.csv"))
 
 fea_nf_GSE149739_downterms <- apply(fea_nf_GSE149739$downregulated, 2, as.character)
-write.csv(fea_nf_GSE149739_downterms, file = "./res/fea/fea_nf_GSE149739_downterms.csv")
+write.csv(fea_nf_GSE149739_downterms, file = here("res", "fea", "fea_nf_GSE149739_downterms.csv"))
 
 ##fea_GSE69556
 fea_GSE69556_upterms <- apply(fea_GSE69556$upregulated, 2, as.character)
-write.csv(fea_GSE69556_upterms, file = "./res/fea/fea_GSE69556_upterms.csv")
+write.csv(fea_GSE69556_upterms, file = here("res", "fea", "fea_GSE69556_upterms.csv"))
 
 fea_GSE69556_downterms <- apply(fea_GSE69556$downregulated, 2, as.character)
-write.csv(fea_GSE69556_downterms, file = "./res/fea/fea_GSE69556_downterms.csv")
+write.csv(fea_GSE69556_downterms, file = here("res", "fea", "fea_GSE69556_downterms.csv"))
 
 ##fea_GSE134719
 fea_GSE134719_upterms <- apply(fea_GSE134719$upregulated, 2, as.character)
-write.csv(fea_GSE134719_upterms, file = "./res/fea/fea_GSE134719_upterms.csv")
+write.csv(fea_GSE134719_upterms, file = here("res", "fea", "fea_GSE134719_upterms.csv"))
 
 fea_GSE134719_downterms <- apply(fea_GSE134719$downregulated, 2, as.character)
-write.csv(fea_GSE134719_downterms, file = "./res/fea/fea_GSE134719_downterms.csv")
+write.csv(fea_GSE134719_downterms, file = here("res", "fea", "fea_GSE134719_downterms.csv"))
+
 ```
 
 ## Mouse genes FEA  
@@ -457,22 +456,22 @@ Using ALL mouse DEGs (0.05 alpha and -2 and 2 LFC cutoff) before mapping to huma
 
 '39 nf-core aligned
 ```{r}
-musdegs_39_UP <- read.csv("/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/deseq2_outputs/GSE149739_mus_degs_UP_220421.csv")
+musdegs_39_UP <- read.csv(here("res", "deseq2_outputs", "GSE149739_mus_degs_UP_220421.csv"))
 
-musdegs_39_DOWN <- read.csv("/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/deseq2_outputs/GSE149739_mus_degs_DOWN_220421.csv")
+musdegs_39_DOWN <- read.csv(here("res", "deseq2_outputs", "GSE149739_mus_degs_DOWN_220421.csv"))
 ```
 
 '19
 ```{r}
-musdegs_19_UP <- read.csv("/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/deseq2_outputs/GSE134719_mus_degs_UP_220421.csv")
-musdegs_19_DOWN <- read.csv("/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/deseq2_outputs/GSE134719_mus_degs_DOWN_220421.csv")
+musdegs_19_UP <- read.csv(here("res", "deseq2_outputs", "GSE134719_mus_degs_UP_220421.csv"))
+musdegs_19_DOWN <- read.csv(here("res", "deseq2_outputs", "GSE134719_mus_degs_DOWN_220421.csv"))
 ```
 
 '56
 ```{r}
-musdegs_56_UP <- read.csv("/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/deseq2_outputs/GSE69556_mus_degs_UP_220421.csv")
+musdegs_56_UP <- read.csv(here("res", "deseq2_outputs", "GSE69556_mus_degs_UP_220421.csv"))
 
-musdegs_56_DOWN <- read.csv("/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/deseq2_outputs/GSE69556_mus_degs_DOWN_220421.csv")
+musdegs_56_DOWN <- read.csv(here("res", "deseq2_outputs", "GSE69556_mus_degs_DOWN_220421.csv"))
 ```
 
 #### Gene overlaps
@@ -521,9 +520,9 @@ bubbleplot(fea_mouse_39$topcompared) + labs(title = "Top Enriched Terms for Pre-
 ```
 
 ```{r}
-ggsave(p70_fea_plot, filename = "./res/fea/p70_fea_plot.pdf")
+ggsave(p70_fea_plot, filename = here("res", "fea", "p70_fea_plot.pdf"))
 
-ggsave(bubbleplot_p70, filename = "./res/fea/p70_fea_bubbleplot.pdf", height = 7, width = 14)
+ggsave(bubbleplot_p70, filename = here("res", "fea", "p70_fea_bubbleplot.pdf"), height = 7, width = 14)
 ```
 
 bubbleplot top
@@ -572,13 +571,8 @@ immune_mouse_39_plot
 
 Save plots
 ```{r}
-ggsave(filename = "/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/fea/mouse_39_overall.pdf", bp_mouse_39_overall)
+ggsave(filename = here("res", "fea", "mouse_39_overall.pdf"), bp_mouse_39_overall)
 
-#ggsave(filename = "/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/fea/cilia_mouse_39_plot.pdf", cilia_mouse_39_plot)
-
-#ggsave(filename = "/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/fea/mito_mouse_39_plot.pdf", mito_mouse_39_plot)
-
-#ggsave(filename = "/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/fea/mouse_39_soce.pdf", mouse_39_soce)
 
 ```
 
@@ -599,7 +593,7 @@ bubbleplot_p21 <- bubbleplot(dplyr::filter(fea_mouse_56$topcompared, intersectio
 ```
 
 ```{r}
-ggsave(bubbleplot_p21, filename = "./res/fea/p21_fea_bubbleplot.pdf", height = 7, width = 14)
+ggsave(bubbleplot_p21, filename = here("res", "fea", "p21_fea_bubbleplot.pdf"), height = 7, width = 14)
 
 ```
 
@@ -641,13 +635,7 @@ mouse_56_soce
 ```
 Save plots
 ```{r}
-ggsave(filename = "/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/fea/mouse_56_overall.pdf", bp_mouse_56_overall)
-
-#ggsave(filename = "/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/fea/cilia_mouse_56_plot.pdf", cilia_mouse_56_plot)
-
-#ggsave(filename = "/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/fea/mito_mouse_56_plot.pdf", mito_mouse_56_plot)
-
-#ggsave(filename = "/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/fea/mouse_56_soce.pdf", mouse_56_soce)
+ggsave(filename = here("res", "fea", "mouse_56_overall.pdf"), bp_mouse_56_overall)
 
 ```
 
@@ -668,7 +656,7 @@ bubbleplot_p28 <- bubbleplot(dplyr::filter(fea_mouse_19$topcompared, intersectio
 ```
 
 ```{r}
-ggsave(bubbleplot_p28, filename = "./res/fea/p28_fea_bubbleplot.pdf", height = 7, width = 14)
+ggsave(bubbleplot_p28, filename = here("res", "fea", "p28_fea_bubbleplot.pdf"), height = 7, width = 14)
 
 ```
 
@@ -714,52 +702,46 @@ Save gprofiler results
 ```{r eval=FALSE, include=FALSE}
 ##fea_mouse_39
 fea_mouse_39_upterms <- apply(fea_mouse_39$upregulated, 2, as.character)
-write.csv(fea_mouse_39_upterms, file = "./res/fea/fea_mouse_39_upterms.csv")
+write.csv(fea_mouse_39_upterms, file = here("res", "fea", "fea_mouse_39_upterms.csv"))
 
 fea_mouse_39_downterms <- apply(fea_mouse_39$downregulated, 2, as.character)
-write.csv(fea_mouse_39_downterms, file = "./res/fea/fea_mouse_39_downterms.csv")
+write.csv(fea_mouse_39_downterms, file = here("res", "fea", "fea_mouse_39_downterms.csv"))
 
 ##fea_mouse_56
 fea_mouse_56_upterms <- apply(fea_mouse_56$upregulated, 2, as.character)
-write.csv(fea_mouse_56_upterms, file = "./res/fea/fea_mouse_56_upterms.csv")
+write.csv(fea_mouse_56_upterms, file = here("res", "fea", "fea_mouse_56_upterms.csv"))
 
 fea_mouse_56_downterms <- apply(fea_mouse_56$downregulated, 2, as.character)
-write.csv(fea_mouse_56_downterms, file = "./res/fea/fea_mouse_56_downterms.csv")
+write.csv(fea_mouse_56_downterms, file = here("res", "fea", "fea_mouse_56_downterms.csv"))
 
 ##fea_mouse_19
 fea_mouse_19_upterms <- apply(fea_mouse_19$upregulated, 2, as.character)
-write.csv(fea_mouse_19_upterms, file = "./res/fea/fea_mouse_19_upterms.csv")
+write.csv(fea_mouse_19_upterms, file = here("res", "fea", "fea_mouse_19_upterms.csv"))
 
 fea_mouse_19_downterms <- apply(fea_mouse_19$downregulated, 2, as.character)
-write.csv(fea_mouse_19_downterms, file = "./res/fea/fea_mouse_19_downterms.csv")
+write.csv(fea_mouse_19_downterms, file = here("res", "fea", "fea_mouse_19_downterms.csv"))
 ```
 
 Save plots
 ```{r}
-ggsave(filename = "/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/fea/mouse_19_overall.pdf", bp_mouse_19)
-
-#ggsave(filename = "/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/fea/cilia_mouse_19_plot.pdf", cilia_mouse_19_plot)
-
-#ggsave(filename = "/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/fea/mito_mouse_19_plot.pdf", mito_mouse_19_plot)
-
-#ggsave(filename = "/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/fea/mouse_19_soce.pdf", mouse_19_soce)
+ggsave(filename = here("res", "fea", "mouse_19_overall.pdf"), bp_mouse_19)
 
 ```
 
 #### Cystic Overlap ('19 and '56)  
 read in
 ```{r}
-fea_56_up <- read.csv("/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/fea/fea_mouse_56_upterms.csv")
+fea_56_up <- read.csv(here("res", "fea", "fea_mouse_56_upterms.csv"))
 
-fea_56_down <- read.csv("/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/fea/fea_mouse_56_downterms.csv")
+fea_56_down <- read.csv(here("res", "fea", "fea_mouse_56_downterms.csv"))
 
-fea_19_up <- read.csv("/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/fea/fea_mouse_19_upterms.csv")
+fea_19_up <- read.csv(here("res", "fea", "fea_mouse_19_upterms.csv"))
 
-fea_19_down <- read.csv("/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/fea/fea_mouse_19_downterms.csv")
+fea_19_down <- read.csv(here("res", "fea", "fea_mouse_19_downterms.csv"))
 
-fea_39_up <- read.csv("/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/fea/fea_mouse_39_upterms.csv")
+fea_39_up <- read.csv(here("res", "fea", "fea_mouse_39_upterms.csv"))
 
-fea_39_down <- read.csv("/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/fea/fea_mouse_39_downterms.csv")
+fea_39_down <- read.csv(here("res", "fea", "fea_mouse_39_downterms.csv"))
 ```
 
 merge for overlap
@@ -813,11 +795,11 @@ ggplot(slice_max(fea_cystic_overlap_combined, order_by = recall.x, n = 10), aes(
 ```
 
 ```{r}
-write.csv(fea_cystic_overlap_up, file = "./res/fea/fea_cystic_overlap_up.csv")
+write.csv(fea_cystic_overlap_up, file = here("res", "fea", "fea_cystic_overlap_up.csv"))
 
-write.csv(fea_cystic_overlap_down, file = "./res/fea/fea_cystic_overlap_down.csv")
+write.csv(fea_cystic_overlap_down, file = here("res", "fea", "fea_cystic_overlap_down.csv"))
 
-write.csv(fea_cystic_overlap_combined, file = "./res/fea/fea_cystic_overlap_combined.csv")
+write.csv(fea_cystic_overlap_combined, file = here("res", "fea", "fea_cystic_overlap_combined.csv"))
 ```
 
 #### Compare Mouse FEA  
@@ -836,16 +818,16 @@ fea_overap_all_down <- merge(fea_mouse_39$downregulated, fea_overlap_19_56_down,
 Save
 ```{r}
 fea_overlap_19_56_upterms <- apply(fea_overlap_19_56_up, 2, as.character)
-write.csv(fea_overlap_19_56_upterms, file = "./res/fea/fea_overlap_19_56_upterms.csv")
+write.csv(fea_overlap_19_56_upterms, file = here("res", "fea", "fea_overlap_19_56_upterms.csv"))
 
 fea_overlap_19_56_downterms <- apply(fea_overlap_19_56_down, 2, as.character)
-write.csv(fea_overlap_19_56_downterms, file = "./res/fea/fea_overlap_19_56_downterms.csv")
+write.csv(fea_overlap_19_56_downterms, file = here("res", "fea", "fea_overlap_19_56_downterms.csv"))
 
 fea_overap_all_upterms <- apply(fea_overap_all_up, 2, as.character)
-write.csv(fea_overap_all_upterms, file = "./res/fea/fea_overap_all_upterms.csv")
+write.csv(fea_overap_all_upterms, file = here("res", "fea", "fea_overap_all_upterms.csv"))
 
 fea_overap_all_downterms <- apply(fea_overap_all_down, 2, as.character)
-write.csv(fea_overap_all_downterms, file = "./res/fea/fea_overap_all_downterms.csv")
+write.csv(fea_overap_all_downterms, file = here("res", "fea", "fea_overap_all_downterms.csv"))
 
 ```
 
