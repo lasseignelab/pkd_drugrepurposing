@@ -11,10 +11,8 @@ PKD drug repurposing analyses. Drug candidate discovery and prioritization for P
 
 ## code/. 
 ### DESeq2. 
-PKD drug repurposing analysis. DESeq2 analysis was run in separate markdowns for each dataset.
-- deseq2_GSE149739.Rmd
-- deseq2_GSE134719.Rmd
-- deseq2_GSE69556.Rmd
+PKD drug repurposing analysis. DESeq2 analyses and visualizations, as well as drug target comparison (from pre-cystic p70 data ran through sigsearch_analyses.Rmd) to differential expression of each dataset. 
+- deseq2_analyses.Rmd
 
 ### FEA and Comparisons. 
 Data set comparisons and functional enrichment analyses with [gprofiler2](https://academic.oup.com/nar/article/47/W1/W191/5486750)
