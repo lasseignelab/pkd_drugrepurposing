@@ -16,7 +16,7 @@ Autosomal dominant polycystic kidney disease (ADPKD) is characterized by renal c
 ![alt text](res/biorender/repo_workflow.png)
  
 ### DESeq2. 
-PKD drug repurposing analysis. DESeq2 analyses and visualizations, as well as drug target comparison (from pre-cystic p70 data ran through sigsearch_analyses.Rmd) to differential expression of each dataset. 
+PKD drug repurposing analysis. DESeq2 analyses and visualizations, as well as drug target comparison (from drug candidates found from pre-cystic p70 signature reversion in sigsearch_analyses.Rmd) to differentially expressed genes in each dataset. 
 - deseq2_analyses.Rmd
 
 ### FEA and Comparisons. 
@@ -28,15 +28,15 @@ Analyses using [signatureSearch](https://github.com/girke-lab/signatureSearch) f
 - sigsearch_analyses.Rmd 
 
 ## data/. 
-- Metadata for all 3 datasets (as .txt files) (*_metadata.txt)
-- Processed STAR-salmon count data for all 3 datasets (*_salmonmerged_gene_counts.rds)
+- Metadata each dataset (*_metadata.txt)
+- Processed STAR-salmon count data (*_salmonmerged_gene_counts.rds)
 - Ensembl human and mouse gene conversion annotation (annot_ens_humanmouse.csv)
 - Background gene list (for FEA) 
-- Side effects daata from onSides  
+- Side effects data from onSides  
 - Data from the Drug Repurposing Hub  
 
 ## res/. 
-- deseq2_outputs (degs)
+- deseq2_outputs
 - sigsearch_outputs
 - fea
 
