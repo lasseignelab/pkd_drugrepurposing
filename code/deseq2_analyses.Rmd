@@ -53,7 +53,7 @@ salmon2dds <- function(counts, metadata, dataset = "regular") {
   cts <- counts@assays@data@listData[["counts"]]
   #round, salmon outputs have decimals
   cts <- round(cts)
-  if (dataset != "regular"){
+  if (dataset == "dataset56"){
     colnames(cts) <- str_sub(colnames(cts), 1, -2) ##ALTERATION just for GSE69556  
   }
   
@@ -62,12 +62,21 @@ salmon2dds <- function(counts, metadata, dataset = "regular") {
   
   #remove all non-alphanumeric characters from Genotype
   metadata$Genotype <- str_replace_all(metadata$Genotype, "[^[:alnum:]]", "")
+  
+  #remove IFT88 for dataset39
+  #if (dataset == "dataset39"){
+  #metadata <- dplyr::filter(metadata, Genotype != "Ift88flflPkd2flflPax8rtTATetOcre")
+
+  #select only non-IFT88 samples from counts
+  #cts <- dplyr::select(cts, c(rownames(metadata)))
+  #}
+  
   #contrasts need to be factor levels
   metadata$Genotype <- as.factor(metadata$Genotype)
 
   #check ordering matches
   print("Checking order of count column names to metadata rownames... If false, fix and rerun!")
-  colnames((cts)) == rownames(metadata)
+  print(colnames((cts)) == rownames(metadata))
   dds <- DESeqDataSetFromMatrix(cts, metadata, design = ~ Genotype)
 
 return(dds)
@@ -174,9 +183,8 @@ Remove IFT88
 cts_39_2 <- cts_39@assays@data@listData[["counts"]]
   #round, salmon outputs have decimals
 cts_39_2 <- round(cts_39_2)
-  #colnames(cts) <- str_sub(colnames(cts), 1, -2) ##ALTERATION just for GSE69556
   #remove version numbers from transcript id's
-  rownames(cts_39_2) <- gsub("\\..*", "", rownames(cts_39_2))
+rownames(cts_39_2) <- gsub("\\..*", "", rownames(cts_39_2))
   
   
 meta_39_2 <- meta_39
@@ -194,27 +202,30 @@ cts_39_2 <- dplyr::select(cts_39_2, c(rownames(meta_39_2)))
 #check ordering matches
 colnames((cts_39_2)) == rownames(meta_39_2) #TRUE, good to proceed to DESeq2!
   
-dds <- DESeqDataSetFromMatrix(cts_39_2, meta_39_2, design = ~ Genotype)
+dds_39 <- DESeqDataSetFromMatrix(cts_39_2, meta_39_2, design = ~ Genotype)
 
-dds$Genotype <- relevel(dds$Genotype, ref = "Wildtype")
+#dds$Genotype <- relevel(dds$Genotype, ref = "Wildtype")
 
 #run DESeq: estimates size factors, estimates dispersion, fits negative binomial GLM's and performs Wald stats
-dds <- DESeq(dds) 
+#dds <- DESeq(dds) 
 
-res <- results(dds, alpha = 0.05, contrast = c("Genotype", "Pkd2flflPax8rtTATetOcre", "Wildtype"))
+#res <- results(dds, alpha = 0.05, contrast = c("Genotype", "Pkd2flflPax8rtTATetOcre", "Wildtype"))
 
-resultsNames(res)
+#resultsNames(res)
 
+#test <- c(cts_39, meta_39, dataset = "dataset39")
+#test <- DESeq(test)
+#test <- results(test, alpha = 0.05, contrast = c("Genotype", "Pkd2flflPax8rtTATetOcre", "Wildtype"))
 
-test_up <- uplfc(res)
-head(test_up)
-test_down <- downlfc(res)
-head(test_down)
+#test_up <- uplfc(res)
+#head(test_up)
+#test_down <- downlfc(res)
+#head(test_down)
 ```
 
 #### DDS
 ```{r}
-dds_39 <- salmon2dds(cts_39, meta_39)
+#dds_39 <- salmon2dds(cts_39, meta_39)
 ```
 
 
@@ -345,8 +356,7 @@ genes <- dplyr::distinct(genes, gene_name, .keep_all = TRUE)
 #Convert back to rownames but with gene symbols
 genes <-  tibble:::column_to_rownames(genes, "gene_name")
 
-genes <- arrange(genes, desc(log2FoldChange))#[1:20]
-top20lfc <- slice_max(genes, (log2FoldChange^2), n = 20)
+top20lfc <- slice_max(genes, abs(log2FoldChange), n = 20)
 ```
 
 
@@ -374,6 +384,7 @@ human <- useEnsembl("ensembl", dataset = "hsapiens_gene_ensembl", mirror = "usea
 convgenes <- getBM(filters = "ensembl_gene_id", attributes = c("ensembl_gene_id","entrezgene_id", "hgnc_symbol"), values = ens_mouse2human$Gene.stable.ID, mart = human)
   
 conv_tbl <- merge(convgenes, ens_mouse2human, by.x = "ensembl_gene_id", by.y = "Gene.stable.ID")
+conv_tbl <- tidyr::drop_na(conv_tbl)
 
 ```
 
@@ -388,13 +399,20 @@ write.csv(targets_39, file = here("res", "sigsearch_outputs", "drugtargets_p70.c
 
 ```
 
+targets in > 2LFC
 ```{r}
-conv_tbl <- tidyr::drop_na(conv_tbl)
-
-EnhancedVolcano(conv_tbl, lab = conv_tbl$hgnc_symbol, x = 'log2FoldChange', y = 'padj', selectLab = unique(targets_39$t_gn_sym), pCutoff = 0.05, FCcutoff = 0.5, pointSize = 3.0, labSize = 4.0, col = c("#440154", "#21918c", "#5ec962", "#fde725"), title = "Drug Targets Found in P70 Pre-Cystic DEGs")#, labFace = 'bold', boxedLabels = TRUE,drawConnectors = TRUE,widthConnectors = 0.5,colConnectors = 'black')
-
+targets_in39 <- merge(targets_39, conv_tbl, by.x = "t_gn_sym", by.y = "hgnc_symbol")
+targets_in39 <- dplyr::filter(targets_in39, log2FoldChange >  2.0)# | log2FoldChange < -2.0)
 ```
 
+```{r}
+volcano_39 <- EnhancedVolcano(conv_tbl, lab = conv_tbl$hgnc_symbol, x = 'log2FoldChange', y = 'padj', selectLab = unique(targets_in39$t_gn_sym), pCutoff = 0.05, FCcutoff = 0.5, pointSize = 3.0, labSize = 4.0, col = c("#440154", "#21918c", "#5ec962", "#fde725"), title = "Drug Targets Found in P70 Pre-Cystic DEGs", labFace = 'bold', boxedLabels = TRUE,drawConnectors = TRUE,widthConnectors = 0.5,colConnectors = 'black')
+volcano_39
+```
+
+```{r}
+ggsave(volcano_39, filename =  here("res", "deseq2_outputs", "volcano_drugtargets_39degs.pdf"))
+```
 
 ##DEA p21 cystic GSE69556
 
@@ -412,8 +430,8 @@ meta_56 <- read.csv(here("data", "GSE69556_metadata.txt"), row.names = 1)
 
 #### Run DDS
 ```{r}
-dds_56 <- salmon2dds(cts_56, meta_56, dataset = "56")
-str(dds_56)
+dds_56 <- salmon2dds(cts_56, meta_56, dataset = "dataset56")
+
 ```
 
 #### Run DESeq2
@@ -520,7 +538,8 @@ genes_56 <- dplyr::distinct(genes_56, gene_name, .keep_all = TRUE)
 genes_56 <-  tibble:::column_to_rownames(genes_56, "gene_name")
 
 genes_56 <- arrange(genes_56, desc(log2FoldChange))#[1:20]
-top20lfc_56 <- slice_max(genes_56, (log2FoldChange^2), n = 20)
+top20lfc_56 <- slice_max(genes_56, abs(log2FoldChange), n = 20)
+
 ```
 
 ```{r}
@@ -551,10 +570,21 @@ conv_tbl_56 <- merge(convgenes_56, ens_mouse2human_56, by.x = "ensembl_gene_id",
 conv_tbl_56 <- tidyr::drop_na(conv_tbl_56)
 ```
 
+targets in > 2LFC
+```{r}
+targets_in56 <- merge(targets_39, conv_tbl_56, by.x = "t_gn_sym", by.y = "hgnc_symbol")
+targets_in56 <- dplyr::filter(targets_in56, log2FoldChange >  2.0 )#| log2FoldChange < -2.0)
+```
+
 
 ```{r}
-EnhancedVolcano(conv_tbl_56, lab = conv_tbl_56$hgnc_symbol, x = 'log2FoldChange', y = 'padj', selectLab = unique(targets_39$t_gn_sym), pCutoff = 0.05, FCcutoff = 0.5, pointSize = 3.0, labSize = 4.0, col = c("#440154", "#21918c", "#5ec962", "#fde725"), title = "P70 Pre-Cystic Drug Targets Found in P21 Cystic DEGs")#, labFace = 'bold', boxedLabels = TRUE,drawConnectors = TRUE,widthConnectors = 0.5,colConnectors = 'black')
+volcano_56 <- EnhancedVolcano(conv_tbl_56, lab = conv_tbl_56$hgnc_symbol, x = 'log2FoldChange', y = 'padj', selectLab = unique(targets_in56$t_gn_sym), pCutoff = 0.05, FCcutoff = 0.5, pointSize = 3.0, labSize = 4.0, col = c("#440154", "#21918c", "#5ec962", "#fde725"), title = "P70 Pre-Cystic Drug Targets Found in P21 \nCystic DEGs", labFace = 'bold', boxedLabels = TRUE,drawConnectors = TRUE,widthConnectors = 0.5,colConnectors = 'black', max.overlaps = 50)
 
+volcano_56
+```
+
+```{r}
+ggsave(volcano_56, filename =  here("res", "deseq2_outputs", "volcano_drugtargets_56degs.pdf"))
 ```
 
 ##DEA p28 cystic GSE134719
@@ -685,8 +715,7 @@ genes_19 <- dplyr::distinct(genes_19, gene_name, .keep_all = TRUE)
 #Convert back to rownames but with gene symbols
 genes_19 <-  tibble:::column_to_rownames(genes_19, "gene_name")
 
-genes_19 <- arrange(genes_19, desc(log2FoldChange))#[1:20]
-top20lfc_19 <- slice_max(genes_19, (log2FoldChange^2), n = 20)
+top20lfc_19 <- slice_max(genes_19, abs(log2FoldChange), n = 20)
 ```
 
 ```{r}
@@ -718,13 +747,23 @@ conv_tbl_19 <- tidyr::drop_na(conv_tbl_19)
 
 ```
 
-
+targets in > 2LFC
 ```{r}
-
-EnhancedVolcano(conv_tbl_19, lab = conv_tbl_19$hgnc_symbol, x = 'log2FoldChange', y = 'padj', selectLab = unique(targets_39$t_gn_sym), pCutoff = 0.05, FCcutoff = 0.5, pointSize = 3.0, labSize = 4.0, col = c("#440154", "#21918c", "#5ec962", "#fde725"), title = "P70 Pre-Cystic Drug Targets Found in P28 Cystic DEGs")#, labFace = 'bold', boxedLabels = TRUE,drawConnectors = TRUE,widthConnectors = 0.5,colConnectors = 'black') 
-
+targets_in19 <- merge(targets_39, conv_tbl_19, by.x = "t_gn_sym", by.y = "hgnc_symbol")
+targets_in19 <- dplyr::filter(targets_in19, log2FoldChange >  2.0)# | log2FoldChange < -2.0)
 ```
 
+
+```{r}
+volcano_19 <- EnhancedVolcano(conv_tbl_19, lab = conv_tbl_19$hgnc_symbol, x = 'log2FoldChange', y = 'padj', selectLab = unique(targets_in19$t_gn_sym), pCutoff = 0.05, FCcutoff = 0.5, pointSize = 3.0, labSize = 4.0, col = c("#440154", "#21918c", "#5ec962", "#fde725"), title = "P70 Pre-Cystic Drug Targets Found in P28 \nCystic DEGs", labFace = 'bold', boxedLabels = TRUE,drawConnectors = TRUE,widthConnectors = 0.5,colConnectors = 'black', max.overlaps = 25) 
+
+volcano_19
+```
+
+
+```{r}
+ggsave(volcano_19, filename =  here("res", "deseq2_outputs", "volcano_drugtargets_19degs.pdf"))
+```
 
 Number of targets differentially expressed in P21
 ```{r}
