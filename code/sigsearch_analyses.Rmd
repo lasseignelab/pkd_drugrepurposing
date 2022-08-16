@@ -298,6 +298,47 @@ rHub_56 <- dplyr::inner_join(gess_kidneycells_56, repurpHub, by= c("pert" = "Nam
 rHub_39 <- dplyr::inner_join(gess_kidneycells_39, repurpHub, by= c("pert" = "Name"))
 ```
 
+#### FDA approved drugs  
+Code adapted from Jen Fisher  
+Data: Drugs@FDA database was downloaded in August 2022 from https://www.fda.gov/drugs/drug-approvals-and-databases/drugsfda-data-files (Accessed date: August 2022). From the information about drugs (i.e, marketing status, application information, etc.), we created a table with information including the method of drug delivery, dosage, active ingredients, and FDA approval (FDA_products_status_220816.csv)
+FDA terminology https://www.fda.gov/drugs/drug-approvals-and-databases/drugsfda-glossary-terms#:~:text=Tentative%20Approval&text=FDA%20delays%20final%20approval%20of,market%20the%20generic%20drug%20product. Drugs were filtered for unique names, regardless of form (i.e. injectible, solution, tablet, etc) and further filtered for Marketing Statuses that were not Discontinued (leaving Prescription, Over-the-counter, and Tentative Approval, due to patents)
+```{r}
+fda_marketing_status <- read.delim(here("data/fda_data", "MarketingStatus.txt"))
+frda_product_info <- read.delim(here("data/fda_data","Products.txt"))
+
+fda_marketing_status$ID<- paste(fda_marketing_status$ApplNo, fda_marketing_status$ProductNo, sep= "_")
+
+frda_product_info$ID<- paste(frda_product_info$ApplNo, frda_product_info$ProductNo, sep= "_")
+```
+
+Add marketing status description to marketing status data
+```{r}
+marketing_lookup <- read.delim(here("data/fda_data", "MarketingStatus_Lookup.txt"))
+fda_marketing_status <- merge(fda_marketing_status, marketing_lookup, by = "MarketingStatusID")
+```
+
+Combine drug info and status
+```{r}
+fda_data <- merge(frda_product_info, fda_marketing_status, by = "ID")
+```
+
+```{r}
+write.csv(fda_data, file = here("data", "FDA_products_status_220816.csv"))
+```
+
+```{r}
+#only unique drugs, regardless of concentration or form
+fda_unique <- distinct(fda_data, DrugName, .keep_all = TRUE)
+fda_approved <- filter(fda_unique, MarketingStatusDescription != "Discontinued")
+```
+
+
+```{r}
+#test <- inner_join(rhub_launched_39, fda_unique, by = c("pert", "ActiveIngredient"), suffix = c("rhub", "fda"))
+
+#test <- merge(rhub_launched_39, fda_unique, by.x = "pert", by.y = tolower("ActiveIngredient"))
+```
+
 P70/'39 Already-Launched Drugs
 ```{r}
 rhub_launched_39 <- dplyr::filter(rHub_39, Phase == "Launched")
