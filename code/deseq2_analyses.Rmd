@@ -315,28 +315,31 @@ write.csv(hom_degs_DOWN, file = here("res", "deseq2_outputs", "GSE149739_degs_DO
 
 
 #### Heatmap plotting
+
+Filter for coding genes
 ```{r}
-#Call in pheatmap package
-library(pheatmap)
-#formatting for pheatmap
-#Gene_name and Gene ID dataframe for merging
-conversion <- as.data.frame(cts_39@elementMetadata)
-#Remove .# after ENMUSG names
-conversion$gene_id <- gsub("\\..*", "", conversion$gene_id)
+mouse <- useEnsembl("ensembl", dataset = "mmusculus_gene_ensembl", mirror = "useast")
+gene_desc <- getBM(filters = "ensembl_gene_id", attributes = c("ensembl_gene_id","entrezgene_id", "mgi_symbol", "description"), values = cts_df$gene_id, mart = mouse)
+
+ps <- grep("pseudogene", gene_desc$description, value = TRUE)
+rp <- grep("ribosom", gene_desc$description, value = TRUE)
+pred <- grep("predicted", gene_desc$description, value = TRUE)
+coding_genes <- dplyr::filter(gene_desc, !description %in% c(ps) & !description %in% c(rp) & !description %in% c(pred))
+```
+
+converting gene IDs for normalized (rlog) gene counts
+```{r}
 #retrieve counts data and ENMUSG #
-cts_df <- as.data.frame(assays((rld_nf)))
+cts_df <- as.data.frame(assays((rld_nf))) 
 #gene_id into a column
-cts_df <- tibble:::rownames_to_column(cts_df, var = "gene_id")
+cts_df <- tibble:::rownames_to_column(cts_df, var = "ensembl_gene_id")
 #Merge gene symbols into counts and gene ID
-conv_cts <- merge(cts_df, conversion, by = "gene_id")
-#Remove unnecessary data
-conv_cts <- conv_cts[,!(colnames(conv_cts) %in% c("gene_id", "group", "group_name"))]
+conv_cts <- merge(cts_df, coding_genes, by = "ensembl_gene_id")
+
 #Filter out repeating data
-conv_cts <- dplyr::distinct(conv_cts, gene_name, .keep_all = TRUE)
+conv_cts <- dplyr::distinct(conv_cts, mgi_symbol, .keep_all = TRUE)
 #Convert back to rownames but with gene symbols
-conv_cts <- tibble:::column_to_rownames(conv_cts, "gene_name")
-#Rename the count data to correspond with experimental group or control
-#colnames(conv_cts) <- c("WT", "WT", "WT", "PKD2", "PKD2", "PKD2", "Ift88", "Ift88", "Ift88")
+conv_cts <- tibble:::column_to_rownames(conv_cts, "mgi_symbol")
 
 #remove ift88
 conv_cts <- subset(conv_cts, select = c("SRR11680775", "SRR11680776", "SRR11680777", "SRR11680778", "SRR11680779", "SRR11680780"))
@@ -346,17 +349,18 @@ colnames(conv_cts) <- c("WT", "WT", "WT", "PKD2", "PKD2", "PKD2")
 
 greatest LFC, wrangling
 ```{r}
-genes <-  tibble:::rownames_to_column(dsq2_39, var = "gene_id")
+genes <-  tibble:::rownames_to_column(dsq2_39, var = "ensembl_gene_id")
 #Merge gene symbols into counts and gene ID
-genes <- merge(genes, conversion, by = "gene_id")
-#Remove unnecessary data
-genes <- genes[,!(colnames(genes) %in% c("gene_id", "group", "group_name"))]
-#Filter out repeating data
-genes <- dplyr::distinct(genes, gene_name, .keep_all = TRUE)
-#Convert back to rownames but with gene symbols
-genes <-  tibble:::column_to_rownames(genes, "gene_name")
+genes <- merge(genes, coding_genes, by = "ensembl_gene_id")
 
-top20lfc <- slice_max(genes, abs(log2FoldChange), n = 20)
+#Filter out repeating data
+genes <- dplyr::distinct(genes, mgi_symbol, .keep_all = TRUE)
+
+#Convert back to rownames but with gene symbols
+genes <-  tibble:::column_to_rownames(genes, "mgi_symbol")
+
+#top 20
+top20lfc <- dplyr::slice_max(genes, abs(log2FoldChange), n = 20)
 ```
 
 
@@ -366,7 +370,7 @@ heatmap_p70 <- pheatmap(conv_cts[rownames(top20lfc), ], cluster_rows = TRUE, clu
 ```
 
 ```{r}
-ggsave(heatmap_p70, filename = here("res", "fea", "heatmap_p70.pdf"), height = 7, width = 14)
+ggsave(heatmap_p70, filename = here("res", "fea", "heatmap_p70_ribopseudoremoved.pdf"), height = 7, width = 14)
 ```
 
 
@@ -503,60 +507,59 @@ plotPCA(rld_56, intgroup=c("Genotype")) + geom_label_repel(aes(label = rld_56@co
 ```
 
 #### Heatmap plotting
+
+converting gene IDs for normalized (rlog) gene counts
 ```{r}
-#Call in pheatmap package
-library(pheatmap)
-#formatting for pheatmap
-#Gene_name and Gene ID dataframe for merging
-conversion <- as.data.frame(cts_56@elementMetadata)
-#Remove .# after ENMUSG names
-conversion$gene_id <- gsub("\\..*", "", conversion$gene_id)
 #retrieve counts data and ENMUSG #
-cts_df_56 <- as.data.frame(assays((rld_56)))
+cts_df_56 <- as.data.frame(assays((rld_56))) 
 #gene_id into a column
-cts_df_56 <- tibble:::rownames_to_column(cts_df_56, var = "gene_id")
+cts_df_56 <- tibble:::rownames_to_column(cts_df_56, var = "ensembl_gene_id")
 #Merge gene symbols into counts and gene ID
-conv_cts_56 <- merge(cts_df_56, conversion, by = "gene_id")
-#Remove unnecessary data
-conv_cts_56 <- conv_cts_56[,!(colnames(conv_cts_56) %in% c("gene_id", "group", "group_name"))]
+conv_cts_56 <- merge(cts_df_56, coding_genes, by = "ensembl_gene_id")
 #Filter out repeating data
-conv_cts_56 <- dplyr::distinct(conv_cts_56, gene_name, .keep_all = TRUE)
+conv_cts_56 <- dplyr::distinct(conv_cts_56, mgi_symbol, .keep_all = TRUE)
 #Convert back to rownames but with gene symbols
-conv_cts_56 <- tibble:::column_to_rownames(conv_cts_56, "gene_name")
+conv_cts_56 <- tibble:::column_to_rownames(conv_cts_56, "mgi_symbol")
+#Remove unnecessary data
+conv_cts_56 <- conv_cts_56[,!(colnames(conv_cts_56) %in% c("ensembl_gene_id", "group", "group_name", "entrezgene_id", "description"))]
+
 #Rename the count data to correspond with experimental group or control
 colnames(conv_cts_56) <- c("wildtype", "wildtype", "wildtype", "wildtype", "PKD2", "PKD2", "PKD2")
 ```
 
+
 greatest LFC, wrangling
 ```{r}
-dsq2_56 <- as.data.frame(res_56)
-genes_56 <-  tibble:::rownames_to_column(dsq2_56, var = "gene_id")
+genes_56 <-  tibble:::rownames_to_column(dsq2_56, var = "ensembl_gene_id")
 #Merge gene symbols into counts and gene ID
-genes_56 <- merge(genes_56, conversion, by = "gene_id")
-#Remove unnecessary data
-genes_56 <- genes_56[,!(colnames(genes_56) %in% c("gene_id", "group", "group_name"))]
+genes_56 <- merge(genes_56, coding_genes, by = "ensembl_gene_id")
+
 #Filter out repeating data
-genes_56 <- dplyr::distinct(genes_56, gene_name, .keep_all = TRUE)
+genes_56 <- dplyr::distinct(genes_56, mgi_symbol, .keep_all = TRUE)
+
 #Convert back to rownames but with gene symbols
-genes_56 <-  tibble:::column_to_rownames(genes_56, "gene_name")
+genes_56 <-  tibble:::column_to_rownames(genes_56, "mgi_symbol")
 
-genes_56 <- arrange(genes_56, desc(log2FoldChange))#[1:20]
-top20lfc_56 <- slice_max(genes_56, abs(log2FoldChange), n = 20)
-
+#top 20
+top20lfc_56 <- dplyr::slice_max(genes_56, abs(log2FoldChange), n = 20)
 ```
+
 
 ```{r}
 heatmap_21 <- pheatmap(conv_cts_56[rownames(top20lfc_56), ], cluster_rows = TRUE, cluster_cols = TRUE, show_rownames = TRUE, color = viridis(n= 10000, alpha = 1, begin = 0, end = 1, option = "viridis"), border_color = "NA", main = "Top 20 LFC Genes Cystic P21", angle_col = 45)
 
 ```
 
+
 ```{r eval=FALSE, include=FALSE}
-ggsave(heatmap_21, filename = here("res", "fea", "heatmap_p21.pdf"), height = 7, width = 14)
+ggsave(heatmap_21, filename = here("res", "fea", "heatmap_p21_ribopseudoremoved.pdf"), height = 7, width = 14)
 
 ```
 
 
-#### p21 DEGs to p70 Targets
+#### Volcano plots
+
+##### p21 DEGs to p70 Targets
 
 convert from mouse ensembl to human symbol
 ```{r}
@@ -676,29 +679,23 @@ write.csv(hom_19_DOWN, file = here("res", "deseq2_outputs", "GSE134719_degs_DOWN
 ```
 
 
-__Start of Ryan's Code__
-
 #### Heatmap plotting
+
+converting gene IDs for normalized (rlog) gene counts
 ```{r}
-#Call in pheatmap package
-library(pheatmap)
-#formatting for pheatmap
-#Gene_name and Gene ID dataframe for merging
-conversion <- as.data.frame(cts_19@elementMetadata)
-#Remove .# after ENMUSG names
-conversion$gene_id <- gsub("\\..*", "", conversion$gene_id)
 #retrieve counts data and ENMUSG #
-cts_df_19 <- as.data.frame(assays((rld_19)))
+cts_df_19 <- as.data.frame(assays((rld_19))) 
 #gene_id into a column
-cts_df_19 <- tibble:::rownames_to_column(cts_df_19, var = "gene_id")
+cts_df_19 <- tibble:::rownames_to_column(cts_df_19, var = "ensembl_gene_id")
 #Merge gene symbols into counts and gene ID
-conv_cts_19 <- merge(cts_df_19, conversion, by = "gene_id")
-#Remove unnecessary data
-conv_cts_19 <- conv_cts_19[,!(colnames(conv_cts_19) %in% c("gene_id", "group", "group_name"))]
+conv_cts_19 <- merge(cts_df_19, coding_genes, by = "ensembl_gene_id")
 #Filter out repeating data
-conv_cts_19 <- dplyr::distinct(conv_cts_19, gene_name, .keep_all = TRUE)
+conv_cts_19 <- dplyr::distinct(conv_cts_19, mgi_symbol, .keep_all = TRUE)
 #Convert back to rownames but with gene symbols
-conv_cts_19 <- tibble:::column_to_rownames(conv_cts_19, "gene_name")
+conv_cts_19 <- tibble:::column_to_rownames(conv_cts_19, "mgi_symbol")
+#Remove unnecessary data
+conv_cts_19 <- conv_cts_19[,!(colnames(conv_cts_19) %in% c("ensembl_gene_id", "group", "group_name", "entrezgene_id", "description"))]
+
 #Rename the count data to correspond with experimental group or control
 colnames(conv_cts_19) <- c("Pkd2KO", "Pkd2KO", "Pkd2KO", "wildtype", "wildtype", "wildtype", "wildtype", "Pkd2KO", "Pkd2KO", "Pkd2KO", "Pkd2KO", "wildtype", "wildtype", "wildtype", "wildtype", "Pkd2KO", "Pkkd2KO", "Pkd2KO", "Pkd2KO", "wildtype", "wildtype", "wildtype", "wildtype")
 
@@ -707,32 +704,35 @@ colnames(conv_cts_19) <- c("Pkd2KO", "Pkd2KO", "Pkd2KO", "wildtype", "wildtype",
 
 greatest LFC, wrangling
 ```{r}
-dsq2_19 <- as.data.frame(res_19)
-genes_19 <-  tibble:::rownames_to_column(dsq2_19, var = "gene_id")
+genes_19 <-  tibble:::rownames_to_column(dsq2_19, var = "ensembl_gene_id")
 #Merge gene symbols into counts and gene ID
-genes_19 <- merge(genes_19, conversion, by = "gene_id")
-#Remove unnecessary data
-genes_19 <- genes_19[,!(colnames(genes_19) %in% c("gene_id", "group", "group_name"))]
-#Filter out repeating data
-genes_19 <- dplyr::distinct(genes_19, gene_name, .keep_all = TRUE)
-#Convert back to rownames but with gene symbols
-genes_19 <-  tibble:::column_to_rownames(genes_19, "gene_name")
+genes_19 <- merge(genes_19, coding_genes, by = "ensembl_gene_id")
 
-top20lfc_19 <- slice_max(genes_19, abs(log2FoldChange), n = 20)
+#Filter out repeating data
+genes_19 <- dplyr::distinct(genes_19, mgi_symbol, .keep_all = TRUE)
+
+#Convert back to rownames but with gene symbols
+genes_19 <-  tibble:::column_to_rownames(genes_19, "mgi_symbol")
+#top 20
+top20lfc_19 <- dplyr::slice_max(genes_19, abs(log2FoldChange), n = 20)
 ```
+
 
 ```{r}
 heatmap_p28 <- pheatmap(conv_cts_19[rownames(top20lfc_19), ], cluster_rows = TRUE, cluster_cols = TRUE, show_rownames = TRUE, color = viridis(n= 10000, alpha = 1, begin = 0, end = 1, option = "viridis"), border_color = "NA", main = "Top 20 LFC Genes Cystic P28", angle_col = 45)
 
 ```
 
+
 ```{r eval=FALSE, include=FALSE}
-ggsave(heatmap_p28, filename = here("res", "fea", "heatmap_p28.pdf"), height = 7, width = 14)
+ggsave(heatmap_p28, filename = here("res", "fea", "heatmap_p28_ribopseudoremoved.pdf"), height = 7, width = 14)
 
 ```
 
 
-#### p28 DEGs to p70 Targets
+#### Volcano plots
+
+#####p28 DEGs to p70 Targets
 
 convert from mouse ensembl to human symbol
 ```{r}
