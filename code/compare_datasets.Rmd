@@ -187,7 +187,6 @@ bp_39 <- barplot(fea_nf_GSE149739$topcompared)
 bp_39
 ```
 
-
 ### FEA p21 cystic GSE69556 (top 100 human orthologs)  
 ```{r}
 fea_GSE69556 <- enrich(as.character(hom_56_UP$entrezgene_id), as.character(hom_56_DOWN$entrezgene_id), 30)
@@ -324,6 +323,50 @@ Save plots
 ggsave(filename = here("res", "fea", "mouse_39_overall.pdf"), bp_mouse_39_overall)
 
 ```
+
+
+test--do FEA res change when first filtering out pseudogenes and ribosomal genes?
+```{r}
+#filter LFC
+filtered_39_up <- dplyr::filter(genes, log2FoldChange > 2)
+filtered_39_down <- dplyr::filter(genes, log2FoldChange < -2)
+
+
+fea_mouse_39_filtered_up <- fea(filtered_39_up$ensembl_gene_id, 30)
+                             
+fea_mouse_39_filtered_down <- fea(filtered_39_down$ensembl_gene_id, 30)
+
+test_up <- dplyr::mutate(fea_mouse_39_filtered_up, .keep = "all", direction = "upregulated")
+test_down <- dplyr::mutate(fea_mouse_39_filtered_down, .keep = "all", direction = "downregulated")
+
+up_mat <- test_up  %>% dplyr::arrange(., desc(recall)) %>% dplyr::slice_head(., n = 30)
+  down_mat <- test_down  %>% dplyr::arrange(., desc(recall)) %>% dplyr::slice_head(., n = 30)
+combined_fea <- rbind(up_mat, down_mat)
+  
+
+
+ggplot(combined_fea, aes(x=intersection_size, y=term_name,  fill = recall)) + 
+    geom_bar( stat = "identity") + 
+    scale_fill_continuous(type = "viridis") + 
+    labs(x = "Number of Genes Matched to Term", y = "Functional Terms") + 
+    theme_minimal(base_size = 8)
+
+
+test <- ggplot(dplyr::filter(combined_fea, intersection_size > 7), aes(x=direction, y=term_name, size = intersection_size, fill = p_value)) +
+  geom_point(alpha=0.7, shape = 21) +
+  scale_size(range = c(2, 10), name = "# Genes Matched to Term") + 
+  scale_fill_distiller(palette = "Purples") + 
+  labs(x = "Differential Expression Direction", y = "Functional Enrichment Terms") + 
+  theme_minimal(base_size = 8)
+```
+
+Save plots
+```{r eval=FALSE, include=FALSE}
+ggsave(filename = here("res", "fea", "test.pdf"), test)
+
+```
+
+
 
 ### FEA p21 cystic '56 Mouse
 ```{r}
