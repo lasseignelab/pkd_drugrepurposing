@@ -434,6 +434,49 @@ write.csv(rHub_19_and_56, file = here("res", "sigsearch_outputs", "ssresults_rHu
 write.csv(rHub_all_inters, file = here("res", "sigsearch_outputs", "ssresults_rHub_all_inters.csv"))
 ```
 
+"Launched" drugs futher compared for current FDA status as of 220816 FDA@Drugs data release. Manual comparison due to variabilities in names
+```{r}
+fda_approved_rhub39 <- c("loperamide",
+"etoposide",
+"irinotecan",
+"methylene-blue",
+"ixazomib",
+"vorinostat",
+"thiothixene",
+"vorinostat",
+"mebendazole",
+"carbamazepine",
+"sulconazole",
+"nicardipine",
+"butoconazole",
+"albendazole",
+"riboflavin",
+"imipramine",
+"clomipramine",
+"brompheniramine",
+"pimozide",
+"cetirizine",
+"desipramine",
+"rizatriptan",
+"methotrexate",
+"exemestane",
+"lovastatin",
+"nicotine",
+"carvedilol",
+"rosuvastatin",
+"nadolol",
+"escitalopram",
+"pirfenidone",
+"erythromycin-ethylsuccinate",
+"scopolamine",
+"sildenafil",
+"felodipine",
+"megestrol",
+"fluoxetine",
+"zolmitriptan")  #rhub_launched_39
+
+```
+
 
 ##### Side effects  
 Data from [onSides](https://github.com/tatonetti-lab/onsides)  

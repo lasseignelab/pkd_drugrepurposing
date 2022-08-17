@@ -1,5 +1,5 @@
 ---
-title: "DESeq2 GSE149739: nf-core aligned"
+title: "DESeq2 Pkd2-KO Analyses"
 author: "Lizzy Ramsey"
 date: "3/30/2022"
 output:
@@ -407,6 +407,9 @@ targets_in39 <- dplyr::filter(targets_in39, log2FoldChange >  2.0)# | log2FoldCh
 
 ```{r}
 volcano_39 <- EnhancedVolcano(conv_tbl, lab = conv_tbl$hgnc_symbol, x = 'log2FoldChange', y = 'padj', selectLab = unique(targets_in39$t_gn_sym), pCutoff = 0.05, FCcutoff = 0.5, pointSize = 3.0, labSize = 4.0, col = c("#440154", "#21918c", "#5ec962", "#fde725"), title = "Drug Targets Found in P70 Pre-Cystic DEGs", labFace = 'bold', boxedLabels = TRUE,drawConnectors = TRUE,widthConnectors = 0.5,colConnectors = 'black')
+
+
+EnhancedVolcano(conv_tbl, lab = conv_tbl$hgnc_symbol, x = 'log2FoldChange', y = 'padj', pCutoff = 0.05, FCcutoff = 2, pointSize = 3.0, labSize = 4.0, col = c("#440154", "#21918c", "#5ec962", "#fde725"), title = "Drug Targets Found in P70 Pre-Cystic DEGs", labFace = 'bold', drawConnectors = TRUE,widthConnectors = 0.5,colConnectors = 'black')
 volcano_39
 ```
 
