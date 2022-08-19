@@ -91,9 +91,9 @@ __uplfc__ & __downlfc__: Formats deseq2 res() output to select for upregulated a
 ```{r}
 uplfc <- function(res){
   #NAs removed first
-  res <- res[!is.na(res$log2FoldChange),]
-  #p-adjusted value cutoff 0.05 and log2fc greater than 2.0 and less than -2.0
-  upfc <- res[res$log2FoldChange > 2.0,]
+  res <- res[!is.na(res$padj),]
+  #p-adjusted value cutoff 0.05 and log2fc greater than 2.0 and less than -2.0 
+  upfc <- res[res$log2FoldChange > 2.0 & res$padj < 0.05,]
 
   #pull just logfold change values from DESeqResults object and name the values by associated gene
   up <- upfc$log2FoldChange
@@ -105,9 +105,9 @@ return(as.data.frame(up))
 
 downlfc <- function(res){
   #NAs removed first
-  res <- res[!is.na(res$log2FoldChange),]
+  res <- res[!is.na(res$padj),]
   #p-adjusted value cutoff 0.05 and log2fc greater than 2.0 and less than -2.0
-  downfc <- res[res$log2FoldChange < -2.0,]
+  downfc <- res[res$log2FoldChange < -2.0 & res$padj < 0.05,]
 
   #pull just logfold change values from DESeqResults object and name the values by associated gene
   down <- downfc$log2FoldChange
@@ -276,7 +276,7 @@ head(musdegs_39_DOWN)
 ```
 
 
-```{r eval=FALSE, include=FALSE}
+```{r }
 write.csv(musdegs_39_UP, file = here("res", "deseq2_outputs", "GSE149739_mus_degs_UP_220421.csv"))
 
 write.csv(musdegs_39_DOWN, file = here("res", "deseq2_outputs", "GSE149739_mus_degs_DOWN_220421.csv"))
@@ -308,7 +308,7 @@ hom_degs_DOWN <-  lincsGenes(musdegs_39_DOWN, "down")
 ```
 
 
-```{r eval=FALSE, include=FALSE}
+```{r}
 write.csv(hom_degs_UP, file = here("res", "deseq2_outputs", "GSE149739_degs_UP_220421.csv"))
 write.csv(hom_degs_DOWN, file = here("res", "deseq2_outputs", "GSE149739_degs_DOWN_220421.csv"))
 ```
@@ -319,7 +319,7 @@ write.csv(hom_degs_DOWN, file = here("res", "deseq2_outputs", "GSE149739_degs_DO
 Filter for coding genes
 ```{r}
 mouse <- useEnsembl("ensembl", dataset = "mmusculus_gene_ensembl", mirror = "useast")
-gene_desc <- getBM(filters = "ensembl_gene_id", attributes = c("ensembl_gene_id","entrezgene_id", "mgi_symbol", "description"), values = cts_df$gene_id, mart = mouse)
+gene_desc <- getBM(filters = "ensembl_gene_id", attributes = c("ensembl_gene_id","entrezgene_id", "mgi_symbol", "description"), values = cts_df$ensembl_gene_id, mart = mouse)
 
 ps <- grep("pseudogene", gene_desc$description, value = TRUE)
 rp <- grep("ribosom", gene_desc$description, value = TRUE)
@@ -370,6 +370,8 @@ heatmap_p70 <- pheatmap(conv_cts[rownames(top20lfc), ], cluster_rows = TRUE, clu
 ```
 
 ```{r}
+write.csv(genes, file = here("res/deseq2_outputs", "deseq2_p70_fullannotatedres.csv"))
+
 ggsave(heatmap_p70, filename = here("res", "fea", "heatmap_p70_ribopseudoremoved.pdf"), height = 7, width = 14)
 ```
 
@@ -398,7 +400,7 @@ targets_39 <- read.csv(here("res", "sigsearch_outputs", "rhub_launcheddrugs_39.c
 targets_39 <- tidyr::separate_rows(targets_39, "t_gn_sym", sep = "; ")
 ```
 
-```{r eval=FALSE, include=FALSE}
+```{r }
 write.csv(targets_39, file = here("res", "sigsearch_outputs", "drugtargets_p70.csv"))
 
 ```
@@ -409,12 +411,13 @@ targets_in39 <- merge(targets_39, conv_tbl, by.x = "t_gn_sym", by.y = "hgnc_symb
 targets_in39 <- dplyr::filter(targets_in39, log2FoldChange >  2.0)# | log2FoldChange < -2.0)
 ```
 
+
 ```{r}
-volcano_39 <- EnhancedVolcano(conv_tbl, lab = conv_tbl$hgnc_symbol, x = 'log2FoldChange', y = 'padj', selectLab = unique(targets_in39$t_gn_sym), pCutoff = 0.05, FCcutoff = 0.5, pointSize = 3.0, labSize = 4.0, col = c("#440154", "#21918c", "#5ec962", "#fde725"), title = "Drug Targets Found in P70 Pre-Cystic DEGs", labFace = 'bold', boxedLabels = TRUE,drawConnectors = TRUE,widthConnectors = 0.5,colConnectors = 'black')
+#volcano_39 <- EnhancedVolcano(conv_tbl, lab = conv_tbl$hgnc_symbol, x = 'log2FoldChange', y = 'padj', selectLab = unique(targets_in39$t_gn_sym), pCutoff = 0.05, FCcutoff = 0.5, pointSize = 3.0, labSize = 4.0, col = c("#440154", "#21918c", "#5ec962", "#fde725"), title = "Drug Targets Found in P70 Pre-Cystic DEGs", labFace = 'bold', boxedLabels = TRUE,drawConnectors = TRUE,widthConnectors = 0.5,colConnectors = 'black')
+
+#volcano_39
 
 
-EnhancedVolcano(conv_tbl, lab = conv_tbl$hgnc_symbol, x = 'log2FoldChange', y = 'padj', pCutoff = 0.05, FCcutoff = 2, pointSize = 3.0, labSize = 4.0, col = c("#440154", "#21918c", "#5ec962", "#fde725"), title = "Drug Targets Found in P70 Pre-Cystic DEGs", labFace = 'bold', drawConnectors = TRUE,widthConnectors = 0.5,colConnectors = 'black')
-volcano_39
 ```
 
 ```{r}
@@ -458,10 +461,24 @@ res_56 <- results(dds_56, alpha = 0.05, contrast = c("Genotype", "Pkhd1CrePkd2FF
 
 ```
 
-```{r eval=FALSE, include=FALSE}
-write.csv(res_56, file = here("res", "deseq2_outputs", deseq2_fullres_56.csv"))
+DESeq2 results as df and by LFC threshold
+```{r}
+dsq2_56 <- as.data.frame(res_56)
 
+dsq2_56_up <- dplyr::filter(dsq2_56, log2FoldChange > 2.0)
+
+dsq2_56_down <- dplyr::filter(dsq2_56, log2FoldChange < -2.0)
 ```
+
+
+```{r}
+write.csv(dsq2_56, file = here("res/deseq2_outputs", "deseq2_fullres_56.csv"))
+
+write.csv(dsq2_56_up, file = here("res", "deseq2_outputs", "deseq2_upgenes_res_56.csv"))
+
+write.csv(dsq2_56_down, file = here("res", "deseq2_outputs", "deseq2_downgenes_res_56.csv"))
+```
+
 
 LFC cutoffs
 ```{r}
@@ -479,7 +496,7 @@ hom_56_DOWN <-  lincsGenes(musdegs_56_DOWN, "down")
 ```
 
 
-```{r eval=FALSE, include=FALSE}
+```{r}
 write.csv(musdegs_56_UP, file = here("res", "deseq2_outputs", "GSE69556_mus_degs_UP_220421.csv"))
 write.csv(musdegs_56_DOWN, file = here("res", "deseq2_outputs", "GSE69556_mus_degs_DOWN_220421.csv"))
 
@@ -551,9 +568,10 @@ heatmap_21 <- pheatmap(conv_cts_56[rownames(top20lfc_56), ], cluster_rows = TRUE
 ```
 
 
-```{r eval=FALSE, include=FALSE}
-ggsave(heatmap_21, filename = here("res", "fea", "heatmap_p21_ribopseudoremoved.pdf"), height = 7, width = 14)
+```{r }
+write.csv(genes_56, file = here("res/deseq2_outputs", "deseq2_p21_fullannotatedres.csv"))
 
+ggsave(heatmap_21, filename = here("res", "fea", "heatmap_p21_ribopseudoremoved.pdf"), height = 7, width = 14)
 ```
 
 
@@ -584,9 +602,9 @@ targets_in56 <- dplyr::filter(targets_in56, log2FoldChange >  2.0 )#| log2FoldCh
 
 
 ```{r}
-volcano_56 <- EnhancedVolcano(conv_tbl_56, lab = conv_tbl_56$hgnc_symbol, x = 'log2FoldChange', y = 'padj', selectLab = unique(targets_in56$t_gn_sym), pCutoff = 0.05, FCcutoff = 0.5, pointSize = 3.0, labSize = 4.0, col = c("#440154", "#21918c", "#5ec962", "#fde725"), title = "P70 Pre-Cystic Drug Targets Found in P21 \nCystic DEGs", labFace = 'bold', boxedLabels = TRUE,drawConnectors = TRUE,widthConnectors = 0.5,colConnectors = 'black', max.overlaps = 50)
+#volcano_56 <- EnhancedVolcano(conv_tbl_56, lab = conv_tbl_56$hgnc_symbol, x = 'log2FoldChange', y = 'padj', selectLab = unique(targets_in56$t_gn_sym), pCutoff = 0.05, FCcutoff = 0.5, pointSize = 3.0, labSize = 4.0, col = c("#440154", "#21918c", "#5ec962", "#fde725"), title = "P70 Pre-Cystic Drug Targets Found in P21 \nCystic DEGs", labFace = 'bold', boxedLabels = TRUE,drawConnectors = TRUE,widthConnectors = 0.5,colConnectors = 'black', max.overlaps = 50)
 
-volcano_56
+#volcano_56
 ```
 
 ```{r}
@@ -628,8 +646,27 @@ res_19 <- results(dds_19, alpha = 0.05, contrast = c("Genotype", "Pdk2KO", "wild
 
 ```
 
+DESeq2 results as df and by LFC threshold
+```{r}
+dsq2_19 <- as.data.frame(res_19)
+
+dsq2_19_up <- dplyr::filter(dsq2_19, log2FoldChange > 2.0)
+
+dsq2_19_down <- dplyr::filter(dsq2_19, log2FoldChange < -2.0)
+```
+
+
+```{r}
+write.csv(dsq2_19, file = here("res/deseq2_outputs", "deseq2_fullres_19.csv"))
+
+write.csv(dsq2_19_up, file = here("res", "deseq2_outputs", "deseq2_upgenes_res_19.csv"))
+
+write.csv(dsq2_19_down, file = here("res", "deseq2_outputs", "deseq2_downgenes_res_19.csv"))
+```
+
+
 Save full deseq2 results
-```{r eval=FALSE, include=FALSE}
+```{r}
 write.csv(res_19, file = here("res", "deseq2_outputs", "deseq2_fullres_19.csv"))
 
 ```
@@ -669,7 +706,7 @@ hom_19_DOWN <-  lincsGenes(musdegs_19_DOWN, "down")
 ```
 
 
-```{r eval=FALSE, include=FALSE}
+```{r}
 write.csv(musdegs_19_UP, file = here("res", "deseq2_outputs", "GSE134719_mus_degs_UP_220421.csv"))
 write.csv(musdegs_19_DOWN, file = here("res", "deseq2_outputs", "GSE134719_mus_degs_DOWN_220421.csv"))
  
@@ -724,9 +761,10 @@ heatmap_p28 <- pheatmap(conv_cts_19[rownames(top20lfc_19), ], cluster_rows = TRU
 ```
 
 
-```{r eval=FALSE, include=FALSE}
-ggsave(heatmap_p28, filename = here("res", "fea", "heatmap_p28_ribopseudoremoved.pdf"), height = 7, width = 14)
+```{r}
+write.csv(genes_19, file = here("res/deseq2_outputs", "deseq2_p28_fullannotatedres.csv"))
 
+ggsave(heatmap_p28, filename = here("res", "fea", "heatmap_p28_ribopseudoremoved.pdf"), height = 7, width = 14)
 ```
 
 
@@ -758,9 +796,9 @@ targets_in19 <- dplyr::filter(targets_in19, log2FoldChange >  2.0)# | log2FoldCh
 
 
 ```{r}
-volcano_19 <- EnhancedVolcano(conv_tbl_19, lab = conv_tbl_19$hgnc_symbol, x = 'log2FoldChange', y = 'padj', selectLab = unique(targets_in19$t_gn_sym), pCutoff = 0.05, FCcutoff = 0.5, pointSize = 3.0, labSize = 4.0, col = c("#440154", "#21918c", "#5ec962", "#fde725"), title = "P70 Pre-Cystic Drug Targets Found in P28 \nCystic DEGs", labFace = 'bold', boxedLabels = TRUE,drawConnectors = TRUE,widthConnectors = 0.5,colConnectors = 'black', max.overlaps = 25) 
+#volcano_19 <- EnhancedVolcano(conv_tbl_19, lab = conv_tbl_19$hgnc_symbol, x = 'log2FoldChange', y = 'padj', selectLab = unique(targets_in19$t_gn_sym), pCutoff = 0.05, FCcutoff = 0.5, pointSize = 3.0, labSize = 4.0, col = c("#440154", "#21918c", "#5ec962", "#fde725"), title = "P70 Pre-Cystic Drug Targets Found in P28 \nCystic DEGs", labFace = 'bold', boxedLabels = TRUE,drawConnectors = TRUE,widthConnectors = 0.5,colConnectors = 'black', max.overlaps = 25) 
 
-volcano_19
+#volcano_19
 ```
 
 
