@@ -331,10 +331,13 @@ test--do FEA res change when first filtering out pseudogenes and ribosomal genes
 filtered_39_up <- dplyr::filter(genes, log2FoldChange > 2)
 filtered_39_down <- dplyr::filter(genes, log2FoldChange < -2)
 
+filtered_39_up <- dplyr::filter(filtered_39_up, pvalue < 0.05)
+filtered_39_down <- dplyr::filter(filtered_39_down,  pvalue < 0.05)
 
-fea_mouse_39_filtered_up <- fea(filtered_39_up$ensembl_gene_id, 30)
+
+fea_mouse_39_filtered_up <- fea(filtered_39_up$ensembl_gene_id, 10)
                              
-fea_mouse_39_filtered_down <- fea(filtered_39_down$ensembl_gene_id, 30)
+fea_mouse_39_filtered_down <- fea(filtered_39_down$ensembl_gene_id, 10)
 
 test_up <- dplyr::mutate(fea_mouse_39_filtered_up, .keep = "all", direction = "upregulated")
 test_down <- dplyr::mutate(fea_mouse_39_filtered_down, .keep = "all", direction = "downregulated")
@@ -366,7 +369,25 @@ ggsave(filename = here("res", "fea", "test.pdf"), test)
 
 ```
 
+Number of DEGs with pseudo/ribo genes filtered out, and unique symbols
+```{r}
+filtered_19_up <- dplyr::filter(genes_19, log2FoldChange > 2)
+filtered_19_down <- dplyr::filter(genes_19, log2FoldChange < -2)
 
+filtered_56_up <- dplyr::filter(genes_56, log2FoldChange > 2)
+filtered_56_down <- dplyr::filter(genes_56, log2FoldChange < -2)
+
+
+filtered_19_up <- dplyr::filter(filtered_19_up, pvalue < 0.05)
+filtered_19_down <- dplyr::filter(filtered_19_down,  pvalue < 0.05)
+
+filtered_56_up <- dplyr::filter(filtered_56_up, pvalue < 0.05)
+filtered_56_down <- dplyr::filter(filtered_56_down,  pvalue < 0.05)
+
+
+
+
+```
 
 ### FEA p21 cystic '56 Mouse
 ```{r}
@@ -520,6 +541,39 @@ write.csv(fea_cystic_overlap_up, file = here("res", "fea", "fea_cystic_overlap_u
 write.csv(fea_cystic_overlap_down, file = here("res", "fea", "fea_cystic_overlap_down.csv"))
 
 write.csv(fea_cystic_overlap_combined, file = here("res", "fea", "fea_cystic_overlap_combined.csv"))
+```
+
+##### rrvgo
+Trying out -- give GO terms as input
+```{r}
+go_39 <- dplyr::filter(fea_39_up, source == "GO:BP")
+
+simMatrix <- calculateSimMatrix(go_39$term_id, orgdb = "org.Mm.eg.db", ont = "BP", method = "Wang")
+
+scores <- setNames(-log10(go_39$p_value), go_39$term_id)
+reducedTerms <- reduceSimMatrix(simMatrix, scores, threshold=0.7, orgdb="org.Mm.eg.db")
+
+sp <- scatterPlot(simMatrix, reducedTerms)
+tm <- treemapPlot(reducedTerms)
+hm <- heatmapPlot(simMatrix, reducedTerms, annotateParent=TRUE, annotationLabel="parentTerm", fontsize=6)
+```
+```{r}
+go_19 <- dplyr::filter(fea_19_up, source == "GO:BP")
+
+simMatrix <- calculateSimMatrix(go_19$term_id, orgdb = "org.Mm.eg.db", ont = "BP", method = "Rel")
+
+scores <- setNames(-log10(go_19$p_value), go_19$term_id)
+reducedTerms <- reduceSimMatrix(simMatrix, scores, threshold=0.4, orgdb="org.Mm.eg.db")
+
+sp <- scatterPlot(simMatrix, reducedTerms)
+sp
+tm <- treemapPlot(reducedTerms)
+hm <- heatmapPlot(simMatrix, reducedTerms, annotateParent=TRUE, annotationLabel="parentTerm", fontsize=6)
+```
+
+```{r}
+ggsave(hm, filename = here("res", "test.pdf"))
+
 ```
 
 #### Compare Mouse FEA  
