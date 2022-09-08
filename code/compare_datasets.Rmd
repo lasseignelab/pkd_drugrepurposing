@@ -18,6 +18,10 @@ library(dplyr)
 library(here)
 library(viridis)
 library(rrvgo)
+library(GOSemSim)
+library(VennDiagram)
+library(RColorBrewer)
+library(ComplexHeatmap)
 ```
 
 ## Custom functions for FEA
@@ -28,12 +32,12 @@ enrich <- function(upgenes, downgenes, topreturned) {#, filepath) {
   up_fea <- gost(upgenes, multi_query = FALSE, correction_method = "bonferroni", evcodes = TRUE, sources = c("GO:BP", "GO:MF", "GO:CC", "REAC", "WP"))
   #remove abitrary pathways -- any pathways with > 1000 genes
     up_fea <- up_fea$result %>% dplyr::filter(., term_size < 1000 & term_size > 5) %>% dplyr::mutate(., .keep = "all", direction = "upregulated")
-    up_mat <- up_fea  %>% dplyr::arrange(., desc(p_value)) %>% dplyr::slice_head(., n = topreturned)
+    up_mat <- up_fea  %>% dplyr::slice_max(., recall, n = topreturned) 
   
   down_fea <- gost(downgenes, multi_query = FALSE, correction_method = "bonferroni", evcodes = TRUE, sources = c("GO:BP", "GO:MF", "GO:CC", "REAC", "WP"))
   #remove abitrary pathways -- any pathways with > 1000 genes
   down_fea <- down_fea$result %>% dplyr::filter(., term_size < 1000 & term_size > 5) %>% dplyr::mutate(., .keep = "all", direction = "downregulated") 
-  down_mat <- down_fea  %>% dplyr::arrange(., desc(p_value)) %>% dplyr::slice_head(., n = topreturned)
+  down_mat <- down_fea  %>% dplyr::slice_max(., recall, n = topreturned)
   combined_fea <- rbind(up_mat, down_mat)
   
   fea_res <- list(downregulated = down_fea, upregulated = up_fea, topcompared = combined_fea)
@@ -46,20 +50,20 @@ MOUSE GENES Enrichment function for up and down genes
 
 ```{r}
 #Runs an ordered query
-fea <- function(genelist, topreturned){
-  fea <- gost(genelist, organism = "mmusculus", ordered_query = FALSE, multi_query = FALSE, evcodes = TRUE, correction_method = "bonferroni", sources = c("GO:BP", "GO:MF", "GO:CC", "KEGG", "REAC", "MIRNA", "CORUM", "HP", "HPA", "WP"))
+fea <- function(genelist, sources = c("GO:BP", "GO:MF", "GO:CC", "REAC", "WP")){
+  fea <- gost(genelist, organism = "mmusculus", ordered_query = FALSE, multi_query = FALSE, evcodes = TRUE, correction_method = "bonferroni", sources = sources)
   #remove abitrary pathways -- any pathways with > 1000 genes
   fea <- fea$result %>% dplyr::filter(., term_size < 1000 & term_size > 10)
 return(fea)
 }
 
-mouseenrich <- function(upgenes, downgenes, topreturned) {
-  upgenes$log2FoldChange <- sort(as.numeric(upgenes$log2FoldChange), decreasing = TRUE)
-  up_fea <- fea(upgenes$Mouse.gene.stable.ID, topreturned$Mouse.gene.stable.ID)
+mouseenrich <- function(upgenes, downgenes, topreturned, sources = c("GO:BP", "GO:MF", "GO:CC", "REAC", "WP")) {
+  #upgenes$log2FoldChange <- sort(as.numeric(upgenes$log2FoldChange), decreasing = TRUE)
+  up_fea <- fea(upgenes$ensembl_gene_id, sources = sources)
   up_fea <- dplyr::mutate(up_fea, .keep = "all", direction = "upregulated")
   
-  downgenes$log2FoldChange <- sort(as.numeric(downgenes$log2FoldChange))
-  down_fea <- fea(downgenes$Mouse.gene.stable.ID, topreturned$Mouse.gene.stable.ID)
+  #downgenes$log2FoldChange <- sort(as.numeric(downgenes$log2FoldChange))
+  down_fea <- fea(downgenes$ensembl_gene_id, sources = sources)
   down_fea <- dplyr::mutate(down_fea, .keep = "all", direction = "downregulated")
   
   up_mat <- up_fea  %>% dplyr::arrange(., desc(recall)) %>% dplyr::slice_head(., n = topreturned)
@@ -92,7 +96,7 @@ bubbleplot <- function(combined_fea){
   bubbleplot <- ggplot(combined_fea, aes(x=direction, y=term_name, size = intersection_size, fill = p_value)) +
   geom_point(alpha=0.7, shape = 21) +
   scale_size(range = c(2, 10), name = "# Genes Matched to Term") + 
-  scale_fill_distiller(palette = "Purples") + 
+  scale_fill_distiller(palette = "Purples", direction = 1) + 
   labs(x = "Differential Expression Direction", y = "Functional Enrichment Terms") + 
   theme_minimal(base_size = 8) #+ labs(title = "Top Enriched Terms")
 #  ggsave(filepath, bubbleplot, width = 10, height = 7)
@@ -119,20 +123,20 @@ Load in top 100 up and down genes used as signatures for signatureSearch
 
 '39 precystic p70
 ```{r}
-hom_39_UP <- read.csv(here("res", "deseq2_outputs", "p70_signature_UP.csv"))
-hom_39_DOWN <- read.csv(here("res", "deseq2_outputs", "p70_signature_DOWN.csv"))
+hom_39_UP <- read.csv(here("res", "deseq2_outputs", "p70_signature_UP.csv"), row.names = 1)
+hom_39_DOWN <- read.csv(here("res", "deseq2_outputs", "p70_signature_DOWN.csv"), row.names = 1)
 ```
 
 '19 cystic p28
 ```{r}
-hom_19_UP <- read.csv(here("res", "deseq2_outputs", "p28_signature_UP.csv"))
-hom_19_DOWN <- read.csv(here("res", "deseq2_outputs", "p28_signature_DOWN.csv"))
+hom_19_UP <- read.csv(here("res", "deseq2_outputs", "p28_signature_UP.csv"), row.names = 1)
+hom_19_DOWN <- read.csv(here("res", "deseq2_outputs", "p28_signature_DOWN.csv"), row.names = 1)
 ```
 
 '56 cystic p21
 ```{r}
-hom_56_UP <- read.csv(here("res", "deseq2_outputs", "p21_signature_UP.csv"))
-hom_56_DOWN <- read.csv(here("res", "deseq2_outputs", "p21_signature_DOWN.csv"))
+hom_56_UP <- read.csv(here("res", "deseq2_outputs", "p21_signature_UP.csv"), row.names = 1)
+hom_56_DOWN <- read.csv(here("res", "deseq2_outputs", "p21_signature_DOWN.csv"), row.names = 1)
 ```
 
 
@@ -180,12 +184,18 @@ p70_unique_down <- dplyr::anti_join(p70_unique_down, hom_56_DOWN, by = "hgnc_sym
 
 ```
 
-
-#### Venn diagram of signatures  
+fea of pre-cystic unique
 ```{r}
-library(VennDiagram)
-library(RColorBrewer)
-myCol <- brewer.pal(3, "Pastel2")
+p70_uniquegene_enrich <- enrich(p70_unique_up, p70_unique_down, 30)
+
+```
+
+
+### Venn diagram of signatures  
+```{r}
+
+#myCol <- brewer.pal(3, "Pastel2")
+myCol <- c("FDE725FF", "287D8EFF", "481567FF")
 set39 <- rbind(hom_39_UP, hom_39_DOWN)
 set56 <- rbind(hom_56_UP, hom_56_DOWN)
 set19 <- rbind(hom_19_UP, hom_19_DOWN)
@@ -204,8 +214,9 @@ venn.diagram(x = list(set39$ensembl_gene_id, set56$ensembl_gene_id, set19$ensemb
         
         # Circles
         lwd = 2,
-        lty = 'blank',
-        fill = myCol,
+        col=c("#440154ff", '#21908dff', '#fde725ff'),
+        #lty = 'blank',
+        fill = c(alpha("#440154ff",0.3), alpha('#21908dff',0.3), alpha('#fde725ff',0.3)),
         
         # Numbers
         cex = .6,
@@ -227,7 +238,7 @@ venn.diagram(x = list(set39$ensembl_gene_id, set56$ensembl_gene_id, set19$ensemb
 
 ### FEA p70 precystic GSE149739  (top 100 human orthologs)  
 ```{r}
-fea_39 <- enrich(as.character(hom_39_UP$entrezgene_id), as.character(hom_39_DOWN$entrezgene_id), 20)
+fea_39 <- enrich(as.character(hom_39_UP$entrezgene_id), as.character(hom_39_DOWN$entrezgene_id), 26) #only 4 downregulated terms, switching to 26 so it'll give the same number of results to plot as the others
 ```
 
 Barplot of overall top enrichment terms
@@ -244,20 +255,20 @@ bubbleplot(fea_39$topcompared)
 ```{r}
 fea_39$topcompared$term_name <- stringr::str_wrap(fea_39$topcompared$term_name, width = 100)
 
-bp_39 <- bubbleplot(fea_39$topcompared) + labs(title = "Top Enriched Terms for Precystic P70 Signature") + theme(text = element_text(size = 12), plot.title = element_text(size = 24))
+bp_39 <- bubbleplot(fea_39$topcompared) + labs(title = "Top Enriched Terms for Precystic P70 Signature") + theme(text = element_text(size = 12), plot.title = element_text(size = 18))
 
 bp_39
 ```
 
 ```{r}
-ggsave(bp_39, filename = here("res", "fea", "bubbleplot_signature_p70.pdf"), height = 7, width = 17)
+ggsave(bp_39, filename = here("res", "fea", "bubbleplot_signature_p70.pdf"), height = 7, width = 12)
 
 ```
 
 
 ### FEA p21 cystic GSE69556 (top 100 human orthologs)  
 ```{r}
-fea_56 <- enrich(as.character(hom_56_UP$entrezgene_id), as.character(hom_56_DOWN$entrezgene_id), 20)
+fea_56 <- enrich(as.character(hom_56_UP$entrezgene_id), as.character(hom_56_DOWN$entrezgene_id), 15)
 ```
 
 Barplot of overall top enrichment terms
@@ -268,17 +279,19 @@ bp_56
 
 ```{r}
 
-bp_56 <- bubbleplot(fea_56$topcompared) + labs(title = "Top Enriched Terms for Cystic P21 Signature") + theme(text = element_text(size = 14), plot.title = element_text(size = 24))
+bp_56 <- bubbleplot(fea_56$topcompared) + labs(title = "Top Enriched Terms for Cystic P21 Signature") + theme(text = element_text(size = 12), plot.title = element_text(size = 18))
+
+bp_56
 ```
 
 ```{r}
-ggsave(bp_56, filename = here("res", "fea", "bubbleplot_signature_p21.pdf"), height = 7, width = 14)
+ggsave(bp_56, filename = here("res", "fea", "bubbleplot_signature_p21.pdf"), height = 7, width = 12)
 
 ```
 
 ### FEA p28 cystic GSE134719 (top 100 human orthologs)
 ```{r}
-fea_19 <- enrich(as.character(hom_19_UP$entrezgene_id), as.character(hom_19_DOWN$entrezgene_id), 20)
+fea_19 <- enrich(as.character(hom_19_UP$entrezgene_id), as.character(hom_19_DOWN$entrezgene_id), 15)
 ```
 
 Barplot of overall top enrichment terms
@@ -294,16 +307,16 @@ bubbleplot(fea_19$topcompared)
 
 
 ```{r}
-fea_19$topcompared$term_name <- stringr::str_wrap(fea_19$topcompared$term_name, width = 100)
+fea_19$topcompared$term_name <- stringr::str_wrap(fea_19$topcompared$term_name, width = 80)
 
-bp_19 <- bubbleplot(fea_19$topcompared) + labs(title = "Top Enriched Terms for Cystic P28 Signature") + theme(text = element_text(size = 14), plot.title = element_text(size = 24))
+bp_19 <- bubbleplot(fea_19$topcompared) + labs(title = "Top Enriched Terms for Cystic P28 Signature") + theme(text = element_text(size = 12), plot.title = element_text(size = 18))
 
 bp_19
 ```
 
 
 ```{r}
-ggsave(bp_19, filename = here("res", "fea", "bubbleplot_signature_p28.pdf"), height = 7, width = 17)
+ggsave(bp_19, filename = here("res", "fea", "bubbleplot_signature_p28.pdf"), height = 7, width = 12)
 
 ```
 
@@ -351,6 +364,40 @@ fea_overap_all_down <- merge(fea_39$downregulated, cystic_term_overlap_down, by 
 ```
 
 ##### rrvgo
+alter their scatterplot function
+```{r}
+scatterPlot <- function (simMatrix, reducedTerms, size = "score", addLabel = TRUE, 
+    labelSize = 3) 
+{
+    if (!all(sapply(c("ggplot2", "ggrepel"), requireNamespace, 
+        quietly = TRUE))) {
+        stop("Packages ggplot2, ggrepel and/or its dependencies not available. ", 
+            "Consider installing them before using this function.", 
+            call. = FALSE)
+    }
+    x <- cmdscale(as.matrix(as.dist(1 - simMatrix)), eig = TRUE, 
+        k = 2)
+    df <- cbind(as.data.frame(x$points), reducedTerms[match(rownames(x$points), 
+        reducedTerms$go), c("term", "parent", "parentTerm", "size")])
+    p <- ggplot2::ggplot(df, ggplot2::aes(x = V1, y = V2, color = parentTerm)) + 
+        ggplot2::geom_point(ggplot2::aes(size = size), alpha = 0.5) + 
+        ggplot2::scale_color_discrete(guide = "none") + ggplot2::scale_size_continuous(guide = "none", 
+        range = c(0, 25)) + ggplot2::scale_x_continuous(name = "") + 
+        ggplot2::scale_y_continuous(name = "") + ggplot2::theme_minimal() + 
+        ggplot2::theme(axis.text.x = ggplot2::element_blank(), 
+            axis.text.y = ggplot2::element_blank())
+    if (addLabel) {
+        p + ggrepel::geom_label_repel(aes(label = parentTerm), 
+            data = subset(df, parent == rownames(df)), box.padding = grid::unit(0.5, 
+                "lines"), size = labelSize, max.overlaps = 20)
+    }
+    else {
+        p
+    }
+}
+
+```
+
 Trying out -- give GO terms as input
 ```{r}
 go_39_up <- dplyr::filter(fea_39$upregulated, source == "GO:BP")
@@ -360,16 +407,19 @@ go_39 <- rbind(go_39_up, go_39_down)
 simMatrix <- calculateSimMatrix(go_39$term_id, orgdb = "org.Hs.eg.db", ont = "BP", method = "Wang")
 
 scores <- setNames(-log10(go_39$p_value), go_39$term_id)
-reducedTerms <- reduceSimMatrix(simMatrix, scores, threshold=0.70, orgdb="org.Hs.eg.db")
+reducedTerms <- reduceSimMatrix(simMatrix, scores, threshold=0.80, orgdb="org.Hs.eg.db")
 
-sp <- scatterPlot(simMatrix, reducedTerms, labelSize = 2.5) + labs(title = "Precystic P70 Signature Enrichment Overview") #+ theme(text = element_text(size = 14), plot.title = element_text(size = 24))
+sp <- scatterPlot(simMatrix, reducedTerms, labelSize = 2.5) + labs(title = "Precystic P70 Signature Enrichment Overview") #+ geom_label_repel(max.overlaps = 20) #+ theme(text = element_text(size = 14), plot.title = element_text(size = 24))
 sp
 tm <- treemapPlot(reducedTerms, title = "Enrichment for Precystic P70 Signature") 
 hm <- heatmapPlot(simMatrix, reducedTerms, annotateParent=TRUE, annotationLabel="parentTerm", fontsize=6)
 ```
 
 ```{r}
-ggsave()
+ggsave(here("res/fea", "precysticp70_sig_enrichment_scatter.pdf"), sp, height = 5, width = 7)
+
+#ggsave(here("res/fea", "precysticp70_sig_enrichment_treemap.pdf"), tm, height = 4, width = 7)
+
 ```
 
 ```{r}
@@ -380,13 +430,21 @@ go_56 <- rbind(go_56_up, go_56_down)
 simMatrix_56 <- calculateSimMatrix(go_56$term_id, orgdb = "org.Hs.eg.db", ont = "BP", method = "Rel")
 
 scores_56 <- setNames(-log10(go_56$p_value), go_56$term_id)
-reducedTerms_56 <- reduceSimMatrix(simMatrix_56, scores_56, threshold=0.70, orgdb="org.Hs.eg.db")
+reducedTerms_56 <- reduceSimMatrix(simMatrix_56, scores_56, threshold=0.80, orgdb="org.Hs.eg.db")
 
 #options(ggrepel.max.overlaps = 50)
-sp_56 <- scatterPlot(simMatrix, reducedTerms) + labs(title = "Cystic P21 Signature Enrichment Overview")
+sp_56 <- scatterPlot(simMatrix_56, reducedTerms_56, labelSize = 2.5) + labs(title = "Cystic P21 Signature Enrichment Overview")
 sp_56
 tm_56 <- treemapPlot(reducedTerms_56, title = "Enrichment for Cystic P21 Signature")
 hm_56 <- heatmapPlot(simMatrix_56, reducedTerms_56, annotateParent=TRUE, annotationLabel="parentTerm", fontsize=6)
+```
+
+
+```{r}
+ggsave(here("res/fea", "cysticp21_sig_enrichment_scatter.pdf"), sp_56, height =5, width = 7)
+
+#ggsave(here("res/fea", "precysticp70_sig_enrichment_treemap.pdf"), tm, height = 4, width = 7)
+
 ```
 
 
@@ -409,33 +467,11 @@ hm_19 <- heatmapPlot(simMatrix_19, reducedTerms_19, annotateParent=TRUE, annotat
 
 
 ```{r}
-ggsave(hm, filename = here("res", "test.pdf"))
-
-```
-
-#### clusterprofiler
-
-
-```{r}
-library(DOSE)
-library(enrichplot)
-library(clusterProfiler)
-library(org.Hs.eg.db)
-
-ego_39 <- enrichGO(gene          = hom_39_UP$entrezgene_id,
-                #universe      = names(geneList),
-                OrgDb         = org.Hs.eg.db,
-                ont           = "BP",
-                pAdjustMethod = "BH",
-                pvalueCutoff  = 0.01,
-                qvalueCutoff  = 0.05,
-        readable      = TRUE)
-
-#edo_39 <- gseDO(hom_39_UP$entrezgene_id)
-dotplot(ego_39, showCategory=30) + ggtitle("dotplot for ORA")
+ggsave(here("res/fea", "cysticp28_sig_enrichment_scatter.pdf"), sp_19, height =5, width = 7)
 
 
 ```
+
 
 
 ## Mouse genes FEA  
@@ -443,64 +479,144 @@ Using ALL mouse DEGs (0.05 alpha and -2 and 2 LFC cutoff) before mapping to huma
 
 ### Load in (mouse DEG) data
 
-'39 nf-core aligned
+'39 
 ```{r}
-musdegs_39_UP <- read.csv(here("res", "deseq2_outputs", "deseq2_upgenes_res_39.csv"))
+#pseudogenes and ribo genes removed, still mouse
+all_39 <- read.csv(here("res/deseq2_outputs", "deseq2_p70_fullannotatedres.csv"))
 
-musdegs_39_DOWN <- read.csv(here("res", "deseq2_outputs", "deseq2_downgenes_res_39.csv"))
+#using same LFC as for signature for '39
+musdegs_39_UP <- dplyr::filter(all_39, log2FoldChange > 1.3 & padj < 0.05)
+musdegs_39_DOWN <- dplyr::filter(all_39, log2FoldChange < -1.3 & padj < 0.05)
+#musdegs_39_UP <- read.csv(here("res", "deseq2_outputs", "deseq2_upgenes_res_39.csv"), row.names = 1)
+
+#musdegs_39_DOWN <- read.csv(here("res", "deseq2_outputs", "deseq2_downgenes_res_39.csv"), row.names = 1)
 ```
 
 '19
 ```{r}
-musdegs_19_UP <- read.csv(here("res", "deseq2_outputs", "deseq2_upgenes_res_19.csv"))
+#pseudogenes and ribo genes removed, still mouse
+all_19 <- read.csv(here("res/deseq2_outputs", "deseq2_p28_fullannotatedres.csv"))
 
-musdegs_19_DOWN <- read.csv(here("res", "deseq2_outputs", "deseq2_downgenes_res_19.csv"))
+musdegs_19_UP <- dplyr::filter(all_19, log2FoldChange > 2 & padj < 0.05)
+musdegs_19_DOWN <- dplyr::filter(all_19, log2FoldChange < -2 & padj < 0.05)
+
+#musdegs_19_UP <- read.csv(here("res", "deseq2_outputs", "deseq2_upgenes_res_19.csv"), row.names = 1)
+
+#musdegs_19_DOWN <- read.csv(here("res", "deseq2_outputs", "deseq2_downgenes_res_19.csv"), row.names = 1)
 ```
 
 '56
 ```{r}
-musdegs_56_UP <- read.csv(here("res", "deseq2_outputs", "deseq2_upgenes_res_56.csv"))
+#pseudogenes and ribo genes removed, still mouse
+all_56 <- read.csv(here("res/deseq2_outputs", "deseq2_p21_fullannotatedres.csv"))
 
-musdegs_56_DOWN <- read.csv(here("res", "deseq2_outputs", "deseq2_upgenes_res_56.csv"))
+musdegs_56_UP <- dplyr::filter(all_56, log2FoldChange > 2 & padj < 0.05)
+musdegs_56_DOWN <- dplyr::filter(all_56, log2FoldChange < -2 & padj < 0.05)
+
+#musdegs_56_UP <- read.csv(here("res", "deseq2_outputs", "deseq2_upgenes_res_56.csv"), row.names = 1)
+
+#musdegs_56_DOWN <- read.csv(here("res", "deseq2_outputs", "deseq2_upgenes_res_56.csv"), row.names = 1)
 ```
 
 #### Gene overlaps
 Overlap comparing DEGs before human ortholog mapping, using Ensembl ID's
 ```{r}
-degs_19_56_overlap_up <- merge(musdegs_19_UP, musdegs_56_UP, by = "Mouse.gene.stable.ID")
+degs_19_56_overlap_up <- merge(musdegs_19_UP, musdegs_56_UP, by = "ensembl_gene_id")
 
-degs_19_56_overlap_down <- merge(musdegs_19_DOWN, musdegs_56_DOWN, by = "Mouse.gene.stable.ID")
+degs_19_56_overlap_down <- merge(musdegs_19_DOWN, musdegs_56_DOWN, by = "ensembl_gene_id")
 
-degs_19_56_39_overlap_up <- merge(degs_19_56_overlap_up, musdegs_39_UP, by = "Mouse.gene.stable.ID")
+degs_39_56_overlap_up <- merge(musdegs_39_UP, musdegs_56_UP, by = "ensembl_gene_id")
 
-degs_19_56_39_overlap_down <- merge(degs_19_56_overlap_down, musdegs_39_DOWN, by = "Mouse.gene.stable.ID")
-
-degs_39_56_overlap_up <- merge(musdegs_39_UP, musdegs_56_UP, by = "Mouse.gene.stable.ID")
-
-degs_39_56_overlap_down <- merge(musdegs_39_DOWN, musdegs_56_DOWN, by = "Mouse.gene.stable.ID")
+degs_39_56_overlap_down <- merge(musdegs_39_DOWN, musdegs_56_DOWN, by = "ensembl_gene_id")
 
 
-degs_39_19_overlap_up <- merge(musdegs_39_UP, musdegs_19_UP, by = "Mouse.gene.stable.ID")
+degs_39_19_overlap_up <- merge(musdegs_39_UP, musdegs_19_UP, by = "ensembl_gene_id")
 
-degs_39_19_overlap_down <- merge(musdegs_39_DOWN, musdegs_19_DOWN, by = "Mouse.gene.stable.ID")
+degs_39_19_overlap_down <- merge(musdegs_39_DOWN, musdegs_19_DOWN, by = "ensembl_gene_id")
+
+
+degs_all_overlap_up <- merge(degs_19_56_overlap_up, musdegs_39_UP, by = "ensembl_gene_id")
+
+degs_all_overlap_down <- merge(degs_19_56_overlap_down, musdegs_39_DOWN, by = "ensembl_gene_id")
+
+alldegs_overlap <- rbind(degs_all_overlap_up, degs_all_overlap_down)
+alldegs_lfc <- cbind(CysticP28 = alldegs_overlap$log2FoldChange.x, CysticP21 = alldegs_overlap$log2FoldChange.y, PrecysticP70 = alldegs_overlap$log2FoldChange)
+row.names(alldegs_lfc) <- alldegs_overlap$X.x
 ```
+
+heatmap of overlapped genes ?
+```{r}
+lfc_heatmap <- pheatmap(alldegs_lfc, cluster_rows = TRUE, cluster_cols = TRUE, show_rownames = TRUE, color = viridis(n= 10000, alpha = 1, begin = 0, end = 1, option = "viridis"), border_color = "NA", main = "LFC of Overlapped Genes")
+lfc_heatmap
+```
+
+#### AKI Genes  
+AKI-associated DEGs were pulled in to compare to the data sets to see if the cystic data sets look more similar to AKI. 157 upregulated and 88 downregulated
+```{r}
+aki_upgenes <- c("Adam8", "Adamts1", "Adm", "Akap12", "Akr1b8", "Aldh1a2", "Aloxe3", "Anxa1", "Anxa3", "Apobec3", "Arf2", "Asns", "Atf3", "Bcl3", "Birc3", "Cd14", "Cd44", "Cd68", "Cd9", "Cd93", "Cebpd", "Chrnb1", "Clcf1", "Cldn4", "Cldn7", "Ctgf", "Ctsc", "Cyr61", "Ddx21", "Dusp10", "Dusp5", "Edn1", "Efhd2", "Elf4", "Emp1", "Entpd1", "Epha2", "F2r", "F3", "Fam57a", "Flnc", "Fndc4", "Fosl1", "Fosl2", "Fut2", "Fxyd5", "Gas7", "Gdf15", "Gprc5a", "Havcr1", "Hbegf", "Hilpda", "Hmox1", "Hpcal4", "Igf2bp2", "Il1f6", "Il34", "Irak3", "Itga5", "Klf4", "Klf6", "Klf7", "Krt19", "Krt20", "Lamc2", "Lif", "Lrp8", "Lrrc32", "Lrrc8c", "Maff", "Map3k6", "Map4k4", "Mapk6", "Mmp3", "Mthfd1l", "Myc", "Myh9", "Nek6", "Ngf", "Nras", "Nt5c1a", "Nucb2", "Oasl1", "Pdgfb", "Pdk4", "Pdlim7", "Plat", "Plaur", "Plin2", "Plk3", "Plp2", "Ppm1j", "Ppp1r14b", "Pprc1", "Procr", "Prrg4", "Ptger4", "Ptgs2", "Ptpn12", "Pvr", "Pxdc1", "Qsox1", "Rab31", "Rad18", "Rap2b", "Rbm3", "Rell1", "Rhbdf2", "Rin1", "Rnd1", "Rnd3", "Rras2", "Rtn4", "Runx1", "Samd4", "Sbno2", "Sema7a", "Serpinb1a", "Serpine1", "Sfn", "Slc16a1", "Slc25a24", "Slc38a2", "Slc7a5", "Slc7a6", "Smad1", "Smox", "Socs3", "Sox9", "Sphk1", "Sprr1a", "Sprr2f", "Sprr2g", "Spry2", "Spsb1", "St3gal1", "Stil", "Syt12", "Taf1d", "Taf4b", "Tcerg1", "Tgfbr1", "Thbd", "Timp1", "Tinagl1", "Tmcc3", "Tmed5", "Tmem173", "Tnc", "Tnfrsf12a", "Tnfrsf1a", "Tpm3", "Trmt61a", "Tubb6", "Txnrd1", "Uchl1", "Vopp1")
+
+aki_downgenes <- c("1700040L02Rik", "Abhd14b", "Acad12", "Acmsd", "Acot11", "Acox2", "Acss2", "Ak4", "Akr1c14", "Akr1c18", "Aldh4a1", "Apeh", "Atp6v1b1", "BC067074", "Bcat1", "Bdh1", "Bhmt2", "Bphl", "Bsnd", "Casr", "Cbs", "Cdkl1", "Ceacam2", "Cmah", "Crot", "Cth", "Cubn", "Cyp2j11", "D3Ertd751e", "Dhdh", "Dnajc28", "Fam107a", "Fggy", "Fmo5", "Fras1", "G6pc", "Galm", "Gatb", "Gatm", "Glyctk", "Gm10804", "Hgd", "Hnmt", "Hsd3b2", "Hykk", "Ift122", "Inpp5j", "Kcnj1", "Keg1", "Klhl3", "Kmo", "Lrrc31", "Lyplal1", "Map2k6", "Mccc1", "Mccc2", "Mep1b", "Mgam", "Nccrp1", "Oxgr1", "Pbld1", "Pde4c", "Pfkm", "Pnkd", "Pter", "Ranbp3l", "Rhcg", "Serpina1d", "Serpina1f", "Sfrp1", "Shmt2", "Slc15a2", "Slc16a9", "Slc22a13", "Slc22a19", "Slc22a26", "Slc23a1", "Slc25a21", "Slc8a1", "Slco4c1", "Smarca2", "Snx29", "Suox", "Tln2", "Tmem207", "Tmem25", "Tpmt", "Ugt8a")
+```
+
+combine all data sets
+```{r}
+combined_rlog <- merge(all_56, all_19, by = "X")
+combined_rlog <- merge(all_39, combined_rlog, by = "X")
+
+rlog_aki_up <- combined_rlog %>% dplyr::filter( X %in% aki_upgenes) %>% dplyr::mutate(direction = "aki_up") %>% dplyr::select(Genes = X, PrecysticP70 = log2FoldChange, CysticP21 = log2FoldChange.x, CysticP28 = log2FoldChange.y, Direction = direction)#152
+rlog_aki_down <- combined_rlog %>% dplyr::filter( X %in% aki_downgenes) %>% dplyr::mutate(direction = "aki_down") %>% dplyr::select(Genes = X, PrecysticP70 = log2FoldChange, CysticP21 = log2FoldChange.x, CysticP28 = log2FoldChange.y, Direction = direction)
+
+aki_res <- rbind(rlog_aki_up, rlog_aki_down)
+```
+
+##### AKI Heatmap
+```{r}
+##prepare heatmap annotations
+aki_direction <- dplyr::select(aki_res, Direction)
+aki_direction$Direction <- factor(aki_direction$Direction, levels = c("aki_up", "aki_down"))
+
+aki_res2 <- tibble::column_to_rownames(aki_res, var = "Genes") %>% dplyr::select(PrecysticP70, CysticP21, CysticP28)
+
+samples <- str_sub(colnames(aki_res2), start = 1, end = -4) %>% as.data.frame(row.names = colnames(aki_res2))
+colnames(samples) <- "Cystic_Status"
+samples$Cystic_Status <- factor(samples$Cystic_Status, levels = c("Precystic", "Cystic"))
+#show_col(viridis(4, option = "E")) #selecting colors
+#my_color = list( aki_direction = c(aki_down = "#575C6DFF", aki_up = "#FFEA46FF"), samples = c(Precystic = "#00204DFF", Cystic = "#A69D75FF"))
+my_color = list(Direction = c(aki_down = "#575C6DFF", aki_up = "#FFEA46FF"), Cystic_Status = c(Precystic = "#00204DFF", Cystic = "#A69D75FF"))
+
+
+pdf(here("res/deseq2_outputs", "heatmap_aki_genes.pdf"), width = 9, height = 11)
+#aki_heatmap <- 
+  pheatmap(aki_res2, annotation_colors = my_color, annotation_row = aki_direction, annotation_col = samples, cluster_rows = TRUE, cluster_cols = TRUE, show_rownames = FALSE, color = viridis(n= 10000, alpha = 1, begin = 0, end = 1, option = "viridis"), border_color = "NA", main = "Expression of Acute Kidney Injury-Associated Genes Across Precystic/Cystic Data ", angle_col = "0")
+dev.off()
+```
+
+```{r }
+write.csv(aki_res, file = here("res/deseq2_outputs", "aki_gene_lfc.csv"))
+
+ggsave(aki_heatmap, filename = here("res/deseq2_outputs", "heatmap_aki_genes.pdf"), height = 7, width = 14)
+```
+
 
 ### FEA p70 precystic '39 Mouse
 ```{r}
 fea_mouse_39 <- mouseenrich(musdegs_39_UP, musdegs_39_DOWN, 30)
 
-bp_mouse_39_overall <- barplot(dplyr::filter(fea_mouse_39$topcompared, intersection_size > 10)) + ggtitle("Pre-Cystic Top Upregulated ") 
+bp_mouse_39_overall <- barplot(fea_mouse_39$topcompared) + ggtitle("Pre-Cystic Top Upregulated ") 
 bp_mouse_39_overall
 
-fea_mouse_39$topcompared$term_name <- stringr::str_wrap(fea_mouse_39$topcompared$term_name, width = 60)
+mouse_39_bubble <- bubbleplot(fea_mouse_39$topcompared)
+mouse_39_bubble
 
-p70_fea_plot <- ggplot(dplyr::filter(fea_mouse_39$topcompared, intersection_size > 10), aes(x=intersection_size, y=term_name,  fill = recall)) + 
-    geom_bar( stat = "identity") + 
-    scale_fill_continuous(type = "viridis") + 
-    labs(x = "Number of Genes Matched to Term", y = "Functional Terms", title = "Pre-Cystic Top Upregulated Enrichment") + 
-    theme(text = element_text(size = 14), plot.title = element_text(size = 24))# +
+#fea_mouse_39$topcompared$term_name <- stringr::str_wrap(fea_mouse_39$topcompared$term_name, width = 60)
+
+#p70_fea_plot <- ggplot(dplyr::filter(fea_mouse_39$topcompared, intersection_size > 10), aes(x=intersection_size, y=term_name,  fill = recall)) + 
+#    geom_bar( stat = "identity") + 
+#    scale_fill_continuous(type = "viridis") + 
+#    labs(x = "Number of Genes Matched to Term", y = "Functional Terms", title = "Pre-Cystic Top Upregulated Enrichment") + 
+#    theme(text = element_text(size = 14), plot.title = element_text(size = 24))# +
     #theme_minimal(base_size = 8)
-p70_fea_plot
+#p70_fea_plot
 ```
 
 bubbleplot
@@ -511,82 +627,53 @@ bubbleplot(fea_mouse_39$topcompared) + labs(title = "Top Enriched Terms for Pre-
 ```
 
 ``` {r}
-ggsave(p70_fea_plot, filename = here("res", "fea", "p70_fea_plot.pdf"))
+#ggsave(p70_fea_plot, filename = here("res", "fea", "p70_fea_plot.pdf"))
 
 ggsave(bubbleplot_p70, filename = here("res", "fea", "p70_fea_bubbleplot.pdf"), height = 7, width = 14)
 ```
 
-bubbleplot top
+
+### Venn diagram of all DEGs  
 ```{r}
-bubbleplot(dplyr::filter(fea_mouse_39$topcompared, intersection_size > 10)) #+ labs(title = "")
-```
 
-Save plots
-``` {r}
-ggsave(filename = here("res", "fea", "mouse_39_overall.pdf"), bp_mouse_39_overall)
+#myCol <- brewer.pal(3, "Pastel2")
+myCol <- c("FDE725FF", "287D8EFF", "481567FF")
+mus_set39 <- rbind(musdegs_39_UP, musdegs_39_DOWN)
+mus_set56 <- rbind(musdegs_56_UP, musdegs_56_DOWN)
+mus_set19 <- rbind(musdegs_19_UP, musdegs_19_DOWN)
 
-```
-
-
-test--do FEA res change when first filtering out pseudogenes and ribosomal genes?
-```{r}
-#filter LFC
-filtered_39_up <- dplyr::filter(genes, log2FoldChange > 2)
-filtered_39_down <- dplyr::filter(genes, log2FoldChange < -2)
-
-filtered_39_up <- dplyr::filter(filtered_39_up, pvalue < 0.05)
-filtered_39_down <- dplyr::filter(filtered_39_down,  pvalue < 0.05)
-
-
-fea_mouse_39_filtered_up <- fea(filtered_39_up$ensembl_gene_id, 10)
-                             
-fea_mouse_39_filtered_down <- fea(filtered_39_down$ensembl_gene_id, 10)
-
-test_up <- dplyr::mutate(fea_mouse_39_filtered_up, .keep = "all", direction = "upregulated")
-test_down <- dplyr::mutate(fea_mouse_39_filtered_down, .keep = "all", direction = "downregulated")
-
-up_mat <- test_up  %>% dplyr::arrange(., desc(recall)) %>% dplyr::slice_head(., n = 30)
-  down_mat <- test_down  %>% dplyr::arrange(., desc(recall)) %>% dplyr::slice_head(., n = 30)
-combined_fea <- rbind(up_mat, down_mat)
-  
-
-
-ggplot(combined_fea, aes(x=intersection_size, y=term_name,  fill = recall)) + 
-    geom_bar( stat = "identity") + 
-    scale_fill_continuous(type = "viridis") + 
-    labs(x = "Number of Genes Matched to Term", y = "Functional Terms") + 
-    theme_minimal(base_size = 8)
-
-
-test <- ggplot(dplyr::filter(combined_fea, intersection_size > 7), aes(x=direction, y=term_name, size = intersection_size, fill = p_value)) +
-  geom_point(alpha=0.7, shape = 21) +
-  scale_size(range = c(2, 10), name = "# Genes Matched to Term") + 
-  scale_fill_distiller(palette = "Purples") + 
-  labs(x = "Differential Expression Direction", y = "Functional Enrichment Terms") + 
-  theme_minimal(base_size = 8)
-```
-
-Save plots
-``` {r}
-ggsave(filename = here("res", "fea", "test.pdf"), test)
-
-```
-
-Number of DEGs with pseudo/ribo genes filtered out, and unique symbols
-```{r}
-filtered_19_up <- dplyr::filter(genes_19, log2FoldChange > 2)
-filtered_19_down <- dplyr::filter(genes_19, log2FoldChange < -2)
-
-filtered_56_up <- dplyr::filter(genes_56, log2FoldChange > 2)
-filtered_56_down <- dplyr::filter(genes_56, log2FoldChange < -2)
-
-
-filtered_19_up <- dplyr::filter(filtered_19_up, pvalue < 0.05)
-filtered_19_down <- dplyr::filter(filtered_19_down,  pvalue < 0.05)
-
-filtered_56_up <- dplyr::filter(filtered_56_up, pvalue < 0.05)
-filtered_56_down <- dplyr::filter(filtered_56_down,  pvalue < 0.05)
-
+venn.diagram(x = list(mus_set39$ensembl_gene_id, mus_set56$ensembl_gene_id, mus_set19$ensembl_gene_id),
+        category.names = c("Precystic P70" , "Cystic P21" , "Cystic P28"),
+        filename = here("res/deseq2_outputs", "degs_venndiagram.png"), # imagetype = "png",
+        output=TRUE,
+        
+        # Output features
+        imagetype="png" ,
+        height = 480 , 
+        width = 570 , 
+        resolution = 300,
+        compression = "lzw",
+        
+        # Circles
+        lwd = 2,
+        col=c("#440154ff", '#21908dff', '#fde725ff'),
+        #lty = 'blank',
+        fill = c(alpha("#440154ff",0.3), alpha('#21908dff',0.3), alpha('#fde725ff',0.3)),
+        
+        # Numbers
+        cex = .6,
+        fontface = "bold",
+        fontfamily = "sans",
+        
+        # Set names
+        cat.cex = 0.55,
+        cat.fontface = "bold",
+        cat.default.pos = "outer",
+        cat.pos = c(-27, 27, 135),
+        cat.dist = c(0.055, 0.055, 0.085),
+        cat.fontfamily = "sans",
+        rotation = 1
+)
 
 ```
 
@@ -594,7 +681,8 @@ filtered_56_down <- dplyr::filter(filtered_56_down,  pvalue < 0.05)
 ```{r}
 fea_mouse_56 <- mouseenrich(musdegs_56_UP, musdegs_56_DOWN, 30)
 
-bp_mouse_56_overall <- barplot(dplyr::filter(fea_mouse_56$topcompared, intersection_size > 10))
+#bp_mouse_56_overall <- barplot(dplyr::filter(fea_mouse_56$topcompared, intersection_size > 10))
+bp_mouse_56_overall <- barplot(fea_mouse_56$topcompared)
 bp_mouse_56_overall
 ```
 
@@ -603,7 +691,8 @@ bubbleplot
 fea_mouse_56$topcompared$term_name <- stringr::str_wrap(fea_mouse_56$topcompared$term_name, width = 70)
 
 
-bubbleplot_p21 <- bubbleplot(dplyr::filter(fea_mouse_56$topcompared, intersection_size > 10)) + labs(title = "Top Enriched Terms for Cystic P21 Dataset") + theme(text = element_text(size = 14), plot.title = element_text(size = 24))
+bubbleplot_p21 <- bubbleplot(fea_mouse_56$topcompared) + labs(title = "Top Enriched Terms for Cystic P21 Dataset") + theme(text = element_text(size = 14), plot.title = element_text(size = 24))
+bubbleplot_p21
 ```
 
 ``` {r}
@@ -619,7 +708,7 @@ ggsave(filename = here("res", "fea", "mouse_56_overall.pdf"), bp_mouse_56_overal
 
 ### FEA p28 cystic '19 Mouse
 ```{r}
-fea_mouse_19 <- mouseenrich(musdegs_19_UP, musdegs_19_DOWN, 40)
+fea_mouse_19 <- mouseenrich(musdegs_19_UP, musdegs_19_DOWN, 30)
 
 bp_mouse_19 <- barplot(fea_mouse_19$topcompared)
 bp_mouse_19
@@ -630,7 +719,8 @@ bubbleplot
 fea_mouse_19$topcompared$term_name <- stringr::str_wrap(fea_mouse_19$topcompared$term_name, width = 70)
 
 
-bubbleplot_p28 <- bubbleplot(dplyr::filter(fea_mouse_19$topcompared, intersection_size > 10)) + labs(title = "Top Enriched Terms for Cystic P28 Dataset") + theme(text = element_text(size = 14), plot.title = element_text(size = 24))
+bubbleplot_p28 <- bubbleplot(fea_mouse_19$topcompared) + labs(title = "Top Enriched Terms for Cystic P28 Dataset") + theme(text = element_text(size = 14), plot.title = element_text(size = 24))
+bubbleplot_p28
 ```
 
 ``` {r}
@@ -673,31 +763,31 @@ ggsave(filename = here("res", "fea", "mouse_19_overall.pdf"), bp_mouse_19)
 #### Cystic Overlap ('19 and '56)  
 read in
 ```{r}
-fea_56_up <- read.csv(here("res", "fea", "fea_mouse_56_upterms.csv"))
+fea_mouse_56_upterms <- read.csv(here("res", "fea", "fea_mouse_56_upterms.csv"))
 
-fea_56_down <- read.csv(here("res", "fea", "fea_mouse_56_downterms.csv"))
+fea_mouse_56_downterms <- read.csv(here("res", "fea", "fea_mouse_56_downterms.csv"))
 
-fea_19_up <- read.csv(here("res", "fea", "fea_mouse_19_upterms.csv"))
+fea_mouse_19_upterms <- read.csv(here("res", "fea", "fea_mouse_19_upterms.csv"))
 
-fea_19_down <- read.csv(here("res", "fea", "fea_mouse_19_downterms.csv"))
+fea_mouse_19_downterms <- read.csv(here("res", "fea", "fea_mouse_19_downterms.csv"))
 
-fea_39_up <- read.csv(here("res", "fea", "fea_mouse_39_upterms.csv"))
+fea_mouse_39_upterms <- read.csv(here("res", "fea", "fea_mouse_39_upterms.csv"))
 
-fea_39_down <- read.csv(here("res", "fea", "fea_mouse_39_downterms.csv"))
+fea_mouse_39_downterms <- read.csv(here("res", "fea", "fea_mouse_39_downterms.csv"))
 ```
 
 merge for overlap
 ```{r}
-fea_cystic_overlap_up <- merge(fea_56_up, fea_19_up, by = "term_name")
+fea_cystic_overlap_up <- merge(fea_mouse_56_upterms, fea_mouse_19_upterms, by = "term_name")
 
-fea_cystic_overlap_down <- merge(fea_56_down, fea_19_down, by = "term_name")
+fea_cystic_overlap_down <- merge(fea_mouse_56_downterms, fea_mouse_19_downterms, by = "term_name")
 ```
 
 merge for overlap across all datasets
 ```{r}
-fea_all_overlap_up <- merge(fea_cystic_overlap_up, fea_39_up, by = "term_name")
+fea_all_overlap_up <- merge(fea_cystic_overlap_up, fea_mouse_39_upterms, by = "term_name")
 
-fea_all_overlap_down <- merge(fea_cystic_overlap_down, fea_39_down, by = "term_name")
+fea_all_overlap_down <- merge(fea_cystic_overlap_down, fea_mouse_39_downterms, by = "term_name")
 
 ```
 
@@ -745,40 +835,146 @@ write.csv(fea_cystic_overlap_down, file = here("res", "fea", "fea_cystic_overlap
 write.csv(fea_cystic_overlap_combined, file = here("res", "fea", "fea_cystic_overlap_combined.csv"))
 ```
 
+
 ##### rrvgo
-Trying out -- give GO terms as input
+###### P70
 ```{r}
+go_39all_up <- dplyr::filter(fea_mouse_39$upregulated, source == "GO:BP")
+go_39all_down <- dplyr::filter(fea_mouse_39$downregulated, source == "GO:BP")
+go_39all <- rbind(go_39all_up, go_39all_down)
 
-go_39 <- dplyr::filter(fea_39_up, source == "GO:BP")
+simMatrix <- calculateSimMatrix(go_39all$term_id, orgdb = "org.Mm.eg.db", ont = "BP", method = "Wang")
 
-simMatrix <- calculateSimMatrix(go_39$term_id, orgdb = "org.Mm.eg.db", ont = "BP", method = "Wang")
+scores <- setNames(-log10(go_39all$p_value), go_39all$term_id)
+reducedTerms <- reduceSimMatrix(simMatrix, scores, threshold=0.70, orgdb="org.Mm.eg.db")
 
-scores <- setNames(-log10(go_39$p_value), go_39$term_id)
-reducedTerms <- reduceSimMatrix(simMatrix, scores, threshold=0.7, orgdb="org.Mm.eg.db")
-
-sp <- scatterPlot(simMatrix, reducedTerms)
-tm <- treemapPlot(reducedTerms)
+sp <- scatterPlot(simMatrix, reducedTerms, labelSize = 2.5) + labs(title = "Precystic P70 Signature Enrichment Overview") #+ theme(text = element_text(size = 14), plot.title = element_text(size = 24))
+sp
+tm <- treemapPlot(reducedTerms, title = "Enrichment for Precystic P70 Signature") 
 hm <- heatmapPlot(simMatrix, reducedTerms, annotateParent=TRUE, annotationLabel="parentTerm", fontsize=6)
 ```
 
-
+###### P21
 ```{r}
-go_19 <- dplyr::filter(fea_19_up, source == "GO:BP")
+go_56all_up <- dplyr::filter(fea_mouse_56$upregulated, source == "GO:BP")
+go_56all_down <- dplyr::filter(fea_mouse_56$downregulated, source == "GO:BP")
+go_56all <- rbind(go_56all_up, go_56all_down)
 
-simMatrix <- calculateSimMatrix(go_19$term_id, orgdb = "org.Mm.eg.db", ont = "BP", method = "Rel")
+simMatrix_56all <- calculateSimMatrix(go_56all$term_id, orgdb = "org.Mm.eg.db", ont = "BP", method = "Rel")
 
-scores <- setNames(-log10(go_19$p_value), go_19$term_id)
-reducedTerms <- reduceSimMatrix(simMatrix, scores, threshold=0.4, orgdb="org.Mm.eg.db")
+scores_56all <- setNames(-log10(go_56all$p_value), go_56all$term_id)
+reducedTerms_56all <- reduceSimMatrix(simMatrix_56all, scores_56all, threshold=0.70, orgdb="org.Mm.eg.db")
 
-sp <- scatterPlot(simMatrix, reducedTerms)
-sp
-tm <- treemapPlot(reducedTerms)
-hm <- heatmapPlot(simMatrix, reducedTerms, annotateParent=TRUE, annotationLabel="parentTerm", fontsize=6)
+#options(ggrepel.max.overlaps = 50)
+sp_56all <- scatterPlot(simMatrix_56all, reducedTerms_56all) + labs(title = "Cystic P21 Signature Enrichment Overview")
+sp_56all
+tm_56all <- treemapPlot(reducedTerms_56all, title = "Enrichment for Cystic P21 Signature")
+hm_56all <- heatmapPlot(simMatrix_56all, reducedTerms_56all, annotateParent=TRUE, annotationLabel="parentTerm", fontsize=6)
+```
+
+###### P28
+```{r}
+go_19all_up <- dplyr::filter(fea_mouse_19$upregulated, source == "GO:BP")
+go_19all_down <- dplyr::filter(fea_mouse_19$downregulated, source == "GO:BP")
+go_19all <- rbind(go_19all_up, go_19all_down)
+
+simMatrix_19all <- calculateSimMatrix(go_19all$term_id, orgdb = "org.Mm.eg.db", ont = "BP", method = "Rel")
+
+scores_19all <- setNames(-log10(go_19all$p_value), go_19all$term_id)
+reducedTerms_19all <- reduceSimMatrix(simMatrix_19all, scores_19all, threshold=0.70, orgdb="org.Mm.eg.db")
+
+#options(ggrepel.max.overlaps = 50)
+sp_19all <- scatterPlot(simMatrix_19all, reducedTerms_19all) + labs(title = "Cystic P21 Signature Enrichment Overview")
+sp_19all
+tm_19all <- treemapPlot(reducedTerms_19all, title = "Enrichment for Cystic P21 Signature")
+hm_19all <- heatmapPlot(simMatrix_19all, reducedTerms_19all, annotateParent=TRUE, annotationLabel="parentTerm", fontsize=6)
 ```
 
 
 ```{r}
 ggsave(hm, filename = here("res", "test.pdf"))
+
+```
+
+##### Combined plot
+Jen's code
+````{r}
+mmGO <- godata('org.Mm.eg.db', ont="BP")
+```
+
+```{r}
+go_term_heatmap<- function(limma_pathways, deseq2_pathways, TFL_pathways, direction, threshold = 0.95){
+  #input
+  #limma_pathways, deseqq2_pathways, TFL_pathways- the gprofiler result data frame for each method with the last column (named set)
+  #indicating if the pathway was from the up or down group
+  #direction- up or down regulated 
+  #threshold- is the threshold of how far up or down the go ontology tree to go. default to 0.95
+  
+  #output 
+  #heatmap
+  
+  #get terms
+  limma_bp<- limma_pathways$term_id[ limma_pathways$source == "GO:BP" & limma_pathways$direction == direction]
+  deseq2_bp <- deseq2_pathways$term_id[ deseq2_pathways$source == "GO:BP" & deseq2_pathways$direction == direction]
+  TFL_bp <- TFL_pathways$term_id[ TFL_pathways$source == "GO:BP" & TFL_pathways$direction == direction]
+  
+  #run the go term semantic similarity 
+  go1 <-  unique(c(TFL_bp, deseq2_bp, limma_bp ))
+  go_gbm_up_sim <- mgoSim(go1, go1, semData=mmGO, measure="Wang", combine=NULL)
+  
+  #get the parent terms from rrvgo for the pathways
+  res <- reduceSimMatrix(go_gbm_up_sim, threshold = threshold, orgdb = "org.Mm.eg.db")
+  res_v2<- res[match(colnames(go_gbm_up_sim), res$go),]
+  
+  #determine which pathway is enriched in the different methods for the heatmap annotation
+  tfl_drugs <- grepl(paste(TFL_bp,collapse="|"), colnames(go_gbm_up_sim)) 
+  deseq2_drugs<- grepl(paste(deseq2_bp,collapse="|"), colnames(go_gbm_up_sim))
+  limma_drugs <- grepl(paste(limma_bp,collapse="|"), colnames(go_gbm_up_sim)) 
+  
+  #handing the case where there are no pathways enriched
+  if(length(deseq2_bp) ==0){ deseq2_drugs <- rep(FALSE,ncol(go_gbm_up_sim) )} 
+  if(length(TFL_bp) ==0){ tfl_drugs <- rep(FALSE,ncol(go_gbm_up_sim) )} 
+  if(length(limma_bp) ==0){ limma_drugs <- rep(FALSE,ncol(go_gbm_up_sim) )} 
+  
+  #pick the number of colors note limit is about 9 
+  bp_color<- brewer.pal(n = length(unique(res_v2$parentTerm)), name = "Paired")
+  names(bp_color)<- unique(res_v2$parentTerm)
+  
+  #create heatmap
+  row_ha = HeatmapAnnotation(CysticP28=tfl_drugs,CysticP21= deseq2_drugs, PrecysticP70= limma_drugs,GO_BP_Group= res_v2$parentTerm , col = list(CysticP28 = c("TRUE" = "#fde725", "FALSE" = "#440154"),CysticP21 = c("TRUE" = "#fde725", "FALSE" = "#440154"),PrecysticP70 = c("TRUE" = "#fde725", "FALSE" = "#440154"), GO_BP_Group= bp_color ))
+  col_fun = circlize:::colorRamp2(c(0, 0.5, 1), c( "black", "blue", "white"))
+
+  Heatmap(go_gbm_up_sim, nam= "Term Similarity", col = col_fun, show_column_names = FALSE,  show_row_names = FALSE, top_annotation = row_ha,  
+          clustering_distance_rows= "euclidean",
+          clustering_distance_columns=  "euclidean",
+          clustering_method_rows = "complete" ,
+          clustering_method_columns="complete")
+}
+#limma_pathways, deseq2_pathways, TFL_pathways
+```
+
+
+```{r}
+#go_term_heatmap(limma_pathways, deseq2_pathways, TFL_pathways, "Up")
+comb_39 <- mouseenrich(musdegs_39_UP, musdegs_39_DOWN, 100, sources = "GO:BP")
+
+comb_56 <- mouseenrich(musdegs_56_UP, musdegs_56_DOWN, 100,  sources = "GO:BP")
+
+comb_19 <- mouseenrich(musdegs_19_UP, musdegs_19_DOWN, 100,  sources = "GO:BP")
+```
+
+
+```{r}
+pdf(here("res/fea", "alldata_musgenes_gosim_heatmap.pdf"), width = 12, height = 8)
+combined_heatmap <- go_term_heatmap(comb_39$topcompared, comb_56$topcompared, comb_19$topcompared, "upregulated", threshold = 0.95)
+#pdf((here("res/fea", "alldata_musgenes_gosim_heatmap.pdf"), width = 8, height = 8)
+combined_heatmap <- draw(combined_heatmap, merge_legend = TRUE)
+combined_heatmap
+dev.off()
+```
+
+```{r}
+ 
 
 ```
 
