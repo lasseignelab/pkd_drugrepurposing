@@ -59,11 +59,11 @@ return(fea)
 
 mouseenrich <- function(upgenes, downgenes, topreturned, sources = c("GO:BP", "GO:MF", "GO:CC", "REAC", "WP")) {
   #upgenes$log2FoldChange <- sort(as.numeric(upgenes$log2FoldChange), decreasing = TRUE)
-  up_fea <- fea(upgenes$ensembl_gene_id, sources = sources)
+  up_fea <- fea(upgenes$Mouse.gene.stable.ID, sources = sources)
   up_fea <- dplyr::mutate(up_fea, .keep = "all", direction = "upregulated")
   
   #downgenes$log2FoldChange <- sort(as.numeric(downgenes$log2FoldChange))
-  down_fea <- fea(downgenes$ensembl_gene_id, sources = sources)
+  down_fea <- fea(downgenes$Mouse.gene.stable.ID, sources = sources)
   down_fea <- dplyr::mutate(down_fea, .keep = "all", direction = "downregulated")
   
   up_mat <- up_fea  %>% dplyr::arrange(., desc(recall)) %>% dplyr::slice_head(., n = topreturned)
@@ -123,20 +123,20 @@ Load in top 100 up and down genes used as signatures for signatureSearch
 
 '39 precystic p70
 ```{r}
-hom_39_UP <- read.csv(here("res", "deseq2_outputs", "p70_signature_UP.csv"), row.names = 1)
-hom_39_DOWN <- read.csv(here("res", "deseq2_outputs", "p70_signature_DOWN.csv"), row.names = 1)
+#hom_39_UP <- read.csv(here("res", "deseq2_outputs", "p70_signature_UP.csv"), row.names = 1)
+#hom_39_DOWN <- read.csv(here("res", "deseq2_outputs", "p70_signature_DOWN.csv"), row.names = 1)
 ```
 
 '19 cystic p28
 ```{r}
-hom_19_UP <- read.csv(here("res", "deseq2_outputs", "p28_signature_UP.csv"), row.names = 1)
-hom_19_DOWN <- read.csv(here("res", "deseq2_outputs", "p28_signature_DOWN.csv"), row.names = 1)
+#hom_19_UP <- read.csv(here("res", "deseq2_outputs", "p28_signature_UP.csv"), row.names = 1)
+#hom_19_DOWN <- read.csv(here("res", "deseq2_outputs", "p28_signature_DOWN.csv"), row.names = 1)
 ```
 
 '56 cystic p21
 ```{r}
-hom_56_UP <- read.csv(here("res", "deseq2_outputs", "p21_signature_UP.csv"), row.names = 1)
-hom_56_DOWN <- read.csv(here("res", "deseq2_outputs", "p21_signature_DOWN.csv"), row.names = 1)
+#hom_56_UP <- read.csv(here("res", "deseq2_outputs", "p21_signature_UP.csv"), row.names = 1)
+#hom_56_DOWN <- read.csv(here("res", "deseq2_outputs", "p21_signature_DOWN.csv"), row.names = 1)
 ```
 
 
@@ -482,7 +482,7 @@ Using ALL mouse DEGs (0.05 alpha and -2 and 2 LFC cutoff) before mapping to huma
 '39 
 ```{r}
 #pseudogenes and ribo genes removed, still mouse
-all_39 <- read.csv(here("res/deseq2_outputs", "deseq2_p70_fullannotatedres.csv"))
+#all_39 <- read.csv(here("res/deseq2_outputs", "deseq2_p70_fullannotatedres.csv"))
 
 #using same LFC as for signature for '39
 musdegs_39_UP <- dplyr::filter(all_39, log2FoldChange > 1.3 & padj < 0.05)
@@ -508,7 +508,7 @@ musdegs_19_DOWN <- dplyr::filter(all_19, log2FoldChange < -2 & padj < 0.05)
 '56
 ```{r}
 #pseudogenes and ribo genes removed, still mouse
-all_56 <- read.csv(here("res/deseq2_outputs", "deseq2_p21_fullannotatedres.csv"))
+#all_56 <- read.csv(here("res/deseq2_outputs", "deseq2_p21_fullannotatedres.csv"))
 
 musdegs_56_UP <- dplyr::filter(all_56, log2FoldChange > 2 & padj < 0.05)
 musdegs_56_DOWN <- dplyr::filter(all_56, log2FoldChange < -2 & padj < 0.05)
@@ -771,17 +771,17 @@ ggsave(filename = here("res", "fea", "mouse_19_overall.pdf"), bp_mouse_19)
 #### Cystic Overlap ('19 and '56)  
 read in
 ```{r}
-fea_mouse_56_upterms <- read.csv(here("res", "fea", "fea_mouse_56_upterms.csv"))
+#fea_mouse_56_upterms <- read.csv(here("res", "fea", "fea_mouse_56_upterms.csv"))
 
-fea_mouse_56_downterms <- read.csv(here("res", "fea", "fea_mouse_56_downterms.csv"))
+#fea_mouse_56_downterms <- read.csv(here("res", "fea", "fea_mouse_56_downterms.csv"))
 
-fea_mouse_19_upterms <- read.csv(here("res", "fea", "fea_mouse_19_upterms.csv"))
+#fea_mouse_19_upterms <- read.csv(here("res", "fea", "fea_mouse_19_upterms.csv"))
 
-fea_mouse_19_downterms <- read.csv(here("res", "fea", "fea_mouse_19_downterms.csv"))
+#fea_mouse_19_downterms <- read.csv(here("res", "fea", "fea_mouse_19_downterms.csv"))
 
-fea_mouse_39_upterms <- read.csv(here("res", "fea", "fea_mouse_39_upterms.csv"))
+#fea_mouse_39_upterms <- read.csv(here("res", "fea", "fea_mouse_39_upterms.csv"))
 
-fea_mouse_39_downterms <- read.csv(here("res", "fea", "fea_mouse_39_downterms.csv"))
+#fea_mouse_39_downterms <- read.csv(here("res", "fea", "fea_mouse_39_downterms.csv"))
 ```
 
 merge for overlap

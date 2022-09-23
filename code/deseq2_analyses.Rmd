@@ -247,8 +247,10 @@ dds_39 <- DESeq(dds_39) #can also look at setting replaceOutliers lower for deal
 ```{r}
 #extract results table with log2 fold changes, p values and adjusted p values for desired coefficients
 #alpha 0.05 cutoff
-res_nf <- results(dds_39, alpha = 0.05, contrast = c("Genotype", "Pkd2flflPax8rtTATetOcre", "Wildtype"))
+#res_nf <- results(dds_39, alpha = 0.05, contrast = c("Genotype", "Pkd2flflPax8rtTATetOcre", "Wildtype"))
 
+res_nf <- lfcShrink(dds_39, coef = c("Genotype_Pkd2flflPax8rtTATetOcre_vs_Wildtype"), type="apeglm")
+res_nf
 ```
 
 DESeq2 results
@@ -259,28 +261,28 @@ dsq2_39 <- as.data.frame(res_nf)
 
 Save full deseq results
 ```{r}
-write.csv(dsq2_39, file = here("res", "deseq2_outputs", "deseq2_fullres_39.csv"))
+##write.csv(dsq2_39, file = here("res", "deseq2_outputs", "deseq2_fullres_39.csv"))
 
 ```
 
 #### LFC cutoffs
 Using < -2 and > 2 LFC threshold for up and downregulated genes 
 ```{r}
-musdegs_39_UP <- uplfc(dsq2_39, lfcutoff = 1.3)
-musdegs_39_DOWN <- downlfc(dsq2_39, lfcutoff = -1.3)
+musdegs_39_UP <- uplfc(dsq2_39, lfcutoff = 1.1)
+musdegs_39_DOWN <- downlfc(dsq2_39, lfcutoff = -1.1)
 
 ```
 
 Total genes above threshold before mapping from mouse ensembl to human symbol/entrez
 ```{r}
-dim(musdegs_39_UP) #115 at lfc > 2 #172 at 1.5 #206 at 1.3
-dim(musdegs_39_DOWN) #44 at lfc < -2 #71 at -1.5 #89 at 1.3
+dim(musdegs_39_UP) #115 at lfc > 2 #172 at 1.5 #206 at 1.3, 159 lfcshrink
+dim(musdegs_39_DOWN) #44 at lfc < -2 #71 at -1.5 #89 at 1.3, 43 lfcshrink
 ```
 
 ```{r }
-write.csv(musdegs_39_UP, file = here("res", "deseq2_outputs", "deseq2_upgenes_res_39.csv"))
+#write.csv(musdegs_39_UP, file = here("res", "deseq2_outputs", "deseq2_upgenes_res_39.csv"))
 
-write.csv(musdegs_39_DOWN, file = here("res", "deseq2_outputs", "deseq2_downgenes_res_39.csv"))
+#write.csv(musdegs_39_DOWN, file = here("res", "deseq2_outputs", "deseq2_downgenes_res_39.csv"))
 
 ```
 
@@ -314,8 +316,8 @@ dim(hom_degs_DOWN) #15 at lfc <-2 #27 at lfc < -1.5 #37 at 1.3
 
 
 ```{r}
-write.csv(hom_degs_UP, file = here("res", "deseq2_outputs", "p70_signature_UP.csv"))
-write.csv(hom_degs_DOWN, file = here("res", "deseq2_outputs", "p70_signature_DOWN.csv"))
+#write.csv(hom_degs_UP, file = here("res", "deseq2_outputs", "p70_signature_UP.csv"))
+#write.csv(hom_degs_DOWN, file = here("res", "deseq2_outputs", "p70_signature_DOWN.csv"))
 ```
 
 
@@ -378,9 +380,9 @@ heatmap_p70 <- pheatmap(conv_cts[rownames(top20lfc), ], cluster_rows = TRUE, clu
 ```
 
 ```{r}
-write.csv(genes, file = here("res/deseq2_outputs", "deseq2_p70_fullannotatedres.csv"))
+#write.csv(genes, file = here("res/deseq2_outputs", "deseq2_p70_fullannotatedres.csv"))
 
-ggsave(heatmap_p70, filename = here("res", "fea", "heatmap_p70_ribopseudoremoved.pdf"), height = 7, width = 14)
+#ggsave(heatmap_p70, filename = here("res", "fea", "heatmap_p70_ribopseudoremoved.pdf"), height = 7, width = 14)
 ```
 
 gene signature
@@ -397,14 +399,14 @@ colnames(sig_39_cts) <- c("WT", "WT", "WT", "PKD2", "PKD2", "PKD2")
 
 heatmap_p70 <- pheatmap(sig_39_cts[row.names(sig_39_cts), ], cluster_rows = TRUE, cluster_cols = TRUE, show_rownames = FALSE, color = viridis(n= 10000, alpha = 1, begin = 0, end = 1, option = "viridis"), border_color = "NA", main = "Gene Signature for Pre-Cyst P70")
 
-heatmap_p70 <- pheatmap(sig_39_cts, cluster_rows = TRUE, cluster_cols = TRUE, show_rownames = FALSE, color = viridis(n= 10000, alpha = 1, begin = 0, end = 1, option = "viridis"), border_color = "NA", main = "Gene Signature for Pre-Cyst P70", annotation_col = colnames(sig_39_cts))
+#heatmap_p70 <- pheatmap(sig_39_cts, cluster_rows = TRUE, cluster_cols = TRUE, show_rownames = FALSE, color = viridis(n= 10000, alpha = 1, begin = 0, end = 1, option = "viridis"), border_color = "NA", main = "Gene Signature for Pre-Cyst P70", annotation_col = colnames(sig_39_cts))
 
 ```
 
 ```{r}
-write.csv(sig_39, here("res/deseq2_outputs", "signature_annotation_p70.csv"))
+#write.csv(sig_39, here("res/deseq2_outputs", "signature_annotation_p70.csv"))
 
-ggsave(heatmap_p70, filename = here("res/deseq2_outputs", "heatmap_p70_signature.pdf"))
+#ggsave(heatmap_p70, filename = here("res/deseq2_outputs", "heatmap_p70_signature.pdf"))
 
 ```
 
@@ -462,7 +464,7 @@ volcano_39
 ```
 
 ```{r}
-ggsave(volcano_39, filename =  here("res/sigsearch_outputs", "volcano_drugtargets_p70degs.pdf"))
+#ggsave(volcano_39, filename =  here("res/sigsearch_outputs", "volcano_drugtargets_p70degs.pdf"))
 ```
 
 ### DEA p21 cystic GSE69556
@@ -498,8 +500,9 @@ dds_56 <- DESeq(dds_56) #can also look at setting replaceOutliers lower for deal
 
 ```{r}
 #extract results table with log2 fold changes, p values and adjusted p values for desired coefficients
-res_56 <- results(dds_56, alpha = 0.05, contrast = c("Genotype", "Pkhd1CrePkd2FF", "wildtype"))
-
+#res_56 <- results(dds_56, alpha = 0.05, contrast = c("Genotype", "Pkhd1CrePkd2FF", "wildtype"))
+res_56 <- lfcShrink(dds_56, coef = c("Genotype_Pkhd1CrePkd2FF_vs_wildtype"), type="apeglm")
+res_nf
 ```
 
 DESeq2 results as df and by LFC threshold
@@ -510,7 +513,7 @@ dsq2_56 <- as.data.frame(res_56)
 
 
 ```{r}
-write.csv(dsq2_56, file = here("res/deseq2_outputs", "deseq2_fullres_56.csv"))
+#write.csv(dsq2_56, file = here("res/deseq2_outputs", "deseq2_fullres_56.csv"))
 
 ```
 
@@ -541,11 +544,11 @@ dim(hom_56_DOWN)
 
 
 ```{r}
-write.csv(musdegs_56_UP, file = here("res", "deseq2_outputs", "deseq2_upgenes_res_56.csv"))
-write.csv(musdegs_56_DOWN, file = here("res", "deseq2_outputs", "deseq2_downgenes_res_56.csv"))
+#write.csv(musdegs_56_UP, file = here("res", "deseq2_outputs", "deseq2_upgenes_res_56.csv"))
+#write.csv(musdegs_56_DOWN, file = here("res", "deseq2_outputs", "deseq2_downgenes_res_56.csv"))
 
-write.csv(hom_56_UP, file = here("res", "deseq2_outputs", "p21_signature_UP.csv"))
-write.csv(hom_56_DOWN, file = here("res", "deseq2_outputs", "p21_signature_DOWN.csv"))
+#write.csv(hom_56_UP, file = here("res", "deseq2_outputs", "p21_signature_UP.csv"))
+#write.csv(hom_56_DOWN, file = here("res", "deseq2_outputs", "p21_signature_DOWN.csv"))
 
 ```
 
@@ -612,9 +615,9 @@ heatmap_21 <- pheatmap(conv_cts_56[rownames(top20lfc_56), ], cluster_rows = TRUE
 
 
 ```{r }
-write.csv(genes_56, file = here("res/deseq2_outputs", "deseq2_p21_fullannotatedres.csv"))
+#write.csv(genes_56, file = here("res/deseq2_outputs", "deseq2_p21_fullannotatedres.csv"))
 
-ggsave(heatmap_21, filename = here("res", "fea", "heatmap_p21_ribopseudoremoved.pdf"), height = 7, width = 14)
+#ggsave(heatmap_21, filename = here("res", "fea", "heatmap_p21_ribopseudoremoved.pdf"), height = 7, width = 14)
 ```
 
 gene signature
@@ -635,8 +638,8 @@ heatmap_p21 <- pheatmap(sig_56_cts[row.names(sig_56_cts), ], cluster_rows = TRUE
 ```
 
 ```{r}
-write.csv(sig_56, here("res/deseq2_outputs", "signature_annotation_p21.csv"))
-ggsave(heatmap_p21, filename = here("res/deseq2_outputs", "heatmap_p21_signature.pdf"))
+#write.csv(sig_56, here("res/deseq2_outputs", "signature_annotation_p21.csv"))
+#ggsave(heatmap_p21, filename = here("res/deseq2_outputs", "heatmap_p21_signature.pdf"))
 
 ```
 
@@ -685,7 +688,7 @@ volcano_56
 ```
 
 ```{r}
-ggsave(volcano_56, filename =  here("res", "deseq2_outputs", "volcano_drugtargets_p21degs.pdf"))
+#ggsave(volcano_56, filename =  here("res", "deseq2_outputs", "volcano_drugtargets_p21degs.pdf"))
 ```
 
 ### DEA p28 cystic GSE134719
@@ -719,7 +722,8 @@ dds_19 <- DESeq(dds_19) #can also look at setting replaceOutliers lower for deal
 
 ```{r}
 #extract results table with log2 fold changes, p values and adjusted p values for desired coefficients
-res_19 <- results(dds_19, alpha = 0.05, contrast = c("Genotype", "Pdk2KO", "wildtype"))
+#res_19 <- results(dds_19, alpha = 0.05, contrast = c("Genotype", "Pdk2KO", "wildtype"))
+res_19 <- lfcShrink(dds_19, coef = c("Genotype_Pdk2KO_vs_wildtype"), type="apeglm")
 
 ```
 
@@ -732,7 +736,7 @@ dsq2_19 <- as.data.frame(res_19)
 
 Save full deseq2 results
 ```{r}
-write.csv(res_19, file = here("res", "deseq2_outputs", "deseq2_fullres_19.csv"))
+#write.csv(res_19, file = here("res", "deseq2_outputs", "deseq2_fullres_19.csv"))
 
 ```
 
@@ -781,11 +785,11 @@ dim(hom_19_DOWN)
 
 
 ```{r}
-write.csv(musdegs_19_UP, file = here("res", "deseq2_outputs", "deseq2_upgenes_res_19.csv"))
-write.csv(musdegs_19_DOWN, file = here("res", "deseq2_outputs", "deseq2_downgenes_res_19.csv"))
+#write.csv(musdegs_19_UP, file = here("res", "deseq2_outputs", "deseq2_upgenes_res_19.csv"))
+#write.csv(musdegs_19_DOWN, file = here("res", "deseq2_outputs", "deseq2_downgenes_res_19.csv"))
  
-write.csv(hom_19_UP, file = here("res", "deseq2_outputs", "p28_signature_UP.csv"))
-write.csv(hom_19_DOWN, file = here("res", "deseq2_outputs", "p28_signature_DOWN.csv"))
+#write.csv(hom_19_UP, file = here("res", "deseq2_outputs", "p28_signature_UP.csv"))
+#write.csv(hom_19_DOWN, file = here("res", "deseq2_outputs", "p28_signature_DOWN.csv"))
 
 ```
 
@@ -836,9 +840,9 @@ heatmap_p28 <- pheatmap(conv_cts_19[rownames(top20lfc_19), ], cluster_rows = TRU
 
 
 ```{r}
-write.csv(genes_19, file = here("res/deseq2_outputs", "deseq2_p28_fullannotatedres.csv"))
+#write.csv(genes_19, file = here("res/deseq2_outputs", "deseq2_p28_fullannotatedres.csv"))
 
-ggsave(heatmap_p28, filename = here("res", "fea", "heatmap_p28_ribopseudoremoved.pdf"), height = 7, width = 14)
+#ggsave(heatmap_p28, filename = here("res", "fea", "heatmap_p28_ribopseudoremoved.pdf"), height = 7, width = 14)
 ```
 
 gene signature
@@ -870,9 +874,9 @@ heatmap_p28 <- pheatmap(sig_19_cts[row.names(sig_19_cts), ], cluster_rows = TRUE
 ```
 
 ```{r}
-write.csv(sig_19, here("res/deseq2_outputs", "signature_annotation_p28.csv"))
+#write.csv(sig_19, here("res/deseq2_outputs", "signature_annotation_p28.csv"))
 
-ggsave(heatmap_p28, filename = here("res/deseq2_outputs", "heatmap_p28_signature.pdf"))
+#ggsave(heatmap_p28, filename = here("res/deseq2_outputs", "heatmap_p28_signature.pdf"))
 
 ```
 
@@ -923,7 +927,7 @@ volcano_19
 
 
 ```{r}
-ggsave(volcano_19, filename =  here("res/sigsearch_outputs", "volcano_drugtargets_p28degs.pdf"))
+#ggsave(volcano_19, filename =  here("res/sigsearch_outputs", "volcano_drugtargets_p28degs.pdf"))
 ```
 
 Targets upregulated in both cystic data sets
@@ -936,7 +940,7 @@ length(unique(cystic_targets$t_gn_sym.x))
 ```
 ```{r}
 
-write.csv(cystic_targets, file = here("res/sigsearch_outputs", "drug_targets_oe_cysticdegs.csv"))
+#write.csv(cystic_targets, file = here("res/sigsearch_outputs", "drug_targets_oe_cysticdegs.csv"))
 
 ```
 

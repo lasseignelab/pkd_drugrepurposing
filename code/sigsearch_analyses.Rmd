@@ -63,9 +63,11 @@ return(gess_res)
 
 Load in top up and down DEGs  
 ```{r}
-hom_39_UP <- read.csv(here("res", "deseq2_outputs", "p70_signature_UP.csv"))
-hom_39_DOWN <- read.csv(here("res", "deseq2_outputs", "p70_signature_DOWN.csv"))
+#hom_39_UP <- read.csv(here("res", "deseq2_outputs", "p70_signature_UP.csv"))
+#hom_39_DOWN <- read.csv(here("res", "deseq2_outputs", "p70_signature_DOWN.csv"))
 
+hom_39_UP <- hom_degs_UP
+hom_39_DOWN <- hom_degs_DOWN
 ```
 
 Run signatureSearch, filter for kidney cell lines  
@@ -80,7 +82,7 @@ gess_res_vis(gess_kidneycells_39, drugs = unique(gess_kidneycells_39$pert)[1:20]
 
 
 ```{r }
-write.csv(gess_kidneycells_39, file = here("res", "sigsearch_outputs", "gess_kidneycells_39_220819.csv"))
+#write.csv(gess_kidneycells_39, file = here("res", "sigsearch_outputs", "gess_kidneycells_39_220819.csv"))
  
 ```
 
@@ -106,7 +108,7 @@ gess_res_vis(gess_kidneycells_56, drugs = unique(gess_kidneycells_56$pert)[1:20]
 
 Save gess and filtered gess result
 ```{r }
-write.csv(gess_kidneycells_56, file = here("res", "sigsearch_outputs", "gess_kidneycells_56_220421.csv"))
+#write.csv(gess_kidneycells_56, file = here("res", "sigsearch_outputs", "gess_kidneycells_56_220421.csv"))
 
 ```
 
@@ -132,7 +134,7 @@ gess_res_vis(gess_kidneycells_19, drugs = unique(gess_kidneycells_19$pert)[1:20]
 
 Save gess and filtered gess result
 ```{r }
-write.csv(gess_kidneycells_19, here("res", "sigsearch_outputs", "gess_kidneycells_19_220421.csv"))
+#write.csv(gess_kidneycells_19, here("res", "sigsearch_outputs", "gess_kidneycells_19_220421.csv"))
 ```
 
 ## Compare datasets  
@@ -190,9 +192,9 @@ dtnetplot(drugs = drugs(tsea_KEGG_39), set = "hsa04750", ont = "MF", desc="Infla
 
 Save TSEA tables
 ```{r }
-write.csv(tsea_GO_39@result, file = here("res", "sigsearch_outputs", "tsea_go_39.csv"))
+#write.csv(tsea_GO_39@result, file = here("res", "sigsearch_outputs", "tsea_go_39.csv"))
 
-write.csv(tsea_KEGG_39@result, file = here("res", "sigsearch_outputs", "tsea_kegg_39.csv"))
+#write.csv(tsea_KEGG_39@result, file = here("res", "sigsearch_outputs", "tsea_kegg_39.csv"))
 ```
 
 '56 TSEA 
@@ -217,9 +219,9 @@ dtnetplot(drugs = drugs(tsea_KEGG_56), set = "hsa04657", desc="IL-17 signaling p
 
 Save TSEA tables
 ```{r }
-write.csv(tsea_GO_56@result, file = here("res", "sigsearch_outputs", "tsea_go_56.csv"))
+#write.csv(tsea_GO_56@result, file = here("res", "sigsearch_outputs", "tsea_go_56.csv"))
 
-write.csv(tsea_KEGG_56@result, file = here("res", "sigsearch_outputs", "tsea_kegg_56.csv"))
+#write.csv(tsea_KEGG_56@result, file = here("res", "sigsearch_outputs", "tsea_kegg_56.csv"))
 ```
 
 '19 TSEA
@@ -238,9 +240,9 @@ dtnetplot(drugs = drugs(tsea_GO_19), set = "GO:0051117", ont = "MF", desc="ATPas
 
 Save TSEA tables
 ```{r }
-write.csv(tsea_GO_19@result, file = here("res", "sigsearch_outputs", "tsea_go_19.csv"))
+#write.csv(tsea_GO_19@result, file = here("res", "sigsearch_outputs", "tsea_go_19.csv"))
 
-write.csv(tsea_KEGG_19@result, file = here("res", "sigsearch_outputs", "tsea_kegg_19.csv"))
+#write.csv(tsea_KEGG_19@result, file = here("res", "sigsearch_outputs", "tsea_kegg_19.csv"))
 ```
 
 #####Plots TSEA  
@@ -268,7 +270,7 @@ dsea_39 <- dsea_hyperG(
 
 
 ```{r}
-write.csv(dsea_39@result, file = here("res", "sigsearch_outputs", "dsea_39.csv"))
+#write.csv(dsea_39@result, file = here("res", "sigsearch_outputs", "dsea_39.csv"))
 
 dsea_39 <- read.csv(file = here("res", "sigsearch_outputs", "dsea_39.csv"))
 ```
@@ -437,7 +439,7 @@ rhub_launched_39 <- dplyr::filter(rHub_39, Phase == "Launched")
 ```
 
 ```{r}
-write.csv(rhub_launched_39, file = here("res", "sigsearch_outputs", "rhub_launcheddrugs_39.csv"))
+#write.csv(rhub_launched_39, file = here("res", "sigsearch_outputs", "rhub_launcheddrugs_39.csv"))
 ```
 
 Alluvial plot of drugs-targets with just launched drugs
@@ -471,7 +473,7 @@ Save
 #target-separated, rhub-annotated drug results for 39
 gene_drug_targets <- rhub_launched_39_top_septarget
 
-write.csv(gene_drug_targets, file = here("res", "sigsearch_outputs", "gene_drug_targets_39.csv"))
+#write.csv(gene_drug_targets, file = here("res", "sigsearch_outputs", "gene_drug_targets_39.csv"))
 ```
 
 
@@ -542,15 +544,15 @@ rHub_all_inters <- merge(rHub_19_and_56, rHub_39,  by = "pert")
 
 Save
 ```{r }
-write.csv(rHub_19, file = here("res", "sigsearch_outputs", "ssresults_rHub_19.csv"))
+#write.csv(rHub_19, file = here("res", "sigsearch_outputs", "ssresults_rHub_19.csv"))
 
-write.csv(rHub_56, file = here("res", "sigsearch_outputs", "ssresults_rHub_56.csv"))
+#write.csv(rHub_56, file = here("res", "sigsearch_outputs", "ssresults_rHub_56.csv"))
 
-write.csv(rHub_39, file = here("res", "sigsearch_outputs", "ssresults_rHub_39.csv"))
+#write.csv(rHub_39, file = here("res", "sigsearch_outputs", "ssresults_rHub_39.csv"))
 
-write.csv(rHub_19_and_56, file = here("res", "sigsearch_outputs", "ssresults_rHub_19_and_56.csv"))
+#write.csv(rHub_19_and_56, file = here("res", "sigsearch_outputs", "ssresults_rHub_19_and_56.csv"))
 
-write.csv(rHub_all_inters, file = here("res", "sigsearch_outputs", "ssresults_rHub_all_inters.csv"))
+#write.csv(rHub_all_inters, file = here("res", "sigsearch_outputs", "ssresults_rHub_all_inters.csv"))
 ```
 
 "Launched" drugs futher compared for current FDA status as of 220816 FDA@Drugs data release. Manual comparison due to variabilities in names
@@ -584,7 +586,7 @@ onsides_39 <- dplyr::left_join(onsides_39, reactions, by = c("latest_xml_id" = "
 
 
 ```{r}
-write.csv(onsides_39, file = here("res", "sigsearch_outputs", "adr_onsides_precystic_drugcandidates"))
+#write.csv(onsides_39, file = here("res", "sigsearch_outputs", "adr_onsides_precystic_drugcandidates"))
  
 ```
 
@@ -615,7 +617,7 @@ fda_data <- merge(frda_product_info, fda_marketing_status, by = "ID")
 ```
 
 ```{r}
-write.csv(fda_data, file = here("data", "FDA_products_status_220816.csv"))
+#write.csv(fda_data, file = here("data", "FDA_products_status_220816.csv"))
 ```
 
 ```{r}
@@ -630,7 +632,7 @@ fda_approved <- dplyr::distinct(fda_approved, ActiveIngredient, .keep_all = TRUE
 ```
 
 ```{r}
-write.csv(fda_approved, file = here("data", "FDA_approved_unique_ingredients.csv"))
+#write.csv(fda_approved, file = here("data", "FDA_approved_unique_ingredients.csv"))
 ```
 
 Jen's function for checking FDA approval
@@ -714,11 +716,11 @@ fda_approved_39_moa_top <- dplyr::slice_min(fda_approved_39_moa, order_by = WTCS
 moa_alluvial <- ggplot(fda_approved_39_moa_top,
        aes(axis1 = pert, axis2 = MOA)) +
   geom_alluvium(color = "black", aes(fill = WTCS)) + # , colour = trend)) + 
-  geom_stratum(width = 3/12, color = "black") + #the border of the stratum
+  geom_stratum(width = 3/8, color = "black") + #the border of the stratum
   scale_x_discrete(expand = c(.07, .07)) + 
   scale_y_discrete(expand = c(.007, .007)) + 
   scale_fill_viridis_c(aesthetics = c("colour", "fill")) +
-  geom_text(stat = "stratum", size = 3.5, fontface = "bold", aes(label = after_stat(stratum))) +
+  geom_text(stat = "stratum", size = 3.25, fontface = "bold", aes(label = after_stat(stratum))) +
   labs(title = "MOA of Top FDA-Approved Drugs") +
   theme_void() 
 
@@ -728,7 +730,8 @@ moa_alluvial
 
 
 ```{r }
-ggsave(here("res", "sigsearch_outputs", "moa_fda_alluvial_220824.pdf"), moa_alluvial, width = 17, height = 10)
+
+ggsave(here("res", "sigsearch_outputs", "moa_fda_alluvial.png"), moa_alluvial, width = 12, height = 6, dpi = 600)
 
 ```
 
@@ -802,7 +805,7 @@ ggsave(here("res/sigsearch_outputs", "targets_cysticupregulated_alluvial.pdf"), 
 Save
 ```{r }
 #target-separated, rhub-annotated drug results for 39
-write.csv(rhub_launched_39_septarget, file = here("res", "sigsearch_outputs", "gene_drug_targets_39.csv"))
+#write.csv(rhub_launched_39_septarget, file = here("res", "sigsearch_outputs", "gene_drug_targets_39.csv"))
 ```
 
 Drug data for drugs whose targets are upregulated in both cystic data sets
@@ -895,12 +898,12 @@ prioritized_drugs <- dplyr::filter(cystic_overlap_drugs, pert %in% prioritized_d
 ```{r}
 simple_tbl <- cbind(Drug = cystic_overlap_drugs$pert, Drug_Targets = cystic_overlap_drugs$t_gn_sym, MOA = cystic_overlap_drugs$MOA, Original_Indication = cystic_overlap_drugs$Indication)
 
-write.csv(simple_tbl, file = here("res/sigsearch_outputs", "drugtarget_cysticoverlap_simpletbl.csv"))
+#write.csv(simple_tbl, file = here("res/sigsearch_outputs", "drugtarget_cysticoverlap_simpletbl.csv"))
 ```
 
 
 ```{r}
-write.csv(onsides_res, file = here("res", "sigsearch_outputs", "adr_onsides_precystic_drugcandidates"))
+#write.csv(onsides_res, file = here("res", "sigsearch_outputs", "adr_onsides_precystic_drugcandidates"))
  
 ```
 
