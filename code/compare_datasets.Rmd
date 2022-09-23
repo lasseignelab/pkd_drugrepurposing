@@ -200,7 +200,7 @@ set39 <- rbind(hom_39_UP, hom_39_DOWN)
 set56 <- rbind(hom_56_UP, hom_56_DOWN)
 set19 <- rbind(hom_19_UP, hom_19_DOWN)
 
-venn.diagram(x = list(set39$ensembl_gene_id, set56$ensembl_gene_id, set19$ensembl_gene_id),
+venn.diagram(x = list(set39$entrezgene_id, set56$entrezgene_id, set19$entrezgene_id),
         category.names = c("Precystic P70" , "Cystic P21" , "Cystic P28"),
         filename = here("res/deseq2_outputs", "signatures_venndiagram.png"), # imagetype = "png",
         output=TRUE,
@@ -560,11 +560,19 @@ aki_downgenes <- c("1700040L02Rik", "Abhd14b", "Acad12", "Acmsd", "Acot11", "Aco
 
 combine all data sets
 ```{r}
-combined_rlog <- merge(all_56, all_19, by = "X")
-combined_rlog <- merge(all_39, combined_rlog, by = "X")
+#at least half a lfc and padj > 0.1 
+#all_39 <- dplyr::filter(all_39, log2FoldChange > 0.5 | log2FoldChange < -0.5 & padj < 0.1)
+#all_56 <- dplyr::filter(all_56, log2FoldChange > 0.5 | log2FoldChange < -0.5 & padj < 0.1)
+#all_19 <- dplyr::filter(all_19, log2FoldChange > 0.5 | log2FoldChange < -0.5 & padj < 0.1)
 
-rlog_aki_up <- combined_rlog %>% dplyr::filter( X %in% aki_upgenes) %>% dplyr::mutate(direction = "aki_up") %>% dplyr::select(Genes = X, PrecysticP70 = log2FoldChange, CysticP21 = log2FoldChange.x, CysticP28 = log2FoldChange.y, Direction = direction)#152
-rlog_aki_down <- combined_rlog %>% dplyr::filter( X %in% aki_downgenes) %>% dplyr::mutate(direction = "aki_down") %>% dplyr::select(Genes = X, PrecysticP70 = log2FoldChange, CysticP21 = log2FoldChange.x, CysticP28 = log2FoldChange.y, Direction = direction)
+combined_fc <- merge(all_56, all_19, by = "X")
+combined_fc <- merge(all_39, combined_fc, by = "X")
+#combined_fc <- dplyr::union(all_56, all_19)
+#combined_fc <- dplyr::union(all_39, combined_fc)
+
+rlog_aki_up <- combined_fc %>% dplyr::filter( X %in% aki_upgenes) %>% dplyr::mutate(direction = "aki_up") %>% dplyr::select(Genes = X, PrecysticP70 = log2FoldChange, CysticP21 = log2FoldChange.x, CysticP28 = log2FoldChange.y, Direction = direction)#152
+
+rlog_aki_down <- combined_fc %>% dplyr::filter( X %in% aki_downgenes) %>% dplyr::mutate(direction = "aki_down") %>% dplyr::select(Genes = X, PrecysticP70 = log2FoldChange, CysticP21 = log2FoldChange.x, CysticP28 = log2FoldChange.y, Direction = direction)
 
 aki_res <- rbind(rlog_aki_up, rlog_aki_down)
 ```
@@ -580,9 +588,9 @@ aki_res2 <- tibble::column_to_rownames(aki_res, var = "Genes") %>% dplyr::select
 samples <- str_sub(colnames(aki_res2), start = 1, end = -4) %>% as.data.frame(row.names = colnames(aki_res2))
 colnames(samples) <- "Cystic_Status"
 samples$Cystic_Status <- factor(samples$Cystic_Status, levels = c("Precystic", "Cystic"))
-#show_col(viridis(4, option = "E")) #selecting colors
+show_col(viridis(8, option = "D")) #selecting colors
 #my_color = list( aki_direction = c(aki_down = "#575C6DFF", aki_up = "#FFEA46FF"), samples = c(Precystic = "#00204DFF", Cystic = "#A69D75FF"))
-my_color = list(Direction = c(aki_down = "#575C6DFF", aki_up = "#FFEA46FF"), Cystic_Status = c(Precystic = "#00204DFF", Cystic = "#A69D75FF"))
+#my_color = list(Direction = c(aki_down = "#575C6DFF", aki_up = "#FFEA46FF"), Cystic_Status = c(Precystic = "#00204DFF", Cystic = "#A69D75FF"))
 
 
 pdf(here("res/deseq2_outputs", "heatmap_aki_genes.pdf"), width = 9, height = 11)
@@ -732,24 +740,24 @@ ggsave(bubbleplot_p28, filename = here("res", "fea", "p28_fea_bubbleplot.pdf"), 
 Save gprofiler results
 ``` {r}
 ##fea_mouse_39
-fea_mouse_39_upterms <- apply(fea_mouse_39$upregulated, 2, as.character)
+#fea_mouse_39_upterms <- apply(fea_mouse_39$upregulated, 2, as.character)
 write.csv(fea_mouse_39_upterms, file = here("res", "fea", "fea_mouse_39_upterms.csv"))
 
-fea_mouse_39_downterms <- apply(fea_mouse_39$downregulated, 2, as.character)
+#fea_mouse_39_downterms <- apply(fea_mouse_39$downregulated, 2, as.character)
 write.csv(fea_mouse_39_downterms, file = here("res", "fea", "fea_mouse_39_downterms.csv"))
 
 ##fea_mouse_56
-fea_mouse_56_upterms <- apply(fea_mouse_56$upregulated, 2, as.character)
+#fea_mouse_56_upterms <- apply(fea_mouse_56$upregulated, 2, as.character)
 write.csv(fea_mouse_56_upterms, file = here("res", "fea", "fea_mouse_56_upterms.csv"))
 
-fea_mouse_56_downterms <- apply(fea_mouse_56$downregulated, 2, as.character)
+#fea_mouse_56_downterms <- apply(fea_mouse_56$downregulated, 2, as.character)
 write.csv(fea_mouse_56_downterms, file = here("res", "fea", "fea_mouse_56_downterms.csv"))
 
 ##fea_mouse_19
-fea_mouse_19_upterms <- apply(fea_mouse_19$upregulated, 2, as.character)
+#fea_mouse_19_upterms <- apply(fea_mouse_19$upregulated, 2, as.character)
 write.csv(fea_mouse_19_upterms, file = here("res", "fea", "fea_mouse_19_upterms.csv"))
 
-fea_mouse_19_downterms <- apply(fea_mouse_19$downregulated, 2, as.character)
+#fea_mouse_19_downterms <- apply(fea_mouse_19$downregulated, 2, as.character)
 write.csv(fea_mouse_19_downterms, file = here("res", "fea", "fea_mouse_19_downterms.csv"))
 ```
 
@@ -778,9 +786,9 @@ fea_mouse_39_downterms <- read.csv(here("res", "fea", "fea_mouse_39_downterms.cs
 
 merge for overlap
 ```{r}
-fea_cystic_overlap_up <- merge(fea_mouse_56_upterms, fea_mouse_19_upterms, by = "term_name")
+fea_cystic_overlap_up <- merge(fea_mouse_56$upregulated, fea_mouse_19$upregulated, by = "term_name")
 
-fea_cystic_overlap_down <- merge(fea_mouse_56_downterms, fea_mouse_19_downterms, by = "term_name")
+fea_cystic_overlap_down <- merge(fea_mouse_56$downregulated, fea_mouse_19$downregulated, by = "term_name")
 ```
 
 merge for overlap across all datasets
@@ -793,7 +801,7 @@ fea_all_overlap_down <- merge(fea_cystic_overlap_down, fea_mouse_39_downterms, b
 
 cystic up overlap
 ```{r}
-ggplot(slice_max(fea_cystic_overlap_up, order_by = recall.y, n = 30), aes(x=intersection_size.y, y=term_name,  fill = p_value.y)) + 
+ggplot(slice_max(fea_cystic_overlap_up, order_by = recall.y, n = 20), aes(x=intersection_size.y, y=term_name,  fill = p_value.y)) + 
     geom_bar( stat = "identity") + 
     scale_fill_continuous(type = "viridis") + 
     labs(x = "Number of Genes Matched to Term", y = "Functional Terms", title = "Top Enriched Terms") + 
@@ -804,7 +812,7 @@ ggplot(slice_max(fea_cystic_overlap_up, order_by = recall.y, n = 30), aes(x=inte
 
 cystic down overlap
 ```{r}
-ggplot(slice_max(fea_cystic_overlap_down, order_by = recall.y, n = 30), aes(x=intersection_size.y, y=term_name,  fill = p_value.y)) + 
+ggplot(slice_max(fea_cystic_overlap_down, order_by = recall.y, n = 20), aes(x=intersection_size.y, y=term_name,  fill = p_value.y)) + 
     geom_bar( stat = "identity") + 
     scale_fill_continuous(type = "viridis") + 
     labs(x = "Number of Genes Matched to Term", y = "Functional Terms", title = "Top Enriched Terms") + 
@@ -814,11 +822,24 @@ ggplot(slice_max(fea_cystic_overlap_down, order_by = recall.y, n = 30), aes(x=in
 ```{r}
 fea_cystic_overlap_combined <- rbind(fea_cystic_overlap_up, fea_cystic_overlap_down)
 
+#sum of intersection genes
 fea_cystic_overlap_combined <- fea_cystic_overlap_combined %>% rowwise() %>% mutate(total_genes = sum(intersection_size.x, intersection_size.y))
+
+#test <- fea_cystic_overlap_combined <- fea_cystic_overlap_combined %>% rowwise() %>% mutate(total_genes = sum(intersection_size.x, intersection_size.y), avg_recall = mean(recall.x, recall.y), avg_pvalue = mean(p_value.x, p_value.y))
+
+#average of recall
+#fea_cystic_overlap_combined <- fea_cystic_overlap_combined %>% rowwise() %>% mutate(avg_recall = mean(recall.x, recall.y))
+
+#average of p-value
+#fea_cystic_overlap_combined <- fea_cystic_overlap_combined %>% rowwise() %>% mutate(avg_pvalue = mean(p_value.x, p_value.y))
+
+test <- dplyr::slice_min(fea_cystic_overlap_combined, order_by = "p_value.x", n = 10)
+#test <- dplyr::slice_tail(fea_cystic_overlap_combined, order_by = p_value.x, n = 10)
+test <- arrange(fea_cystic_overlap_combined, desc("total_genes"))#[1:10,]
 ```
 
 ```{r}
-ggplot(slice_max(fea_cystic_overlap_combined, order_by = recall.x, n = 10), aes(x=direction.x, y=term_name, size = total_genes, fill = p_value.y)) +
+ggplot(slice_max(fea_cystic_overlap_combined, order_by = total_genes, n = 10), aes(x=direction.x, y=term_name, size = total_genes, fill = p_value.y)) +
   geom_point(alpha=0.7, shape = 21) +
   scale_size(range = c(2, 10), name = "# Genes Matched to Term") + 
   scale_fill_distiller(palette = "Purples") + 
