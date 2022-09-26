@@ -750,10 +750,12 @@ moa_frq <- ggplot(moa_freq, aes(x = Var1, y = Freq, fill = Freq)) +  # Plot with
 moa_frq
 ```
 
+
 ```{r}
 ggsave(filename = here("res/sigsearch_outputs", "p70_fdaapproved_moa_freq.pdf"), moa_frq)
 
 ```
+
 Frequency of MOA's
 ```{r}
 indication_freq <- as.data.frame(table(fda_approved_39_moa$Disease.Area))
@@ -773,16 +775,16 @@ indication_plot
 
 Alluvial plot of drugs-targets with just FDA approved drugs
 ```{r}
-
+cystic_targets <- read.csv(file = here("res/sigsearch_outputs", "drug_targets_oe_cysticdegs.csv"))
 #target_alluvial <- tidyr::separate_rows(cystic_overlap_drugs, t_gn_sym, sep = "; ")
-target_tbl <- cbind(pert = cystic_targets$pert, Upregulated_Target = cystic_targets$t_gn_sym.x) %>% as.data.frame()
+#target_tbl <- cbind(pert = cystic_targets$pert, Upregulated_Target = cystic_targets$t_gn_sym.x) %>% as.data.frame()
 ```
 
 plot
 ```{r}
-target_alluvial <- ggplot(data = target_tbl,
-       aes(axis1 = pert, axis2 = Upregulated_Target)) +
-  geom_alluvium(color = "black", aes(fill = Upregulated_Target), show.legend=FALSE) + # , colour = trend)) + 
+target_alluvial <- ggplot(data = cystic_targets,
+       aes(axis1 = Drug, axis2 = Drug_Targets)) +
+  geom_alluvium(color = "black", aes(fill = Drug_Targets), show.legend=FALSE) + # , colour = trend)) + 
   geom_stratum(width = 3/12, color = "black") + #the border of the stratum
   scale_x_discrete(expand = c(.07, .07)) + 
   scale_y_discrete(expand = c(.007, .007)) + 
@@ -802,16 +804,15 @@ ggsave(here("res/sigsearch_outputs", "targets_cysticupregulated_alluvial.pdf"), 
 ```
 
 
-Save
-```{r }
-#target-separated, rhub-annotated drug results for 39
-#write.csv(rhub_launched_39_septarget, file = here("res", "sigsearch_outputs", "gene_drug_targets_39.csv"))
+Drug data for drugs whose targets are upregulated in both cystic data sets, pull repurposing hub data again, for manuscript
+```{r}
+cystic_overlap_drugs <- dplyr::filter(fda_approved_39, pert %in% unique(cystic_targets$Drug))
+
+cystic_overlap_drugs <- cbind(Drug = cystic_overlap_drugs$pert, Drug_Targets = cystic_overlap_drugs$t_gn_sym, MOA = cystic_overlap_drugs$MOA, Original_Indication = cystic_overlap_drugs$Indication) %>% as.data.frame()
 ```
 
-Drug data for drugs whose targets are upregulated in both cystic data sets
 ```{r}
-cystic_overlap_drugs <- dplyr::filter(fda_approved_39, pert %in% unique(cystic_targets$pert))
-
+write.csv(cystic_overlap_drugs, file = here("res/sigsearch_outputs", "drug_summaries_oe_cystic.csv"))
 ```
 
 LINCS data for drugs with target cystic overlap
@@ -825,44 +826,6 @@ fluox_fea <- enrich(drug_sigs$upset, drug_sigs$downset, topreturned = 30)
 
 ```{r}
 bubbleplot(fluox_fea$topcompared)
-
-```
-
-```{r}
-function (table_list, rank_stat = "pvalue", Nshow = 20, Nchar = 50, 
-    scien = FALSE, ...) 
-{
-    if (is.null(names(table_list))) {
-        stop(paste("The \"table_list\" should be a list with names,", 
-            "which could be names of the enrichment methods"))
-    }
-    newtb <- function(i) {
-        tb <- table_list[[i]]
-        tb_order <- tb[order(tb[[rank_stat]]), ]
-        tb2 <- data.frame(tb_order[, c("Description", rank_stat)], 
-            Method = names(table_list)[i], rank = seq_len(nrow(tb_order)))
-        return(tb2)
-    }
-    df <- do.call(rbind, lapply(seq_along(table_list), newtb))
-    df$Description <- vec_char_redu(df$Description, Nchar = Nchar)
-    if (scien) {
-        df[[rank_stat]] <- signif(df[[rank_stat]], 3)
-    }
-    cat_ranks_list <- split(df$rank, df$Description)
-    cat_mrk_adj <- vapply(cat_ranks_list, function(i) {
-        m <- mean(i) * length(table_list)/length(i)
-    }, FUN.VALUE = numeric(1))
-    cat_rerk <- cat_mrk_adj[order(cat_mrk_adj)]
-    cat_top <- names(cat_rerk)[seq_len(Nshow)]
-    df2 <- df[df$Description %in% cat_top, ]
-    df2$Description <- factor(df2$Description, levels = rev(cat_top), 
-        ordered = TRUE)
-    p <- ggplot(df2, aes_(x = ~Method, y = ~Description)) + geom_point(size = 4, 
-        ...) + aes_string(color = rank_stat) + scale_colour_gradient(low = "red", 
-        high = "blue") + theme_dose(font.size = 12) + ggplot2::theme(axis.text.x = element_text(angle = 45, 
-        hjust = 1))
-    return(p)
-}
 
 ```
 
@@ -896,7 +859,7 @@ prioritized_drugs <- dplyr::filter(cystic_overlap_drugs, pert %in% prioritized_d
 ```
 
 ```{r}
-simple_tbl <- cbind(Drug = cystic_overlap_drugs$pert, Drug_Targets = cystic_overlap_drugs$t_gn_sym, MOA = cystic_overlap_drugs$MOA, Original_Indication = cystic_overlap_drugs$Indication)
+#simple_tbl <- cbind(Drug = cystic_overlap_drugs$pert, Drug_Targets = cystic_overlap_drugs$t_gn_sym, MOA = cystic_overlap_drugs$MOA, Original_Indication = cystic_overlap_drugs$Indication)
 
 #write.csv(simple_tbl, file = here("res/sigsearch_outputs", "drugtarget_cysticoverlap_simpletbl.csv"))
 ```

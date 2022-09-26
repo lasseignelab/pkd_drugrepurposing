@@ -588,12 +588,12 @@ aki_res2 <- tibble::column_to_rownames(aki_res, var = "Genes") %>% dplyr::select
 samples <- str_sub(colnames(aki_res2), start = 1, end = -4) %>% as.data.frame(row.names = colnames(aki_res2))
 colnames(samples) <- "Cystic_Status"
 samples$Cystic_Status <- factor(samples$Cystic_Status, levels = c("Precystic", "Cystic"))
-show_col(viridis(8, option = "D")) #selecting colors
+#show_col(viridis(8, option = "D")) #selecting colors
 #my_color = list( aki_direction = c(aki_down = "#575C6DFF", aki_up = "#FFEA46FF"), samples = c(Precystic = "#00204DFF", Cystic = "#A69D75FF"))
 #my_color = list(Direction = c(aki_down = "#575C6DFF", aki_up = "#FFEA46FF"), Cystic_Status = c(Precystic = "#00204DFF", Cystic = "#A69D75FF"))
 
 
-pdf(here("res/deseq2_outputs", "heatmap_aki_genes.pdf"), width = 9, height = 11)
+pdf(here("res/deseq2_outputs", "heatmap_aki_genes_lfcshrinkage.pdf"), width = 9, height = 11)
 #aki_heatmap <- 
   pheatmap(aki_res2, annotation_colors = my_color, annotation_row = aki_direction, annotation_col = samples, cluster_rows = TRUE, cluster_cols = TRUE, show_rownames = FALSE, color = viridis(n= 10000, alpha = 1, begin = 0, end = 1, option = "viridis"), border_color = "NA", main = "Expression of Acute Kidney Injury-Associated Genes Across Precystic/Cystic Data ", angle_col = "0")
 dev.off()
@@ -986,7 +986,7 @@ comb_19 <- mouseenrich(musdegs_19_UP, musdegs_19_DOWN, 100,  sources = "GO:BP")
 
 
 ```{r}
-pdf(here("res/fea", "alldata_musgenes_gosim_heatmap.pdf"), width = 12, height = 8)
+pdf(here("res/fea", "alldata_musgenes_gosim_heatmap_lfcshrinkage.pdf"), width = 12, height = 8)
 combined_heatmap <- go_term_heatmap(comb_39$topcompared, comb_56$topcompared, comb_19$topcompared, "upregulated", threshold = 0.95)
 #pdf((here("res/fea", "alldata_musgenes_gosim_heatmap.pdf"), width = 8, height = 8)
 combined_heatmap <- draw(combined_heatmap, merge_legend = TRUE)
