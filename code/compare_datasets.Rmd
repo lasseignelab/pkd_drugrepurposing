@@ -84,7 +84,7 @@ Custom background for FEA (for enrichment using mouse to human to entrez to linc
 #mesgenes <- gsub("\\..*", "", mesgenes)
 
 #genebg <- convertMouseGeneList(mesgenes)
-#write.csv2(genebg, file = "./data/background_genelist_genestoLINCSgenes.csv")
+write.csv2(genebg, file = "./data/background_genelist_genestoLINCSgenes.csv")
 
 genebg <- read.csv(file = here("data", "background_genelist_genestoLINCSgenes.csv"))
 ```
@@ -418,7 +418,7 @@ hm <- heatmapPlot(simMatrix, reducedTerms, annotateParent=TRUE, annotationLabel=
 ```{r}
 ggsave(here("res/fea", "precysticp70_sig_enrichment_scatter.pdf"), sp, height = 5, width = 7)
 
-#ggsave(here("res/fea", "precysticp70_sig_enrichment_treemap.pdf"), tm, height = 4, width = 7)
+ggsave(here("res/fea", "precysticp70_sig_enrichment_treemap.pdf"), tm, height = 4, width = 7)
 
 ```
 
@@ -443,7 +443,7 @@ hm_56 <- heatmapPlot(simMatrix_56, reducedTerms_56, annotateParent=TRUE, annotat
 ```{r}
 ggsave(here("res/fea", "cysticp21_sig_enrichment_scatter.pdf"), sp_56, height =5, width = 7)
 
-#ggsave(here("res/fea", "precysticp70_sig_enrichment_treemap.pdf"), tm, height = 4, width = 7)
+ggsave(here("res/fea", "precysticp70_sig_enrichment_treemap.pdf"), tm, height = 4, width = 7)
 
 ```
 
@@ -635,7 +635,7 @@ bubbleplot(fea_mouse_39$topcompared) + labs(title = "Top Enriched Terms for Pre-
 ```
 
 ``` {r}
-#ggsave(p70_fea_plot, filename = here("res", "fea", "p70_fea_plot.pdf"))
+ggsave(p70_fea_plot, filename = here("res", "fea", "p70_fea_plot.pdf"))
 
 ggsave(bubbleplot_p70, filename = here("res", "fea", "p70_fea_bubbleplot.pdf"), height = 7, width = 14)
 ```
@@ -650,7 +650,7 @@ mus_set39 <- rbind(musdegs_39_UP, musdegs_39_DOWN)
 mus_set56 <- rbind(musdegs_56_UP, musdegs_56_DOWN)
 mus_set19 <- rbind(musdegs_19_UP, musdegs_19_DOWN)
 
-venn.diagram(x = list(mus_set39$ensembl_gene_id, mus_set56$ensembl_gene_id, mus_set19$ensembl_gene_id),
+venn.diagram(x = list(mus_set39$Mouse.gene.stable.ID, mus_set56$Mouse.gene.stable.ID, mus_set19$Mouse.gene.stable.ID),
         category.names = c("Precystic P70" , "Cystic P21" , "Cystic P28"),
         filename = here("res/deseq2_outputs", "degs_venndiagram.png"), # imagetype = "png",
         output=TRUE,

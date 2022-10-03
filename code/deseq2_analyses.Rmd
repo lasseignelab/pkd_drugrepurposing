@@ -261,7 +261,7 @@ dsq2_39 <- as.data.frame(res_nf)
 
 Save full deseq results
 ```{r}
-##write.csv(dsq2_39, file = here("res", "deseq2_outputs", "deseq2_fullres_39.csv"))
+write.csv(dsq2_39, file = here("res", "deseq2_outputs", "deseq2_fullres_39.csv"))
 
 ```
 
@@ -280,9 +280,9 @@ dim(musdegs_39_DOWN) #44 at lfc < -2 #71 at -1.5 #89 at 1.3, 43 lfcshrink
 ```
 
 ```{r }
-#write.csv(musdegs_39_UP, file = here("res", "deseq2_outputs", "deseq2_upgenes_res_39.csv"))
+write.csv(musdegs_39_UP, file = here("res", "deseq2_outputs", "deseq2_upgenes_res_39.csv"))
 
-#write.csv(musdegs_39_DOWN, file = here("res", "deseq2_outputs", "deseq2_downgenes_res_39.csv"))
+write.csv(musdegs_39_DOWN, file = here("res", "deseq2_outputs", "deseq2_downgenes_res_39.csv"))
 
 ```
 
@@ -316,8 +316,8 @@ dim(hom_degs_DOWN) #15 at lfc <-2 #27 at lfc < -1.5 #37 at 1.3
 
 
 ```{r}
-#write.csv(hom_degs_UP, file = here("res", "deseq2_outputs", "p70_signature_UP.csv"))
-#write.csv(hom_degs_DOWN, file = here("res", "deseq2_outputs", "p70_signature_DOWN.csv"))
+write.csv(hom_degs_UP, file = here("res", "deseq2_outputs", "p70_signature_UP.csv"))
+write.csv(hom_degs_DOWN, file = here("res", "deseq2_outputs", "p70_signature_DOWN.csv"))
 ```
 
 
@@ -380,9 +380,9 @@ heatmap_p70 <- pheatmap(conv_cts[rownames(top20lfc), ], cluster_rows = TRUE, clu
 ```
 
 ```{r}
-#write.csv(genes, file = here("res/deseq2_outputs", "deseq2_p70_fullannotatedres.csv"))
+write.csv(genes, file = here("res/deseq2_outputs", "deseq2_p70_fullannotatedres.csv"))
 
-#ggsave(heatmap_p70, filename = here("res", "fea", "heatmap_p70_ribopseudoremoved.pdf"), height = 7, width = 14)
+ggsave(heatmap_p70, filename = here("res", "fea", "heatmap_p70.pdf"), height = 7, width = 14)
 ```
 
 gene signature
@@ -404,9 +404,9 @@ heatmap_p70 <- pheatmap(sig_39_cts[row.names(sig_39_cts), ], cluster_rows = TRUE
 ```
 
 ```{r}
-#write.csv(sig_39, here("res/deseq2_outputs", "signature_annotation_p70.csv"))
+write.csv(sig_39, here("res/deseq2_outputs", "signature_annotation_p70.csv"))
 
-#ggsave(heatmap_p70, filename = here("res/deseq2_outputs", "heatmap_p70_signature.pdf"))
+ggsave(heatmap_p70, filename = here("res/deseq2_outputs", "heatmap_p70_signature.pdf"))
 
 ```
 
@@ -513,7 +513,7 @@ dsq2_56 <- as.data.frame(res_56)
 
 
 ```{r}
-#write.csv(dsq2_56, file = here("res/deseq2_outputs", "deseq2_fullres_56.csv"))
+write.csv(dsq2_56, file = here("res/deseq2_outputs", "deseq2_fullres_56.csv"))
 
 ```
 
@@ -544,11 +544,11 @@ dim(hom_56_DOWN)
 
 
 ```{r}
-#write.csv(musdegs_56_UP, file = here("res", "deseq2_outputs", "deseq2_upgenes_res_56.csv"))
-#write.csv(musdegs_56_DOWN, file = here("res", "deseq2_outputs", "deseq2_downgenes_res_56.csv"))
+write.csv(musdegs_56_UP, file = here("res", "deseq2_outputs", "deseq2_upgenes_res_56.csv"))
+write.csv(musdegs_56_DOWN, file = here("res", "deseq2_outputs", "deseq2_downgenes_res_56.csv"))
 
-#write.csv(hom_56_UP, file = here("res", "deseq2_outputs", "p21_signature_UP.csv"))
-#write.csv(hom_56_DOWN, file = here("res", "deseq2_outputs", "p21_signature_DOWN.csv"))
+write.csv(hom_56_UP, file = here("res", "deseq2_outputs", "p21_signature_UP.csv"))
+write.csv(hom_56_DOWN, file = here("res", "deseq2_outputs", "p21_signature_DOWN.csv"))
 
 ```
 
@@ -615,9 +615,9 @@ heatmap_21 <- pheatmap(conv_cts_56[rownames(top20lfc_56), ], cluster_rows = TRUE
 
 
 ```{r }
-#write.csv(genes_56, file = here("res/deseq2_outputs", "deseq2_p21_fullannotatedres.csv"))
+write.csv(genes_56, file = here("res/deseq2_outputs", "deseq2_p21_fullannotatedres.csv"))
 
-#ggsave(heatmap_21, filename = here("res", "fea", "heatmap_p21_ribopseudoremoved.pdf"), height = 7, width = 14)
+ggsave(heatmap_21, filename = here("res", "fea", "heatmap_p21_top20.pdf"), height = 7, width = 14)
 ```
 
 gene signature
@@ -638,8 +638,8 @@ heatmap_p21 <- pheatmap(sig_56_cts[row.names(sig_56_cts), ], cluster_rows = TRUE
 ```
 
 ```{r}
-#write.csv(sig_56, here("res/deseq2_outputs", "signature_annotation_p21.csv"))
-#ggsave(heatmap_p21, filename = here("res/deseq2_outputs", "heatmap_p21_signature.pdf"))
+write.csv(sig_56, here("res/deseq2_outputs", "signature_annotation_p21.csv"))
+ggsave(heatmap_p21, filename = here("res/deseq2_outputs", "heatmap_p21_signature.pdf"))
 
 ```
 
@@ -736,7 +736,7 @@ dsq2_19 <- as.data.frame(res_19)
 
 Save full deseq2 results
 ```{r}
-#write.csv(res_19, file = here("res", "deseq2_outputs", "deseq2_fullres_19.csv"))
+write.csv(res_19, file = here("res", "deseq2_outputs", "deseq2_fullres_19.csv"))
 
 ```
 
@@ -785,11 +785,11 @@ dim(hom_19_DOWN)
 
 
 ```{r}
-#write.csv(musdegs_19_UP, file = here("res", "deseq2_outputs", "deseq2_upgenes_res_19.csv"))
-#write.csv(musdegs_19_DOWN, file = here("res", "deseq2_outputs", "deseq2_downgenes_res_19.csv"))
+write.csv(musdegs_19_UP, file = here("res", "deseq2_outputs", "deseq2_upgenes_res_19.csv"))
+write.csv(musdegs_19_DOWN, file = here("res", "deseq2_outputs", "deseq2_downgenes_res_19.csv"))
  
-#write.csv(hom_19_UP, file = here("res", "deseq2_outputs", "p28_signature_UP.csv"))
-#write.csv(hom_19_DOWN, file = here("res", "deseq2_outputs", "p28_signature_DOWN.csv"))
+write.csv(hom_19_UP, file = here("res", "deseq2_outputs", "p28_signature_UP.csv"))
+write.csv(hom_19_DOWN, file = here("res", "deseq2_outputs", "p28_signature_DOWN.csv"))
 
 ```
 
@@ -840,9 +840,9 @@ heatmap_p28 <- pheatmap(conv_cts_19[rownames(top20lfc_19), ], cluster_rows = TRU
 
 
 ```{r}
-#write.csv(genes_19, file = here("res/deseq2_outputs", "deseq2_p28_fullannotatedres.csv"))
+write.csv(genes_19, file = here("res/deseq2_outputs", "deseq2_p28_fullannotatedres.csv"))
 
-#ggsave(heatmap_p28, filename = here("res", "fea", "heatmap_p28_ribopseudoremoved.pdf"), height = 7, width = 14)
+ggsave(heatmap_p28, filename = here("res", "fea", "heatmap_p28.pdf"), height = 7, width = 14)
 ```
 
 gene signature
@@ -874,9 +874,9 @@ heatmap_p28 <- pheatmap(sig_19_cts[row.names(sig_19_cts), ], cluster_rows = TRUE
 ```
 
 ```{r}
-#write.csv(sig_19, here("res/deseq2_outputs", "signature_annotation_p28.csv"))
+write.csv(sig_19, here("res/deseq2_outputs", "signature_annotation_p28.csv"))
 
-#ggsave(heatmap_p28, filename = here("res/deseq2_outputs", "heatmap_p28_signature.pdf"))
+ggsave(heatmap_p28, filename = here("res/deseq2_outputs", "heatmap_p28_signature.pdf"))
 
 ```
 
