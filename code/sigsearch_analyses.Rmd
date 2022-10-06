@@ -23,7 +23,7 @@ Load libraries
 library(signatureSearch)
 library(ggplot2)
 library(ggalluvial)
-library(readr)
+#library(readr)
 library(signatureSearch)
 library(ExperimentHub); library(rhdf5)
 library(here)
@@ -182,20 +182,7 @@ tsea_GO_39 <- tsea_dup_hyperG(drugs = gess_kidneycells_39$pert[1:100], universe 
 tsea_KEGG_39 <- tsea_dup_hyperG(drugs = gess_kidneycells_39$pert[1:50], universe = "Default", type = "KEGG", pvalueCutoff=0.05, pAdjustMethod="BH")
 ```
 
-```{r warning = FALSE}
-dtnetplot(drugs = drugs(tsea_KEGG_39), set = "hsa04024", ont = "MF", desc="cAMP signaling pathway")
-```
 
-```{r warning = FALSE}
-dtnetplot(drugs = drugs(tsea_KEGG_39), set = "hsa04750", ont = "MF", desc="Inflammatory mediator regulation of TRP channels")
-```
-
-Save TSEA tables
-```{r }
-write.csv(tsea_GO_39@result, file = here("res", "sigsearch_outputs", "tsea_go_39.csv"))
-
-write.csv(tsea_KEGG_39@result, file = here("res", "sigsearch_outputs", "tsea_kegg_39.csv"))
-```
 
 '56 TSEA 
 ```{r}
@@ -203,19 +190,10 @@ tsea_GO_56 <- tsea_dup_hyperG(drugs = gess_kidneycells_56$pert[1:30], universe =
 
 tsea_KEGG_56 <- tsea_dup_hyperG(drugs = gess_kidneycells_56$pert[1:30], universe = "Default", type = "KEGG", pvalueCutoff=0.05, pAdjustMethod="BH")
 
-dtnetplot(drugs = drugs(tsea_GO_56), set = "GO:0004708", ont = "MF", desc="MAP kinase kinase activity")
+#dtnetplot(drugs = drugs(tsea_GO_56), set = "GO:0004708", ont = "MF", desc="MAP kinase kinase activity")
 
 ```
 
-```{r warning = FALSE}
-dtnetplot(drugs = drugs(tsea_GO_56), set = "GO:0016712", ont = "MF", desc="oxidoreductase activity, acting on paired donors,")
-
-dtnetplot(drugs = drugs(tsea_GO_56), set = "GO:0005262", ont = "MF", desc="calcium channel activity")
-```
-
-```{r}
-dtnetplot(drugs = drugs(tsea_KEGG_56), set = "hsa04657", desc="IL-17 signaling pathway")
-```
 
 Save TSEA tables
 ```{r }
@@ -230,11 +208,11 @@ tsea_GO_19 <- tsea_dup_hyperG(drugs = gess_kidneycells_19$pert[1:30], universe =
 
 tsea_KEGG_19 <- tsea_dup_hyperG(drugs = gess_kidneycells_19$pert[1:30], universe = "Default", type = "KEGG", pvalueCutoff=0.05, pAdjustMethod="BH")
 
-dtnetplot(drugs = drugs(tsea_GO_19), set = "GO:0051117", ont = "MF", desc="ATPase binding")
+#dtnetplot(drugs = drugs(tsea_GO_19), set = "GO:0051117", ont = "MF", desc="ATPase binding")
 ```
 
 ```{r}
-dtnetplot(drugs = drugs(tsea_GO_19), set = "GO:0051117", ont = "MF", desc="ATPase binding")
+#dtnetplot(drugs = drugs(tsea_GO_19), set = "GO:0051117", ont = "MF", desc="ATPase binding")
 
 ```
 
@@ -292,15 +270,6 @@ tsea_28 <- tsea_dup_hyperG(drugs = unique(targets_in19$pert), universe = "Defaul
 #tsea_28 <- dplyr::filter(result(tsea_28), p.adjust != 0.000000e+00)
 ```
 
-```{r}
-table_list = list("P70" = tsea_p70, 
-                  "P21" = tsea_21, 
-                  "P28" = tsea_28)
-
-comp_fea_res(table_list, rank_stat="p.adjust", Nshow=20)
-
-```
-
 drug set enrichment, precystic drugs whose targets match degs
 ```{r}
 dsea_70 <- dsea_hyperG(drugs = unique(targets_39$pert),  type = "GO", ont="BP", pvalueCutoff=0.05, pAdjustMethod="BH")
@@ -314,11 +283,11 @@ dsea_28 <- dsea_hyperG(drugs = unique(targets_in19$pert), type = "GO", ont="BP",
 ```
 
 ```{r}
-table_list = list("P70" = result(dsea_70), 
-                  "P21" = result(tsea_21), 
-                  "P28" = result(tsea_28))
+#table_list = list("P70" = result(dsea_70), 
+ #                 "P21" = result(tsea_21), 
+  #                "P28" = result(tsea_28))
 
-comp_fea_res(table_list, rank_stat="p.adjust", Nshow=20)
+#comp_fea_res(table_list, rank_stat="p.adjust", Nshow=20)
 
 ```
 drug set enrichment, ss results for each
@@ -345,39 +314,39 @@ comp_fea_res(table_list, rank_stat="p.adjust", Nshow=20)
 Just pulling the cystic-overlapping, targets from precystic drugs that are represented as DEGs in both cystic data sets, and looking at their individual gprofiler results
 ```{r}
 #pull those drugs from previous df
-cystic_overlap_drugs <- dplyr::filter(fda_approved_39, pert %in% unique(cystic_targets$pert))
+#cystic_overlap_drugs <- dplyr::filter(fda_approved_39, pert %in% unique(cystic_targets$pert))
 
-target_enrich <- function(ssres){
+#target_enrich <- function(ssres){
   #res <- vector(mode = "list", length = nrow(ssres))
-  res <- list()
-  for (i in nrow(ssres)) {
-    #m <- rep(i, nrow(ssres))
-    genelist <- stringr::str_split(ssres$t_gn_sym[i], "; ") 
-    fea <- gost(genelist, sources = c("KEGG", "WIKI", "GO:BP"))
-    #tmp <- [,]
-    #res[[i]] <- fea
-    #res <- append(res, list(fea))
-    res[[i]] <- fea
-  }
-  return(res)
-}
+#  res <- list()
+#  for (i in nrow(ssres)) {
+#    #m <- rep(i, nrow(ssres))
+#    genelist <- stringr::str_split(ssres$t_gn_sym[i], "; ") 
+#    fea <- gost(genelist, sources = c("KEGG", "WIKI", "GO:BP"))
+#    #tmp <- [,]
+#    #res[[i]] <- fea
+#    #res <- append(res, list(fea))
+#    res[[i]] <- fea
+#  }
+#  return(res)
+#}
 
-test <- lapply(ssres, function(x)){
-  genelist <- stringr::str_split(x$t_gn_sym[i], "; ")
-}
+#test <- lapply(ssres, function(x)){
+#  genelist <- stringr::str_split(x$t_gn_sym[i], "; ")
+#}
 
 #test <- lapply(ssres$t_gn_sym[1], stringr::str_split("; "))
 #test <- lapply(cystic_overlap_drugs$t_gn_sym[1], stringr::str_split("; "))
 
-fun <- function(x) {
-   stringr::str_split(x$t_gn_sym[1], "; ")
-}
+#fun <- function(x) {
+ #  stringr::str_split(x$t_gn_sym[1], "; ")
+#}
 
-lapply(cystic_overlap_drugs, fun)
+#lapply(cystic_overlap_drugs, fun)
 
-test <- target_enrich(cystic_overlap_drugs)
-test <- stringr::str_split(cystic_overlap_drugs$t_gn_sym[1], "; ") 
-test <- gost(cystic_overlap_drugs)
+#test <- target_enrich(cystic_overlap_drugs)
+#test <- stringr::str_split(cystic_overlap_drugs$t_gn_sym[1], "; ") 
+#test <- gost(cystic_overlap_drugs)
 
 ```
 
@@ -509,9 +478,9 @@ ggsave(here("res", "sigsearch_outputs", "moa_alluvial_wtcs_220819.pdf"), moa_all
 ```
 
 plot
-```{r}
+```{r eval=FALSE, include=FALSE}
 moa_alluvial <- ggplot(data = cystic_targets,
-       aes(axis1 = pert, axis2 = t_gn_sym.x)) +
+       aes(axis1 = Drug, axis2 = Drug_Targets)) +
   geom_alluvium(color = "black", aes(fill = WTCS.x)) + # , colour = trend)) + 
   geom_stratum(width = 3/12, color = "black") + #the border of the stratum
   scale_x_discrete(expand = c(.07, .07)) + 
@@ -731,7 +700,7 @@ moa_alluvial
 
 ```{r }
 
-ggsave(here("res", "sigsearch_outputs", "moa_fda_alluvial.png"), moa_alluvial, width = 12, height = 6, dpi = 600)
+#ggsave(here("res", "sigsearch_outputs", "moa_fda_alluvial.png"), moa_alluvial, width = 12, height = 6, dpi = 600)
 
 ```
 
@@ -831,37 +800,39 @@ bubbleplot(fluox_fea$topcompared)
 
 
 ```{r}
-drugsig <- function(cmp) {
-  res <- getDEGSig(cmp = cmp, cell = "HA1E", Nup = 50, Ndown = 50,  padj = 0.05, refdb = lincs)
-  return(res)
-}
-t <- apply(cystic_overlap_drugs, "pert", drugsig)
+#drugsig <- function(cmp) {
+#  res <- getDEGSig(cmp = cmp, cell = "HA1E", Nup = 50, Ndown = 50,  padj = 0.05, refdb = lincs)
+#  return(res)
+#}
+#t <- apply(cystic_overlap_drugs, "pert", drugsig)
 ```
-
 
 
 Side effect data for drugs
 ```{r}
-onsides_res <- dplyr::left_join(cystic_overlap_drugs, labels, by = c("pert" = "ingredients"))
+onsides_res <- dplyr::left_join(cystic_overlap_drugs, labels, by = c("Drug" = "ingredients"))
 
 onsides_res <- dplyr::left_join(onsides_res, reactions, by = c("latest_xml_id" = "xml_id"))
 
 liver_ade <- grep("liver", onsides_res$concept_name, ignore.case = TRUE)
 liver_ade <- onsides_res[liver_ade,]
 
+hepat_ade <- grep("hepat", onsides_res$concept_name, ignore.case = TRUE)
+hepat_ade <- onsides_res[hepat_ade,]
+
 renal_ade <- grep("renal", onsides_res$concept_name, ignore.case = TRUE)
 renal_ade <- onsides_res[renal_ade,]
 
 renal_liver_ade <- rbind(liver_ade, renal_ade)
 
-prioritized_drugs <- dplyr::setdiff(cystic_overlap_drugs$pert, renal_liver_ade$pert)
-prioritized_drugs <- dplyr::filter(cystic_overlap_drugs, pert %in% prioritized_drugs)
+prioritized_drugs <- dplyr::setdiff(cystic_overlap_drugs$Drug, renal_liver_ade$pert)
+prioritized_drugs <- dplyr::filter(cystic_overlap_drugs, Drug %in% prioritized_drugs)
 ```
 
 ```{r}
 #simple_tbl <- cbind(Drug = cystic_overlap_drugs$pert, Drug_Targets = cystic_overlap_drugs$t_gn_sym, MOA = cystic_overlap_drugs$MOA, Original_Indication = cystic_overlap_drugs$Indication)
 
-write.csv(simple_tbl, file = here("res/sigsearch_outputs", "drugtarget_cysticoverlap_simpletbl.csv"))
+write.csv(prioritized_drugs, file = here("res/sigsearch_outputs", "drugtarget_cysticoverlap_simpletbl.csv"))
 ```
 
 
