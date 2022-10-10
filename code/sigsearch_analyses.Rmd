@@ -280,16 +280,19 @@ dsea_21 <- dsea_hyperG(drugs = unique(targets_in56$pert), type = "GO", ont="BP",
 
 dsea_28 <- dsea_hyperG(drugs = unique(targets_in19$pert), type = "GO", ont="BP", pvalueCutoff=0.05, pAdjustMethod="BH")
 #tsea_28 <- dplyr::filter(result(tsea_28), p.adjust != 0.000000e+00)
+
+
 ```
 
 ```{r}
-#table_list = list("P70" = result(dsea_70), 
- #                 "P21" = result(tsea_21), 
-  #                "P28" = result(tsea_28))
+table_list = list("P70" = result(dsea_70), 
+                  "P21" = result(tsea_21), 
+                  "P28" = result(tsea_28))
 
-#comp_fea_res(table_list, rank_stat="p.adjust", Nshow=20)
+comp_fea_res(table_list, rank_stat="p.adjust", Nshow=20, size = )
 
 ```
+
 drug set enrichment, ss results for each
 ```{r}
 dsea_70 <- dsea_hyperG(drugs = unique(gess_kidneycells_39$pert)[1:10],  type = "GO", ont="BP", pvalueCutoff=0.05, pAdjustMethod="BH")
@@ -740,11 +743,12 @@ indication_plot <- ggplot(indication_freq, aes(x = Var1, y = Freq, fill = Freq))
 indication_plot
 ```
 
-## Targets of Candidate Drugs
+### Targets of Candidate Drugs
+
 
 Alluvial plot of drugs-targets with just FDA approved drugs
 ```{r}
-cystic_targets <- read.csv(file = here("res/sigsearch_outputs", "drug_targets_oe_cysticdegs.csv"))
+cystic_targets <- read.csv(file = here("res/sigsearch_outputs", "drug_targets_oe_cysticdegs.csv"), row.names = 1)
 #target_alluvial <- tidyr::separate_rows(cystic_overlap_drugs, t_gn_sym, sep = "; ")
 #target_tbl <- cbind(pert = cystic_targets$pert, Upregulated_Target = cystic_targets$t_gn_sym.x) %>% as.data.frame()
 ```
@@ -786,7 +790,7 @@ write.csv(cystic_overlap_drugs, file = here("res/sigsearch_outputs", "drug_summa
 
 LINCS data for drugs with target cystic overlap
 ```{r}
-drug_sigs <- getDEGSig(cmp = "fluoxetine", cell = "HA1E", Nup = 50, Ndown = 50,  padj = 0.05, refdb = lincs)
+fluoxetine_sig <- getDEGSig(cmp = "fluoxetine", cell = "HA1E", Nup = 50, Ndown = 50,  padj = 0.05, refdb = lincs)
 
 #function used forenrichment
 fluox_fea <- enrich(drug_sigs$upset, drug_sigs$downset, topreturned = 30)
@@ -798,13 +802,18 @@ bubbleplot(fluox_fea$topcompared)
 
 ```
 
+```{r}
+pravastatin_sig <- getDEGSig(cmp = "pravastatin", cell = "HA1E", Nup = 100, Ndown = 100,  padj = 0.05, refdb = lincs)
+
+#function used forenrichment
+pravastatin_fea <- enrich(pravastatin_sig$upset, pravastatin_sig$downset, topreturned = 30)
+
+```
+
 
 ```{r}
-#drugsig <- function(cmp) {
-#  res <- getDEGSig(cmp = cmp, cell = "HA1E", Nup = 50, Ndown = 50,  padj = 0.05, refdb = lincs)
-#  return(res)
-#}
-#t <- apply(cystic_overlap_drugs, "pert", drugsig)
+bubbleplot(pravastatin_fea$topcompared)
+
 ```
 
 
@@ -841,7 +850,80 @@ write.csv(onsides_res, file = here("res", "sigsearch_outputs", "adr_onsides_prec
  
 ```
 
+##### Enrichment of prioritized targets, DSEA of prioritized drugs
+```{r}
+dsea_prioritzeddrugs <- dsea_hyperG(
+  drugs = unique(cystic_targets$Drug),
+  type = "GO",
+  ont = "MF",
+  pvalueCutoff = 0.05,
+  pAdjustMethod = "BH",
+  qvalueCutoff = 0.2,
+  minGSSize = 10,
+  maxGSSize = 500
+)
 
+```
+ geom_bar( stat = "identity") + 
+    scale_fill_continuous(type = "viridis") + 
+    labs(x = "Number of Genes Matched to Term", y = "Functional Terms") + 
+    theme_minimal(base_size = 8)
+    
+```{r}
+dsea_prioritzeddrugs@result$Description <- stringr::str_wrap(dsea_prioritzeddrugs@result$Description, width = 75)
+
+dseaplot <- ggplot(dplyr::slice_min(dsea_prioritzeddrugs@result, order_by = p.adjust, n = 20), aes(x=Count, y=Description, size = Count, fill = p.adjust)) +
+  #geom_point(alpha=0.7, shape = 21) +
+  geom_bar( stat = "identity") + 
+  scale_fill_viridis_c(begin = 0.3) + 
+#  scale_size(range = c(2, 10), name = "# Genes Matched to Term") + 
+#  scale_fill_distiller(palette = "Purples", direction = 1) + 
+  labs(x = "Drugs Enriched for Term", y = "Functional Enrichment Terms", title = "Drug-Target Enrichment Analysis") + 
+  theme(text = element_text(size = 12), plot.title = element_text(size = 18)) + 
+  theme_minimal(base_size = 13) #+ labs(title = "Drug-Target Enrichment Analysis")
+#  ggsave(filepath, bubbleplot, width = 10, height = 7)
+
+dseaplot
+
+```
+```{r}
+ggsave(filepath, dseaplot, width = 10, height = 7)
+```
+
+drug-target networks for the terms with most drugs
+```{r}
+dtnetplot(drugs = drugs(dsea_prioritzeddrugs), set = "GO:0016712", ont = "MF", 
+          desc="oxidoreductase activity, acting on paired donors, with incorporation or reduction of molecular oxygen...")
+
+```
+
+
+```{r}
+dtnetplot(drugs = drugs(dsea_prioritzeddrugs), set = "GO:1901338", ont = "MF", 
+          desc="catecholamine binding")
+
+```
+
+
+```{r}
+dtnetplot(drugs = drugs(dsea_prioritzeddrugs), set = "GO:0099589", ont = "MF", 
+          desc="serotonin receptor activity")
+
+```
+
+```{r}
+dtnetplot(drugs = drugs(dsea_prioritzeddrugs), set = "GO:0004993", ont = "MF", 
+          desc="G protein-coupled serotonin receptor activity")
+
+```
+
+Signor results for prioritized 28 drug targets
+```{r}
+signor_res <- read.delim(here("data", "signor_prioritizedtargets.tsv"))
+
+
+
+```
 
 #### Versions  
 ```{r}
