@@ -439,14 +439,16 @@ volc_39 <- merge(conv_cts_all, conv_tbl, by.x = "ensembl_gene_id", by.y = "Mouse
 
 Read in drug targets from FDA approved candidates from signature reversion of p70 (from markdown: sigsearch_analyses)
 ```{r}
-targets_39 <- read.csv(here("res", "sigsearch_outputs", "gene_drug_targets_39.csv"), row.names = 1)
+targets_39 <- read.csv(here("res", "sigsearch_outputs", "fda_drug_targets_39.csv"), row.names = 1)
 #targets_39 <- tidyr::separate_rows(targets_39, "t_gn_sym", sep = "; ")
+
+#fda_approved_39_targets
 ```
 
 
 targets in > 1.5 LFC
 ```{r}
-targets_in39 <- merge(targets_39, volc_39, by.x = "t_gn_sym", by.y = "hgnc_symbol")
+targets_in39 <- merge(fda_approved_39_targets, volc_39, by.x = "Target", by.y = "hgnc_symbol")
 
 #only targets that are upregulated > 1.5 LFC
 targets_in39 <- dplyr::filter(targets_in39, log2FoldChange >  1.3)
@@ -673,7 +675,7 @@ volc_56 <- merge(conv_cts_all, conv_tbl_56, by.x = "ensembl_gene_id", by.y = "Mo
 
 targets in > 1.5 LFC
 ```{r}
-targets_in56 <- merge(targets_39, volc_56, by.x = "t_gn_sym", by.y = "hgnc_symbol")
+targets_in56 <- merge(fda_approved_39_targets, volc_56, by.x = "t_gn_sym", by.y = "hgnc_symbol")
 targets_in56 <- dplyr::filter(targets_in56, log2FoldChange >  2.0 )#| log2FoldChange < -2.0)
 #how many total drug targets are upregulated > 2.0 LFC?
 length(unique(targets_in56$t_gn_sym))
@@ -908,9 +910,9 @@ volc_19 <- merge(conv_cts_all, conv_tbl_19, by.x = "ensembl_gene_id", by.y = "Mo
 
 ```
 
-targets in > 1.5 LFC
+targets in > 2 LFC
 ```{r}
-targets_in19 <- merge(targets_39, conv_tbl_19, by.x = "t_gn_sym", by.y = "hgnc_symbol")
+targets_in19 <- merge(fda_approved_39_targets, conv_tbl_19, by.x = "t_gn_sym", by.y = "hgnc_symbol")
 targets_in19 <- dplyr::filter(targets_in19, log2FoldChange > 2.0)# | log2FoldChange < -2.0)
 #how many total drug targets are upregulated > 2.0 LFC?
 length(unique(targets_in19$t_gn_sym))

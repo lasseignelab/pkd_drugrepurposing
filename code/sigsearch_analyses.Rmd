@@ -440,14 +440,6 @@ target_alluvial <- ggplot(data = rhub_launched_39_top_septarget,
 target_alluvial
 ```
 
-Save
-```{r }
-#target-separated, rhub-annotated drug results for 39
-gene_drug_targets <- rhub_launched_39_top_septarget
-
-write.csv(gene_drug_targets, file = here("res", "sigsearch_outputs", "gene_drug_targets_39.csv"))
-```
-
 
 MOA's separated, string wrap labels
 ```{r}
@@ -479,24 +471,6 @@ moa_alluvial
 ggsave(here("res", "sigsearch_outputs", "moa_alluvial_wtcs_220819.pdf"), moa_alluvial, width = 10, height = 15)
 
 ```
-
-plot
-```{r eval=FALSE, include=FALSE}
-moa_alluvial <- ggplot(data = cystic_targets,
-       aes(axis1 = Drug, axis2 = Drug_Targets)) +
-  geom_alluvium(color = "black", aes(fill = WTCS.x)) + # , colour = trend)) + 
-  geom_stratum(width = 3/12, color = "black") + #the border of the stratum
-  scale_x_discrete(expand = c(.07, .07)) + 
-  scale_y_discrete(expand = c(.007, .007)) + 
-  scale_fill_viridis_c(aesthetics = c("colour", "fill")) +
-  geom_text(stat = "stratum", size = 3.5, fontface = "bold", aes(label = after_stat(stratum))) +
-  labs(title = "MOA of Top 30 Launched Drugs") +
-  theme_void() 
-
-
-moa_alluvial
-```
-
 
 
 P70/'39 Already-Launched Drugs
@@ -677,10 +651,12 @@ MOA's separated, string wrap labels
 ```{r}
 fda_approved_39_moa <- tidyr::separate_rows(fda_approved_39, MOA, sep = ",")
 
-fda_approved_39_moa$MOA <- stringr::str_wrap(fda_approved_39_moa$MOA, width = 40)
+fda_approved_39_moa$MOA <- stringr::str_wrap(fda_approved_39_moa$MOA, width = 80)
+#fda_approved_39_moa$MOA <- stringr::str_trunc(fda_approved_39_moa$MOA, width = 80)
+
 
 #rhub_launched_39_top_moasep$Disease.Area <- stringr::str_wrap(rhub_launched_39_top_moasep$Disease.Area, width = 30)
-fda_approved_39_moa_top <- dplyr::slice_min(fda_approved_39_moa, order_by = WTCS, n = 38)
+fda_approved_39_moa_top <- dplyr::slice_min(fda_approved_39_moa, order_by = WTCS, n = 42)
 ```
 
 #####MOA plot
@@ -688,10 +664,9 @@ fda_approved_39_moa_top <- dplyr::slice_min(fda_approved_39_moa, order_by = WTCS
 moa_alluvial <- ggplot(fda_approved_39_moa_top,
        aes(axis1 = pert, axis2 = MOA)) +
   geom_alluvium(color = "black", aes(fill = WTCS)) + # , colour = trend)) + 
-  geom_stratum(width = 3/8, color = "black") + #the border of the stratum
-  scale_x_discrete(expand = c(.07, .07)) + 
-  scale_y_discrete(expand = c(.007, .007)) + 
-  scale_fill_viridis_c(aesthetics = c("colour", "fill")) +
+  geom_stratum(width = 5/16, color = "black") + #the border of the stratum
+  scale_y_discrete(limits = ) + 
+  scale_fill_viridis_c(aesthetics = c("colour", "fill"), direction = -1) +
   geom_text(stat = "stratum", size = 3.25, fontface = "bold", aes(label = after_stat(stratum))) +
   labs(title = "MOA of Top FDA-Approved Drugs") +
   theme_void() 
@@ -701,9 +676,9 @@ moa_alluvial
 ```
 
 
-```{r }
+```{r}
 
-#ggsave(here("res", "sigsearch_outputs", "moa_fda_alluvial.png"), moa_alluvial, width = 12, height = 6, dpi = 600)
+ggsave(here("res", "sigsearch_outputs", "moa_fda_alluvial.png"), moa_alluvial, width = 12, height = 6, dpi = 600)
 
 ```
 
@@ -712,38 +687,77 @@ Frequency of MOA's
 moa_freq <- as.data.frame(table(fda_approved_39_moa$MOA))
 moa_freq <- dplyr::filter(moa_freq, Freq > 2)
 
+moa_freq$Var1 <- str_wrap(moa_freq$Var1, width = 20)
+```
+
+```{r}
 #visualize
-moa_frq <- ggplot(moa_freq, aes(x = Var1, y = Freq, fill = Freq)) +  # Plot with values on top
+moa_frq <- ggplot(moa_freq, aes(x = Var1, y = Freq, fill = Freq)) +  
   geom_bar(stat = "identity") + 
   scale_fill_viridis_c(aesthetics = c("colour", "fill")) +
-  #geom_text(aes(label = Var1), vjust = 0) + 
-  theme(axis.text.x = element_text(angle = 50, vjust = 0.90, hjust=0.75)) + ggtitle(label = "Most Frequent MOA's")
+  theme(axis.text.x = element_text(size = 10, angle = 50, vjust = 0.97, hjust=0.95), axis.title.x = element_blank(), plot.title = element_text(hjust = 0.5)) + ggtitle(label = "Most Frequent Mechanisms of Action") + 
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+panel.background = element_blank(), axis.line = element_line(colour = "black"))
+  
 
 moa_frq
 ```
 
 
 ```{r}
-ggsave(filename = here("res/sigsearch_outputs", "p70_fdaapproved_moa_freq.pdf"), moa_frq)
+ggsave(filename = here("res/sigsearch_outputs", "p70_fdaapproved_moa_freq.pdf"), moa_frq, height = 6, width = 8)
 
 ```
 
-Frequency of MOA's
+Frequency of original disease area indications
 ```{r}
 indication_freq <- as.data.frame(table(fda_approved_39_moa$Disease.Area))
 indication_freq <- dplyr::filter(indication_freq, Freq > 2)
-
+```
+plot
+```{r}
 #visualize
-indication_plot <- ggplot(indication_freq, aes(x = Var1, y = Freq, fill = Freq)) +  # Plot with values on top
+indication_plot <- ggplot(indication_freq, aes(x = Var1, y = Freq, fill = Freq)) +  
   geom_bar(stat = "identity") + 
   scale_fill_viridis_c(aesthetics = c("colour", "fill")) +
-  #geom_text(aes(label = Var1), vjust = 0) + 
-  theme(axis.text.x = element_text(angle = 50, vjust = 0.90, hjust=0.75)) + ggtitle(label = "Most Frequent Disease Area Indications")
+   theme(axis.text.x = element_text(angle = 50, vjust = 0.90, hjust=0.80), axis.title.x = element_blank(), plot.title = element_text(hjust = 0.5)) + ggtitle(label = "Most Frequent Disease Area Indications") + 
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+panel.background = element_blank(), axis.line = element_line(colour = "black"))
+
+moa_frq <- ggplot(moa_freq, aes(x = Var1, y = Freq, fill = Freq)) +  
+  geom_bar(stat = "identity") + 
+  scale_fill_viridis_c(aesthetics = c("colour", "fill")) +
+  theme(axis.text.x = element_text(angle = 50, vjust = 0.97, hjust=0.95), axis.title.x = element_blank(), plot.title = element_text(hjust = 0.5)) + ggtitle(label = "Most Frequent Mechanisms of Action") + 
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+panel.background = element_blank(), axis.line = element_line(colour = "black"))
+  
+
 
 indication_plot
 ```
 
+```{r}
+ggsave(filename =
+         here("res/sigsearch_outputs", "p70_fdaapproved_origindication_freq.pdf"), indication_plot, height = 6, width = 8)
+
+```
+
 ### Targets of Candidate Drugs
+Targets of all FDA-approved drugs
+```{r}
+fda_approved_39_targets <- tidyr::separate_rows(fda_approved_39, t_gn_sym, sep = "; ")
+#remove drugs with empty 'target' field
+fda_approved_39_targets <- dplyr::filter(fda_approved_39_targets, t_gn_sym != "")
+
+```
+
+Save
+```{r }
+#target-separated, rhub-annotated drug results for 39
+#gene_drug_targets <- rhub_launched_39_top_septarget
+
+write.csv(fda_approved_39_targets, file = here("res", "sigsearch_outputs", "fda_drug_targets_39.csv"))
+```
 
 
 Alluvial plot of drugs-targets with just FDA approved drugs
@@ -803,7 +817,7 @@ bubbleplot(fluox_fea$topcompared)
 ```
 
 ```{r}
-pravastatin_sig <- getDEGSig(cmp = "pravastatin", cell = "HA1E", Nup = 100, Ndown = 100,  padj = 0.05, refdb = lincs)
+pravastatin_sig <- getDEGSig(cmp = "pravastatin", cell = "HA1E", Nup = 300, Ndown = 300,  padj = 0.05, refdb = lincs)
 
 #function used forenrichment
 pravastatin_fea <- enrich(pravastatin_sig$upset, pravastatin_sig$downset, topreturned = 30)
@@ -812,10 +826,25 @@ pravastatin_fea <- enrich(pravastatin_sig$upset, pravastatin_sig$downset, topret
 
 
 ```{r}
-bubbleplot(pravastatin_fea$topcompared)
+bubbleplot(pravastatin_fea$topcompared)+ ggtitle(label = "Pravastatin HA1E Perturbation Enrichment")
 
 ```
 
+```{r}
+fenofibrate_sig <- getDEGSig(cmp = "fenofibrate", cell = "HA1E", Nup = 200, Ndown = 200,  padj = 0.05, refdb = lincs)
+
+#function used forenrichment
+fenofibrate_fea <- enrich(fenofibrate_sig$upset, fenofibrate_sig$downset, topreturned = 20)
+bubbleplot(fenofibrate_fea$topcompared) + ggtitle(label = "Fenofibrate HA1E Perturbation Enrichment")
+```
+bromocriptine
+```{r}
+bromocriptine_sig <- getDEGSig(cmp = "bromocriptine", cell = "HA1E", Nup = 200, Ndown = 200,  padj = 0.05, refdb = lincs)
+
+#function used forenrichment
+bromocriptine_fea <- enrich(bromocriptine_sig$upset, bromocriptine_sig$downset, topreturned = 20)
+bubbleplot(bromocriptine_fea$topcompared) + ggtitle(label = "Bromocriptine HA1E Perturbation Enrichment")
+```
 
 Side effect data for drugs
 ```{r}
@@ -863,43 +892,97 @@ dsea_prioritzeddrugs <- dsea_hyperG(
   maxGSSize = 500
 )
 
-```
- geom_bar( stat = "identity") + 
-    scale_fill_continuous(type = "viridis") + 
-    labs(x = "Number of Genes Matched to Term", y = "Functional Terms") + 
-    theme_minimal(base_size = 8)
-    
-```{r}
-dsea_prioritzeddrugs@result$Description <- stringr::str_wrap(dsea_prioritzeddrugs@result$Description, width = 75)
 
-dseaplot <- ggplot(dplyr::slice_min(dsea_prioritzeddrugs@result, order_by = p.adjust, n = 20), aes(x=Count, y=Description, size = Count, fill = p.adjust)) +
-  #geom_point(alpha=0.7, shape = 21) +
+#dsea_pravastatin <- dsea_hyperG(
+#  drugs = "pravastatin",
+#  type = "GO",
+#  ont = "MF",
+#  pvalueCutoff = 0.05,
+#  pAdjustMethod = "BH",
+#  qvalueCutoff = 0.2,
+#  minGSSize = 10,
+#  maxGSSize = 500
+#)
+#pravastatin_plot <- dsea_barplot(dsea_pravastatin@result, "Pravastatin Target Enrichment")
+#pravastatin_plot
+
+```
+
+
+```{r}
+dsea_prioritzeddrugs <- dsea_prioritzeddrugs@result
+write.csv(dsea_prioritzeddrugs, here("res/sigsearch_outputs", "dsea_cystictargetdrugs_pathways.csv"))
+```
+
+DSEA barplot function
+```{r}
+dsea_barplot <- function(dsea, titlelabel){
+  dsea$Description <- stringr::str_trunc(dsea$Description, width = 75)
+
+dseaplot <- ggplot(dplyr::slice_min(dsea, order_by = p.adjust, n = 20), aes(x=Count, y=Description, fill = p.adjust)) +
   geom_bar( stat = "identity") + 
-  scale_fill_viridis_c(begin = 0.3) + 
-#  scale_size(range = c(2, 10), name = "# Genes Matched to Term") + 
-#  scale_fill_distiller(palette = "Purples", direction = 1) + 
-  labs(x = "Drugs Enriched for Term", y = "Functional Enrichment Terms", title = "Drug-Target Enrichment Analysis") + 
+  scale_fill_viridis_c(begin = 0.35, end = 0.95) + 
+  labs(x = "Drugs Enriched for Term", y = "Functional Enrichment Terms", title = titlelabel) + 
   theme(text = element_text(size = 12), plot.title = element_text(size = 18)) + 
-  theme_minimal(base_size = 13) #+ labs(title = "Drug-Target Enrichment Analysis")
-#  ggsave(filepath, bubbleplot, width = 10, height = 7)
+  theme_minimal(base_size = 14)
+return(dseaplot)
+}
+
+
+
+```
+
+
+```{r}
+#dsea_prioritzeddrugs$Description <- stringr::str_wrap(dsea_prioritzeddrugs$Description, width = 75)
+dsea_prioritzeddrugs$Description <- stringr::str_trunc(dsea_prioritzeddrugs$Description, width = 75)
+
+dseaplot <- ggplot(dplyr::slice_min(dsea_prioritzeddrugs, order_by = p.adjust, n = 20), aes(x=Count, y=Description, fill = p.adjust)) +
+  geom_bar( stat = "identity") + 
+  scale_fill_viridis_c(begin = 0.35, end = 0.95) + 
+  labs(x = "Drugs Enriched for Term", y = "Functional Enrichment Terms", title = "Drug Target Enrichment Analysis") + 
+  theme(text = element_text(size = 12), plot.title = element_text(size = 18)) + 
+  theme_minimal(base_size = 14)
 
 dseaplot
 
 ```
+
+
 ```{r}
-ggsave(filepath, dseaplot, width = 10, height = 7)
+#dsea_prioritzeddrugs_bp <- dsea_prioritzeddrugs_bp$
+
+#dsea_prioritzeddrugs_bp$Description <- stringr::str_wrap(dsea_prioritzeddrugs_bp$Description, width = 75)
+
+#dseaplot_bp <- ggplot(dplyr::slice_min(dsea_prioritzeddrugs_bp, order_by = p.adjust, n = 20), aes(x=Count, y=Description, fill = p.adjust)) +
+  #geom_point(alpha=0.7, shape = 21) +
+#  geom_bar( stat = "identity") + 
+#  scale_fill_viridis_c(begin = 0.35, end = 0.95) + 
+#  labs(x = "Drugs Enriched for Term", y = "Functional Enrichment Terms", title = "Drug Target Enrichment Analysis") + 
+#  theme(text = element_text(size = 12), plot.title = element_text(size = 18)) + 
+#  theme_minimal(base_size = 13) #+ labs(title = "Drug-Target Enrichment Analysis")
+
+#dseaplot_bp
+
 ```
 
-drug-target networks for the terms with most drugs
 ```{r}
-dtnetplot(drugs = drugs(dsea_prioritzeddrugs), set = "GO:0016712", ont = "MF", 
-          desc="oxidoreductase activity, acting on paired donors, with incorporation or reduction of molecular oxygen...")
+
+ggsave(here("res/sigsearch_outputs", "dsea_cystictargetdrugs.png"), dseaplot, width = 10, height = 8)
+
+```
+
+##### Networks: drug-target for the terms with most drugs
+oxidoreductase activity, acting on CH or CH2 groups
+```{r}
+dtnetplot(drugs = unique(cystic_targets$Drug), set = "GO:0033695", ont = "MF", 
+          desc="oxidoreductase activity, acting on CH or CH2 groups...")
 
 ```
 
 
 ```{r}
-dtnetplot(drugs = drugs(dsea_prioritzeddrugs), set = "GO:1901338", ont = "MF", 
+dtnetplot(drugs = unique(cystic_targets$Drug), set = "GO:1901338", ont = "MF", 
           desc="catecholamine binding")
 
 ```
@@ -911,17 +994,35 @@ dtnetplot(drugs = drugs(dsea_prioritzeddrugs), set = "GO:0099589", ont = "MF",
 
 ```
 
+
 ```{r}
 dtnetplot(drugs = drugs(dsea_prioritzeddrugs), set = "GO:0004993", ont = "MF", 
           desc="G protein-coupled serotonin receptor activity")
 
 ```
 
+
+histamine receptor activity
+```{r}
+dtnetplot(drugs = unique(cystic_targets$Drug), set = "GO:0004969", ont = "MF", 
+          desc="histamine receptor activity")
+
+```
+
+
+
+calcium-dependent protein binding
+```{r}
+visExport
+
+dtnetplot(drugs = unique(cystic_targets$Drug), set = "GO:0048306", ont = "MF", 
+          desc="calcium-dependent protein binding")
+
+```
+
 Signor results for prioritized 28 drug targets
 ```{r}
 signor_res <- read.delim(here("data", "signor_prioritizedtargets.tsv"))
-
-
 
 ```
 
