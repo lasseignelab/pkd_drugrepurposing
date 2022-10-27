@@ -275,8 +275,8 @@ musdegs_39_DOWN <- downlfc(dsq2_39, lfcutoff = -1.1)
 
 Total genes above threshold before mapping from mouse ensembl to human symbol/entrez
 ```{r}
-dim(musdegs_39_UP) #115 at lfc > 2 #172 at 1.5 #206 at 1.3, 159 lfcshrink
-dim(musdegs_39_DOWN) #44 at lfc < -2 #71 at -1.5 #89 at 1.3, 43 lfcshrink
+dim(musdegs_39_UP) #159 at lfc > 1.3 , 194 at lfc > 1.1
+dim(musdegs_39_DOWN) #43 at lfc < -1.3  , 63 at lfc <   63
 ```
 
 ```{r }
@@ -310,8 +310,8 @@ hom_degs_UP <- lincsGenes(musdegs_39_UP, "up")
 hom_degs_DOWN <-  lincsGenes(musdegs_39_DOWN, "down")
 
 #should be 100 or less
-dim(hom_degs_UP) #55 at lfc >2 #89 at lfc > 1.5 #100 at 1.3
-dim(hom_degs_DOWN) #15 at lfc <-2 #27 at lfc < -1.5 #37 at 1.3
+dim(hom_degs_UP) #84 at lfc > 1.3
+dim(hom_degs_DOWN) #24 at lfc <-1.3
 ```
 
 
@@ -439,7 +439,7 @@ volc_39 <- merge(conv_cts_all, conv_tbl, by.x = "ensembl_gene_id", by.y = "Mouse
 
 Read in drug targets from FDA approved candidates from signature reversion of p70 (from markdown: sigsearch_analyses)
 ```{r}
-targets_39 <- read.csv(here("res", "sigsearch_outputs", "fda_drug_targets_39.csv"), row.names = 1)
+fda_approved_39_targets <- read.csv(here("res", "sigsearch_outputs", "fda_drug_targets_39.csv"), row.names = 1)
 #targets_39 <- tidyr::separate_rows(targets_39, "t_gn_sym", sep = "; ")
 
 #fda_approved_39_targets
@@ -448,7 +448,7 @@ targets_39 <- read.csv(here("res", "sigsearch_outputs", "fda_drug_targets_39.csv
 
 targets in > 1.5 LFC
 ```{r}
-targets_in39 <- merge(fda_approved_39_targets, volc_39, by.x = "Target", by.y = "hgnc_symbol")
+targets_in39 <- merge(fda_approved_39_targets, volc_39, by.x = "t_gn_sym", by.y = "hgnc_symbol")
 
 #only targets that are upregulated > 1.5 LFC
 targets_in39 <- dplyr::filter(targets_in39, log2FoldChange >  1.3)
@@ -460,7 +460,7 @@ unique(targets_in39$pert)
 
 
 ```{r}
-volcano_39 <- EnhancedVolcano(volc_39, lab = volc_39$hgnc_symbol, x = 'log2FoldChange', y = 'padj', selectLab = unique(targets_in39$t_gn_sym), pCutoff = 0.05, FCcutoff = 1.3, pointSize = 3.0, labSize = 4.0, col = c("#440154", "#21918c", "#fde725", "#5ec962"), title = "Drug Targets Found in P70 Pre-Cystic DEGs", labFace = 'bold', boxedLabels = TRUE,drawConnectors = TRUE,widthConnectors = 0.5,colConnectors = 'black', max.overlaps = 25)
+volcano_39 <- EnhancedVolcano(volc_39, lab = volc_39$hgnc_symbol, x = 'log2FoldChange', y = 'padj', selectLab = unique(targets_in39$t_gn_sym), pCutoff = 0.05, FCcutoff = 1.3, pointSize = 3.0, labSize = 4.0, col = c("#440154", "#21918c", "#fde725", "#5ec962"), title = "P70 Pre-Cystic Drug Targets Found in P70 \nPre-Cystic DEGs", labFace = 'bold', boxedLabels = TRUE,drawConnectors = TRUE,widthConnectors = 0.5,colConnectors = 'black', max.overlaps = 25)
 #"#440154", "#21918c", "#5ec962", "#fde725"
 #"#fde725", "#5ec962","#21918c", "#440154"
 volcano_39

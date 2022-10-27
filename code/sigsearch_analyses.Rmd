@@ -27,6 +27,7 @@ library(ggalluvial)
 library(signatureSearch)
 library(ExperimentHub); library(rhdf5)
 library(here)
+library(dplyr)
 ```
 
 Pull LINCS data from Experiment Hub
@@ -82,7 +83,7 @@ gess_res_vis(gess_kidneycells_39, drugs = unique(gess_kidneycells_39$pert)[1:20]
 
 
 ```{r }
-write.csv(gess_kidneycells_39, file = here("res", "sigsearch_outputs", "gess_kidneycells_39_220819.csv"))
+#write.csv(gess_kidneycells_39, file = here("res", "sigsearch_outputs", "gess_kidneycells_39_220819.csv"))
  
 ```
 
@@ -108,7 +109,7 @@ gess_res_vis(gess_kidneycells_56, drugs = unique(gess_kidneycells_56$pert)[1:20]
 
 Save gess and filtered gess result
 ```{r }
-write.csv(gess_kidneycells_56, file = here("res", "sigsearch_outputs", "gess_kidneycells_56_220421.csv"))
+#write.csv(gess_kidneycells_56, file = here("res", "sigsearch_outputs", "gess_kidneycells_56_220421.csv"))
 
 ```
 
@@ -134,7 +135,7 @@ gess_res_vis(gess_kidneycells_19, drugs = unique(gess_kidneycells_19$pert)[1:20]
 
 Save gess and filtered gess result
 ```{r }
-write.csv(gess_kidneycells_19, here("res", "sigsearch_outputs", "gess_kidneycells_19_220421.csv"))
+#write.csv(gess_kidneycells_19, here("res", "sigsearch_outputs", "gess_kidneycells_19_220421.csv"))
 ```
 
 ## Compare datasets  
@@ -651,26 +652,29 @@ MOA's separated, string wrap labels
 ```{r}
 fda_approved_39_moa <- tidyr::separate_rows(fda_approved_39, MOA, sep = ",")
 
-fda_approved_39_moa$MOA <- stringr::str_wrap(fda_approved_39_moa$MOA, width = 80)
-#fda_approved_39_moa$MOA <- stringr::str_trunc(fda_approved_39_moa$MOA, width = 80)
+#fda_approved_39_moa$MOA <- stringr::str_wrap(fda_approved_39_moa$MOA, width = 80)
+#fda_approved_39_moa$MOA <- stringr::str_trunc(fda_approved_39_moa$MOA, width = 55)
 
 
-#rhub_launched_39_top_moasep$Disease.Area <- stringr::str_wrap(rhub_launched_39_top_moasep$Disease.Area, width = 30)
-fda_approved_39_moa_top <- dplyr::slice_min(fda_approved_39_moa, order_by = WTCS, n = 42)
+fda_approved_39_moa_top <- fda_approved_39_moa %>% dplyr::slice_min(order_by = NCS, n = 42) %>% mutate(pert = forcats::fct_reorder(pert, NCS))
+
+fda_approved_39_moa_top$MOA <- stringr::str_trunc(fda_approved_39_moa_top$MOA, width = 38)
 ```
+
 
 #####MOA plot
 ```{r}
 moa_alluvial <- ggplot(fda_approved_39_moa_top,
        aes(axis1 = pert, axis2 = MOA)) +
-  geom_alluvium(color = "black", aes(fill = WTCS)) + # , colour = trend)) + 
+  geom_alluvium(color = "black", aes(fill = NCS)) + # , colour = trend)) + 
   geom_stratum(width = 5/16, color = "black") + #the border of the stratum
   scale_y_discrete(limits = ) + 
   scale_fill_viridis_c(aesthetics = c("colour", "fill"), direction = -1) +
   geom_text(stat = "stratum", size = 3.25, fontface = "bold", aes(label = after_stat(stratum))) +
-  labs(title = "MOA of Top FDA-Approved Drugs") +
-  theme_void() 
-
+  #labs(title = "MOA of Top FDA-Approved Drugs")  + 
+  theme(axis.title.x = element_blank(), plot.title = element_text(face = "bold", hjust = 0.5), axis.text.x = element_blank(), axis.text.y = element_blank(), axis.ticks = element_blank()) + ggtitle(label = "MOA of Top FDA-Approved Drugs") + 
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+panel.background = element_blank() )
 
 moa_alluvial
 ```
@@ -678,26 +682,43 @@ moa_alluvial
 
 ```{r}
 
-ggsave(here("res", "sigsearch_outputs", "moa_fda_alluvial.png"), moa_alluvial, width = 12, height = 6, dpi = 600)
+ggsave(here("res", "sigsearch_outputs", "moa_fda_alluvial.png"), moa_alluvial, width = 12, height = 7, dpi = 600)
 
 ```
 
 Frequency of MOA's
 ```{r}
 moa_freq <- as.data.frame(table(fda_approved_39_moa$MOA))
-moa_freq <- dplyr::filter(moa_freq, Freq > 2)
+other <- moa_freq$Var1[moa_freq$Freq==1]
+#other <- cbind(Var1 = as.character(other), Freq = rep("other", length(other)))
+multi_moa <- dplyr::filter(moa_freq, Freq > 1)
+multi_moa$Var1 <- as.character(multi_moa$Var1)
+moa_freqs <- rbind(multi_moa, c(Var1 = "other", Freq = length(other)))
+moa_freqs$Freq <- as.numeric(moa_freqs$Freq)
+#moa_freq$Var1 <- stringr::str_replace(moa_freq$Var1 %in% other == "other")
 
-moa_freq$Var1 <- str_wrap(moa_freq$Var1, width = 20)
+#moa_freq <- dplyr::filter(moa_freq, Freq > 1)
+
+
 ```
 
+
 ```{r}
+# Stacked + percent
+moa_freqs %>% mutate(MOA = forcats::fct_reorder(Var1, Freq)) %>%
+ggplot(aes(fill=MOA, y=Freq, x="MOA")) + 
+    geom_bar(position="fill", stat="identity") + 
+  scale_fill_viridis_d(aesthetics = c("colour", "fill")) 
+
 #visualize
-moa_frq <- ggplot(moa_freq, aes(x = Var1, y = Freq, fill = Freq)) +  
+moa_freq <- dplyr::filter(moa_freq, Freq > 2)
+moa_freq$Var1 <- str_wrap(moa_freq$Var1, width = 25)
+moa_frq <- moa_freq %>% mutate(MOA = forcats::fct_reorder(Var1, desc(Freq))) %>% ggplot(aes(x = MOA, y = Freq, fill = Freq)) +  
   geom_bar(stat = "identity") + 
   scale_fill_viridis_c(aesthetics = c("colour", "fill")) +
-  theme(axis.text.x = element_text(size = 10, angle = 50, vjust = 0.97, hjust=0.95), axis.title.x = element_blank(), plot.title = element_text(hjust = 0.5)) + ggtitle(label = "Most Frequent Mechanisms of Action") + 
-  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
-panel.background = element_blank(), axis.line = element_line(colour = "black"))
+  theme(axis.text.x = element_text(size = 13.5, face = "bold", angle = 50, vjust = 0.97, hjust=0.95), axis.title.x = element_blank(), plot.title = element_text(size = 14, face = "bold", hjust = 0.5)) + ggtitle(label = "Most Frequent Mechanisms of Action") + 
+  theme(plot.margin = unit(c(.2,.2,.2,1.5), "cm"), panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+panel.background = element_blank(), axis.line = element_line(colour = "black")) 
   
 
 moa_frq
@@ -705,7 +726,7 @@ moa_frq
 
 
 ```{r}
-ggsave(filename = here("res/sigsearch_outputs", "p70_fdaapproved_moa_freq.pdf"), moa_frq, height = 6, width = 8)
+ggsave(filename = here("res/sigsearch_outputs", "p70_fdaapproved_moa_freq.pdf"), moa_frq, height = 5.5, width = 9.5)
 
 ```
 
@@ -714,23 +735,17 @@ Frequency of original disease area indications
 indication_freq <- as.data.frame(table(fda_approved_39_moa$Disease.Area))
 indication_freq <- dplyr::filter(indication_freq, Freq > 2)
 ```
+
+
 plot
 ```{r}
 #visualize
-indication_plot <- ggplot(indication_freq, aes(x = Var1, y = Freq, fill = Freq)) +  
+indication_plot <- indication_freq %>% mutate(indication = forcats::fct_reorder(Var1, desc(Freq))) %>% ggplot(aes(x = indication, y = Freq, fill = Freq)) +  
   geom_bar(stat = "identity") + 
   scale_fill_viridis_c(aesthetics = c("colour", "fill")) +
-   theme(axis.text.x = element_text(angle = 50, vjust = 0.90, hjust=0.80), axis.title.x = element_blank(), plot.title = element_text(hjust = 0.5)) + ggtitle(label = "Most Frequent Disease Area Indications") + 
-  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+   theme(axis.text.x = element_text(size = 13.5, face = "bold", angle = 50, vjust = 0.92, hjust=0.85), axis.title.x = element_blank(), plot.title = element_text(size = 14, face = "bold", hjust = 0.5)) + ggtitle(label = "Most Frequent Disease Area Indications") + 
+  theme(plot.margin = unit(c(.2,.2,.2,1), "cm"), panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
 panel.background = element_blank(), axis.line = element_line(colour = "black"))
-
-moa_frq <- ggplot(moa_freq, aes(x = Var1, y = Freq, fill = Freq)) +  
-  geom_bar(stat = "identity") + 
-  scale_fill_viridis_c(aesthetics = c("colour", "fill")) +
-  theme(axis.text.x = element_text(angle = 50, vjust = 0.97, hjust=0.95), axis.title.x = element_blank(), plot.title = element_text(hjust = 0.5)) + ggtitle(label = "Most Frequent Mechanisms of Action") + 
-  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
-panel.background = element_blank(), axis.line = element_line(colour = "black"))
-  
 
 
 indication_plot
@@ -738,7 +753,7 @@ indication_plot
 
 ```{r}
 ggsave(filename =
-         here("res/sigsearch_outputs", "p70_fdaapproved_origindication_freq.pdf"), indication_plot, height = 6, width = 8)
+         here("res/sigsearch_outputs", "p70_fdaapproved_origindication_freq.pdf"), indication_plot, height = 5.5, width = 8)
 
 ```
 
@@ -767,18 +782,35 @@ cystic_targets <- read.csv(file = here("res/sigsearch_outputs", "drug_targets_oe
 #target_tbl <- cbind(pert = cystic_targets$pert, Upregulated_Target = cystic_targets$t_gn_sym.x) %>% as.data.frame()
 ```
 
+moa_alluvial <- ggplot(fda_approved_39_moa_top,
+       aes(axis1 = pert, axis2 = MOA)) +
+  geom_alluvium(color = "black", aes(fill = NCS)) + # , colour = trend)) + 
+  geom_stratum(width = 5/16, color = "black") + #the border of the stratum
+  scale_y_discrete(limits = ) + 
+  scale_fill_viridis_c(aesthetics = c("colour", "fill"), direction = -1) +
+  geom_text(stat = "stratum", size = 3.25, fontface = "bold", aes(label = after_stat(stratum))) +
+  #labs(title = "MOA of Top FDA-Approved Drugs")  + 
+  theme(axis.title.x = element_blank(), plot.title = element_text(face = "bold", hjust = 0.5), axis.text.x = element_blank(), axis.text.y = element_blank(), axis.ticks = element_blank()) + ggtitle(label = "MOA of Top FDA-Approved Drugs") + 
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+panel.background = element_blank() )
+
 plot
 ```{r}
-target_alluvial <- ggplot(data = cystic_targets,
-       aes(axis1 = Drug, axis2 = Drug_Targets)) +
+#number of targets per drug
+t <- table(cystic_targets$Drug_Targets) %>% as.data.frame()
+t$Var1 <- as.character(t$Var1)
+
+#cystic_targets$Drug <- as.factor(cystic_targets$Drug)
+cystic_targets <- dplyr::full_join(cystic_targets, t, by= c("Drug_Targets" = "Var1"))
+
+target_alluvial <- cystic_targets %>% mutate(Drug_Targets = forcats::fct_reorder(Drug_Targets, desc(Freq))) %>%  ggplot(aes(axis1 = Drug, axis2 = Drug_Targets)) +
   geom_alluvium(color = "black", aes(fill = Drug_Targets), show.legend=FALSE) + # , colour = trend)) + 
   geom_stratum(width = 3/12, color = "black") + #the border of the stratum
-  scale_x_discrete(expand = c(.07, .07)) + 
-  scale_y_discrete(expand = c(.007, .007)) + 
   scale_fill_viridis_d(aesthetics = c("colour", "fill")) +
-  geom_text(stat = "stratum", size = 3, fontface = "bold", aes(label = after_stat(stratum))) +
-  labs(title = "Drug Targets in P21 and P28 Cystic DEGs") +
-  theme_void() 
+  geom_text(stat = "stratum", size = 5, fontface = "bold", aes(label = after_stat(stratum))) +
+  theme(axis.title.x = element_blank(), plot.title = element_text(size = 24, face = "bold", hjust = 0.5), axis.text.x = element_blank(), axis.text.y = element_blank(), axis.ticks = element_blank()) + ggtitle(label = "Drug Targets in P21 and P28 Cystic DEGs") + 
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+panel.background = element_blank() )
 
 
 target_alluvial
@@ -786,7 +818,7 @@ target_alluvial
 
 
 ```{r}
-ggsave(here("res/sigsearch_outputs", "targets_cysticupregulated_alluvial.pdf"), target_alluvial, width = 7.5, height = 9)
+ggsave(here("res/sigsearch_outputs", "targets_cysticupregulated_alluvial.pdf"), target_alluvial, width = 8, height = 22)
 
 ```
 
@@ -892,20 +924,6 @@ dsea_prioritzeddrugs <- dsea_hyperG(
   maxGSSize = 500
 )
 
-
-#dsea_pravastatin <- dsea_hyperG(
-#  drugs = "pravastatin",
-#  type = "GO",
-#  ont = "MF",
-#  pvalueCutoff = 0.05,
-#  pAdjustMethod = "BH",
-#  qvalueCutoff = 0.2,
-#  minGSSize = 10,
-#  maxGSSize = 500
-#)
-#pravastatin_plot <- dsea_barplot(dsea_pravastatin@result, "Pravastatin Target Enrichment")
-#pravastatin_plot
-
 ```
 
 
@@ -932,17 +950,23 @@ return(dseaplot)
 
 ```
 
+moa_freq$Var1 <- str_wrap(moa_freq$Var1, width = 25)
+moa_frq <- moa_freq %>% mutate(MOA = forcats::fct_reorder(Var1, desc(Freq))) %>% ggplot(aes(x = MOA, y = Freq, fill = Freq)) +  
+  geom_bar(stat = "identity") + 
+  scale_fill_viridis_c(aesthetics = c("colour", "fill")) +
+  theme(axis.text.x = element_text(size = 13.5, face = "bold", angle = 50, vjust = 0.97, hjust=0.95), axis.title.x = element_blank(), plot.title = element_text(size = 14, face = "bold", hjust = 0.5)) + ggtitle(label = "Most Frequent Mechanisms of Action") + 
+  theme(plot.margin = unit(c(.2,.2,.2,1.5), "cm"), panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+panel.background = element_blank(), axis.line = element_line(colour = "black")) 
+  
 
 ```{r}
-#dsea_prioritzeddrugs$Description <- stringr::str_wrap(dsea_prioritzeddrugs$Description, width = 75)
-dsea_prioritzeddrugs$Description <- stringr::str_trunc(dsea_prioritzeddrugs$Description, width = 75)
-
-dseaplot <- ggplot(dplyr::slice_min(dsea_prioritzeddrugs, order_by = p.adjust, n = 20), aes(x=Count, y=Description, fill = p.adjust)) +
+dsea_prioritzeddrugs$Description <- stringr::str_trunc(dsea_prioritzeddrugs$Description, width = 65)
+dsea_plot <- dsea_prioritzeddrugs %>% dplyr::slice_min(order_by = p.adjust, n = desc(20)) %>% dplyr::mutate(Description = forcats::fct_reorder(Description, Count)) %>%  ggplot( aes(x=Count, y=Description, fill = p.adjust)) +
   geom_bar( stat = "identity") + 
   scale_fill_viridis_c(begin = 0.35, end = 0.95) + 
   labs(x = "Drugs Enriched for Term", y = "Functional Enrichment Terms", title = "Drug Target Enrichment Analysis") + 
-  theme(text = element_text(size = 12), plot.title = element_text(size = 18)) + 
-  theme_minimal(base_size = 14)
+  theme(text = element_text(size = 14, face = "bold"), plot.title = element_text(size = 18)) + 
+  theme_minimal(base_size = 16)
 
 dseaplot
 
