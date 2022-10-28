@@ -961,38 +961,23 @@ panel.background = element_blank(), axis.line = element_line(colour = "black"))
 
 ```{r}
 dsea_prioritzeddrugs$Description <- stringr::str_trunc(dsea_prioritzeddrugs$Description, width = 65)
-dsea_plot <- dsea_prioritzeddrugs %>% dplyr::slice_min(order_by = p.adjust, n = desc(20)) %>% dplyr::mutate(Description = forcats::fct_reorder(Description, Count)) %>%  ggplot( aes(x=Count, y=Description, fill = p.adjust)) +
+dsea_prioritzeddrugs$Count <- as.numeric(dsea_prioritzeddrugs$Count)
+dsea_plot <- dsea_prioritzeddrugs %>% dplyr::slice_min(order_by = p.adjust, n = 20) %>% dplyr::mutate(Description = forcats::fct_reorder(Description, (Count))) %>% ggplot( aes(x=Count, y=Description, fill = p.adjust)) +
   geom_bar( stat = "identity") + 
   scale_fill_viridis_c(begin = 0.35, end = 0.95) + 
-  labs(x = "Drugs Enriched for Term", y = "Functional Enrichment Terms", title = "Drug Target Enrichment Analysis") + 
-  theme(text = element_text(size = 14, face = "bold"), plot.title = element_text(size = 18)) + 
-  theme_minimal(base_size = 16)
+  labs(x = "Drugs Enriched for Term", y = "Functional Enrichment Terms") + 
+  theme(axis.text.x = element_text(size = 12.5, face = "bold"), axis.text.y = element_text(size = 12.5, face = "bold"), axis.title.x = element_text(size = 14, face = "bold"),  axis.title.y = element_text(size = 14, face = "bold"),plot.title = element_text(size = 16, face = "bold", hjust = 0.5)) + ggtitle(label = "Drug Target Enrichment Analysis") 
+#  theme(text = element_text(size = 14, face = "bold"), plot.title = element_text(size = 18)) + 
+#  theme_minimal(base_size = 16)
 
-dseaplot
+dsea_plot
 
 ```
 
 
 ```{r}
-#dsea_prioritzeddrugs_bp <- dsea_prioritzeddrugs_bp$
 
-#dsea_prioritzeddrugs_bp$Description <- stringr::str_wrap(dsea_prioritzeddrugs_bp$Description, width = 75)
-
-#dseaplot_bp <- ggplot(dplyr::slice_min(dsea_prioritzeddrugs_bp, order_by = p.adjust, n = 20), aes(x=Count, y=Description, fill = p.adjust)) +
-  #geom_point(alpha=0.7, shape = 21) +
-#  geom_bar( stat = "identity") + 
-#  scale_fill_viridis_c(begin = 0.35, end = 0.95) + 
-#  labs(x = "Drugs Enriched for Term", y = "Functional Enrichment Terms", title = "Drug Target Enrichment Analysis") + 
-#  theme(text = element_text(size = 12), plot.title = element_text(size = 18)) + 
-#  theme_minimal(base_size = 13) #+ labs(title = "Drug-Target Enrichment Analysis")
-
-#dseaplot_bp
-
-```
-
-```{r}
-
-ggsave(here("res/sigsearch_outputs", "dsea_cystictargetdrugs.png"), dseaplot, width = 10, height = 8)
+ggsave(here("res/sigsearch_outputs", "dsea_cystictargetdrugs.png"), dsea_plot, width = 10, height = 8)
 
 ```
 

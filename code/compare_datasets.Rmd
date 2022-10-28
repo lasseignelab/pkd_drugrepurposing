@@ -100,7 +100,7 @@ bubbleplot, up and down for x axis and terms on y axis
 bubbleplot <- function(combined_fea){
   bubbleplot <- ggplot(combined_fea, aes(x=direction, y=term_name, size = recall, fill = p_value)) +
   geom_point(alpha=0.7, shape = 21) +
-  scale_size(range = c(2, 10), name = "# Genes Matched to Term") + 
+  scale_size(range = c(2, 10), name = "Recall") + 
   scale_fill_distiller(palette = "Purples", direction = 1) + 
   labs(x = "Differential Expression Direction", y = "Functional Enrichment Terms") + 
   theme_minimal(base_size = 8) #+ labs(title = "Top Enriched Terms")
@@ -258,15 +258,16 @@ bubbleplot(fea_39$topcompared)
 ```
 
 ```{r}
-fea_39$topcompared$term_name <- stringr::str_wrap(fea_39$topcompared$term_name, width = 100)
+fea_39$topcompared$term_name <- stringr::str_wrap(fea_39$topcompared$term_name, width = 70)
 
-bp_39 <- bubbleplot(fea_39$topcompared) + labs(title = "Top Enriched Terms for Precystic P70 Signature") + theme(text = element_text(size = 12), plot.title = element_text(size = 18))
+bp_39 <- bubbleplot(fea_39$topcompared) + labs(title = "Top Enriched Terms for \nPrecystic P70 Signature") + theme(text = element_text(size = 14), plot.title = element_text(size = 18))
 
 bp_39
 ```
 
 ```{r}
-ggsave(bp_39, filename = here("res", "fea", "bubbleplot_signature_p70.pdf"), height = 7, width = 12)
+ggsave(bp_39, filename = here("res", "fea", "bubbleplot_signature_p70.pdf"), height = 8
+, width = 8)
 
 ```
 
@@ -283,14 +284,15 @@ bp_56
 ```
 
 ```{r}
+fea_56$topcompared$term_name <- stringr::str_wrap(fea_56$topcompared$term_name, width = 70)
 
-bp_56 <- bubbleplot(fea_56$topcompared) + labs(title = "Top Enriched Terms for Cystic P21 Signature") + theme(text = element_text(size = 12), plot.title = element_text(size = 18))
+bp_56 <- bubbleplot(fea_56$topcompared) + labs(title = "Top Enriched Terms for \nCystic P21 Signature") + theme(text = element_text(size = 14), plot.title = element_text(size = 18))
 
 bp_56
 ```
 
 ```{r}
-ggsave(bp_56, filename = here("res", "fea", "bubbleplot_signature_p21.pdf"), height = 7, width = 12)
+ggsave(bp_56, filename = here("res", "fea", "bubbleplot_signature_p21.pdf"), height = 8, width = 8)
 
 ```
 
@@ -309,19 +311,22 @@ bar19
 
 bubbleplot(fea_19$topcompared)
 ```
+fea_39$topcompared$term_name <- stringr::str_wrap(fea_39$topcompared$term_name, width = 70)
+
+bp_39 <- bubbleplot(fea_39$topcompared) + labs(title = "Top Enriched Terms for \nPrecystic P70 Signature") + theme(text = element_text(size = 14), plot.title = element_text(size = 18))
 
 
 ```{r}
-fea_19$topcompared$term_name <- stringr::str_wrap(fea_19$topcompared$term_name, width = 80)
+fea_19$topcompared$term_name <- stringr::str_wrap(fea_19$topcompared$term_name, width = 70)
 
-bp_19 <- bubbleplot(fea_19$topcompared) + labs(title = "Top Enriched Terms for Cystic P28 Signature") + theme(text = element_text(size = 12), plot.title = element_text(size = 18))
+bp_19 <- bubbleplot(fea_19$topcompared) + labs(title = "Top Enriched Terms for \nCystic P28 Signature") + theme(text = element_text(size = 14), plot.title = element_text(size = 18))
 
 bp_19
 ```
 
 
 ```{r}
-ggsave(bp_19, filename = here("res", "fea", "bubbleplot_signature_p28.pdf"), height = 7, width = 12)
+ggsave(bp_19, filename = here("res", "fea", "bubbleplot_signature_p28.pdf"), height = 8, width = 8)
 
 ```
 
@@ -605,11 +610,13 @@ samples$Cystic_Status <- factor(samples$Cystic_Status, levels = c("Precystic", "
 #show_col(viridis(8, option = "D")) #selecting colors
 
 my_color = list(Direction = c(aki_down = "#575C6DFF", aki_up = "#FFEA46FF"), Cystic_Status = c(Precystic = "#00204DFF", Cystic = "#A69D75FF"))
+```
 
-
-pdf(here("res/deseq2_outputs", "heatmap_aki_genes_lfcshrinkage.pdf"), width = 9.5, height = 11)
+plot
+```{r}
+pdf(here("res/deseq2_outputs", "heatmap_aki_genes_lfcshrinkage.pdf"), width = 7, height = 13)
 #aki_heatmap <- 
-  pheatmap(aki_res2, annotation_colors = my_color, annotation_row = aki_direction, annotation_col = samples, cluster_rows = TRUE, cluster_cols = TRUE, show_rownames = TRUE, color = viridis(n= 10000, alpha = 1, begin = 0, end = 1, option = "viridis"), border_color = "NA", main = "Expression of Acute Kidney Injury-Associated Genes Across Precystic/Cystic Data ", angle_col = "0")
+  pheatmap(aki_res2, annotation_colors = my_color, annotation_row = aki_direction, annotation_col = samples, cluster_rows = TRUE, cluster_cols = TRUE, show_rownames = TRUE, color = viridis(n= 10000, alpha = 1, begin = 0, end = 1, option = "viridis"), border_color = "NA", main = "Expression of AKI Genes Across Precystic/Cystic Data", angle_col = "0")
 dev.off()
 ```
 
@@ -779,11 +786,17 @@ ggsave(filename = here("res", "fea", "mouse_19_overall.pdf"), bp_mouse_19)
 
 ```
 
-#### Enrichment of Overlaps and Unique
+###### Precyst Unique and Cystic Overlap
 Cystic overlap enrichment
 ```{r}
 cystic_geneoverlap_enrichment <- mouseenrich(degs_19_56_overlap_up, degs_19_56_overlap_down, 30)
+
+cystic_geneoverlap_enrichment$topcompared$term_name <- stringr::str_wrap(cystic_geneoverlap_enrichment$topcompared$term_name, width = 70)
+
+
 cystic_overlap_bubbleplot <- bubbleplot(cystic_geneoverlap_enrichment$topcompared)+ labs(title = "Top Enriched Terms for Overlapped Cystic DEGs") + theme(text = element_text(size = 10), plot.title = element_text(size = 11))
+
+cystic_overlap_bubbleplot
 ```
 
 
@@ -799,14 +812,17 @@ precystic_uniquegene_enrichment_down <- dplyr::anti_join(musdegs_39_DOWN, musdeg
 precystic_uniquegene_enrichment_down <- dplyr::anti_join(precystic_uniquegene_enrichment_down, musdegs_56_DOWN, by = "Mouse.gene.stable.ID")
 
 precystic_unique_enrichment <- mouseenrich(precystic_uniquegene_enrichment_up, precystic_uniquegene_enrichment_down, 30)
+
+precystic_unique_enrichment$topcompared$term_name <- stringr::str_wrap(precystic_unique_enrichment$topcompared$term_name, width = 60)
+
 precyst_unique_bubbleplot <- bubbleplot(precystic_unique_enrichment$topcompared)+ labs(title = "Top Enriched Terms for Unique Precystic DEGs") + theme(text = element_text(size = 10), plot.title = element_text(size = 11))
 ```
 
 save
 ```{r}
-ggsave(cystic_overlap_bubbleplot, filename = here("res", "fea", "cystic_geneoverlap_fea.pdf"), height = 5, width = 7)
+ggsave(cystic_overlap_bubbleplot, filename = here("res", "fea", "cystic_geneoverlap_fea.pdf"), height = 6, width = 8)
 
-ggsave(precyst_unique_bubbleplot, filename = here("res", "fea", "precystic_geneunique_fea.pdf"), height = 5, width = 7)
+ggsave(precyst_unique_bubbleplot, filename = here("res", "fea", "precystic_geneunique_fea.pdf"), height = 6.5, width =7)
 
 ```
 
@@ -842,64 +858,6 @@ fea_all_overlap_up <- merge(fea_cystic_overlap_up, fea_mouse_39_upterms, by = "t
 #no res for 39 down
 #fea_all_overlap_down <- merge(fea_cystic_overlap_down, fea_mouse_39_downterms, by = "term_name")
 
-```
-
-cystic up overlap
-```{r}
-ggplot(slice_min(fea_cystic_overlap_up, order_by = recall.y, n = 20), aes(x=intersection_size.y, y=term_name,  fill = p_value.y)) + 
-    geom_bar( stat = "identity") + 
-    scale_fill_continuous(type = "viridis") + 
-    labs(x = "Number of Genes Matched to Term", y = "Functional Terms", title = "Top Enriched Terms") + 
-    theme_minimal(base_size = 8)
-
-
-```
-
-
-cystic down overlap
-```{r}
-ggplot(slice_max(fea_cystic_overlap_down, order_by = recall.y, n = 20), aes(x=intersection_size.y, y=term_name,  fill = p_value.y)) + 
-    geom_bar( stat = "identity") + 
-    scale_fill_continuous(type = "viridis") + 
-    labs(x = "Number of Genes Matched to Term", y = "Functional Terms", title = "Top Enriched Terms") + 
-    theme_minimal(base_size = 8)
-```
-
-```{r}
-fea_cystic_overlap_combined <- rbind(fea_cystic_overlap_up, fea_cystic_overlap_down)
-
-#sum of intersection genes
-fea_cystic_overlap_combined <- fea_cystic_overlap_combined %>% rowwise() %>% mutate(total_genes = sum(intersection_size.x, intersection_size.y))
-
-#test <- fea_cystic_overlap_combined <- fea_cystic_overlap_combined %>% rowwise() %>% mutate(total_genes = sum(intersection_size.x, intersection_size.y), avg_recall = mean(recall.x, recall.y), avg_pvalue = mean(p_value.x, p_value.y))
-
-#average of recall
-#fea_cystic_overlap_combined <- fea_cystic_overlap_combined %>% rowwise() %>% mutate(avg_recall = mean(recall.x, recall.y))
-
-#average of p-value
-#fea_cystic_overlap_combined <- fea_cystic_overlap_combined %>% rowwise() %>% mutate(avg_pvalue = mean(p_value.x, p_value.y))
-
-test <- dplyr::slice_min(fea_cystic_overlap_combined, order_by = "p_value.x", n = 10)
-#test <- dplyr::slice_tail(fea_cystic_overlap_combined, order_by = p_value.x, n = 10)
-test <- arrange(fea_cystic_overlap_combined, desc("total_genes"))#[1:10,]
-```
-
-```{r}
-ggplot(slice_max(fea_cystic_overlap_combined, order_by = total_genes, n = 10), aes(x=direction.x, y=term_name, size = total_genes, fill = p_value.y)) +
-  geom_point(alpha=0.7, shape = 21) +
-  scale_size(range = c(2, 10), name = "# Genes Matched to Term") + 
-  scale_fill_distiller(palette = "Purples") + 
-  labs(x = "Differential Expression Direction", y = "Functional Enrichment Terms") + 
-  theme_minimal(base_size = 8)
-
-```
-
-``` {r}
-#write.csv(fea_cystic_overlap_up, file = here("res", "fea", "fea_cystic_overlap_up.csv"))
-
-#write.csv(fea_cystic_overlap_down, file = here("res", "fea", "fea_cystic_overlap_down.csv"))
-
-#write.csv(fea_cystic_overlap_combined, file = here("res", "fea", "fea_cystic_overlap_combined.csv"))
 ```
 
 FEA unique to precystic
