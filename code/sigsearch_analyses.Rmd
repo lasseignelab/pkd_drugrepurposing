@@ -1018,6 +1018,12 @@ dtnetplot(drugs = unique(cystic_targets$Drug), set = "GO:0004969", ont = "MF",
 
 ```
 
+histamine receptor activity
+```{r}
+dtnetplot(drugs = unique(cystic_targets$Drug), set = "GO:0050998", ont = "MF", 
+          desc="nitric-oxide synthase binding")
+
+```
 
 
 calcium-dependent protein binding
@@ -1034,6 +1040,25 @@ Signor results for prioritized 28 drug targets
 signor_res <- read.delim(here("data", "signor_prioritizedtargets.tsv"))
 
 ```
+
+
+Top 16 w/ onsides
+Looking at reactions for 'launched' drugs from P70/'39 results
+```{r}
+#onsides_top16 <- dplyr::left_join(cystic_targets, labels, by = c("Drug" = "ingredients"))
+onsides_top16 <- dplyr::filter(labels, ingredients %in% unique(cystic_targets$Drug))
+
+onsides_top16 <- dplyr::left_join(onsides_top16, reactions, by = c("latest_xml_id" = "xml_id"))
+
+```
+
+
+```{r}
+write.csv(onsides_top16, file = here("res", "sigsearch_outputs", "onsides_top16_ade.csv"))
+ 
+```
+
+
 
 #### Versions  
 ```{r}
