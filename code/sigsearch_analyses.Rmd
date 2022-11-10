@@ -1058,7 +1058,13 @@ write.csv(onsides_top16, file = here("res", "sigsearch_outputs", "onsides_top16_
  
 ```
 
-
+epocrates drug prices
+```{r}
+avg_prices <- c(16, 14, 65, 17000, 44, 29, 28, 73, 50, 82, 19, 32, 27, 24)
+#rm outlier
+avg_prices <- c(16, 14, 65, 44, 29, 28, 73, 50, 82, 19, 32, 27, 24)
+summary(avg_prices)
+```
 
 #### Versions  
 ```{r}
