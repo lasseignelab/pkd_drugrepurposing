@@ -23,10 +23,11 @@ Load libraries
 library(signatureSearch)
 library(ggplot2)
 library(ggalluvial)
-library(readr)
+#library(readr)
 library(signatureSearch)
 library(ExperimentHub); library(rhdf5)
 library(here)
+library(dplyr)
 ```
 
 Pull LINCS data from Experiment Hub
@@ -63,9 +64,11 @@ return(gess_res)
 
 Load in top up and down DEGs  
 ```{r}
-hom_39_UP <- read.csv(here("res", "deseq2_outputs", "p70_signature_UP.csv"))
-hom_39_DOWN <- read.csv(here("res", "deseq2_outputs", "p70_signature_DOWN.csv"))
+#hom_39_UP <- read.csv(here("res", "deseq2_outputs", "p70_signature_UP.csv"))
+#hom_39_DOWN <- read.csv(here("res", "deseq2_outputs", "p70_signature_DOWN.csv"))
 
+hom_39_UP <- hom_degs_UP
+hom_39_DOWN <- hom_degs_DOWN
 ```
 
 Run signatureSearch, filter for kidney cell lines  
@@ -80,7 +83,7 @@ gess_res_vis(gess_kidneycells_39, drugs = unique(gess_kidneycells_39$pert)[1:20]
 
 
 ```{r }
-write.csv(gess_kidneycells_39, file = here("res", "sigsearch_outputs", "gess_kidneycells_39_220819.csv"))
+#write.csv(gess_kidneycells_39, file = here("res", "sigsearch_outputs", "gess_kidneycells_39_220819.csv"))
  
 ```
 
@@ -106,7 +109,7 @@ gess_res_vis(gess_kidneycells_56, drugs = unique(gess_kidneycells_56$pert)[1:20]
 
 Save gess and filtered gess result
 ```{r }
-write.csv(gess_kidneycells_56, file = here("res", "sigsearch_outputs", "gess_kidneycells_56_220421.csv"))
+#write.csv(gess_kidneycells_56, file = here("res", "sigsearch_outputs", "gess_kidneycells_56_220421.csv"))
 
 ```
 
@@ -132,7 +135,7 @@ gess_res_vis(gess_kidneycells_19, drugs = unique(gess_kidneycells_19$pert)[1:20]
 
 Save gess and filtered gess result
 ```{r }
-write.csv(gess_kidneycells_19, here("res", "sigsearch_outputs", "gess_kidneycells_19_220421.csv"))
+#write.csv(gess_kidneycells_19, here("res", "sigsearch_outputs", "gess_kidneycells_19_220421.csv"))
 ```
 
 ## Compare datasets  
@@ -180,20 +183,7 @@ tsea_GO_39 <- tsea_dup_hyperG(drugs = gess_kidneycells_39$pert[1:100], universe 
 tsea_KEGG_39 <- tsea_dup_hyperG(drugs = gess_kidneycells_39$pert[1:50], universe = "Default", type = "KEGG", pvalueCutoff=0.05, pAdjustMethod="BH")
 ```
 
-```{r warning = FALSE}
-dtnetplot(drugs = drugs(tsea_KEGG_39), set = "hsa04024", ont = "MF", desc="cAMP signaling pathway")
-```
 
-```{r warning = FALSE}
-dtnetplot(drugs = drugs(tsea_KEGG_39), set = "hsa04750", ont = "MF", desc="Inflammatory mediator regulation of TRP channels")
-```
-
-Save TSEA tables
-```{r }
-write.csv(tsea_GO_39@result, file = here("res", "sigsearch_outputs", "tsea_go_39.csv"))
-
-write.csv(tsea_KEGG_39@result, file = here("res", "sigsearch_outputs", "tsea_kegg_39.csv"))
-```
 
 '56 TSEA 
 ```{r}
@@ -201,19 +191,10 @@ tsea_GO_56 <- tsea_dup_hyperG(drugs = gess_kidneycells_56$pert[1:30], universe =
 
 tsea_KEGG_56 <- tsea_dup_hyperG(drugs = gess_kidneycells_56$pert[1:30], universe = "Default", type = "KEGG", pvalueCutoff=0.05, pAdjustMethod="BH")
 
-dtnetplot(drugs = drugs(tsea_GO_56), set = "GO:0004708", ont = "MF", desc="MAP kinase kinase activity")
+#dtnetplot(drugs = drugs(tsea_GO_56), set = "GO:0004708", ont = "MF", desc="MAP kinase kinase activity")
 
 ```
 
-```{r warning = FALSE}
-dtnetplot(drugs = drugs(tsea_GO_56), set = "GO:0016712", ont = "MF", desc="oxidoreductase activity, acting on paired donors,")
-
-dtnetplot(drugs = drugs(tsea_GO_56), set = "GO:0005262", ont = "MF", desc="calcium channel activity")
-```
-
-```{r}
-dtnetplot(drugs = drugs(tsea_KEGG_56), set = "hsa04657", desc="IL-17 signaling pathway")
-```
 
 Save TSEA tables
 ```{r }
@@ -228,11 +209,11 @@ tsea_GO_19 <- tsea_dup_hyperG(drugs = gess_kidneycells_19$pert[1:30], universe =
 
 tsea_KEGG_19 <- tsea_dup_hyperG(drugs = gess_kidneycells_19$pert[1:30], universe = "Default", type = "KEGG", pvalueCutoff=0.05, pAdjustMethod="BH")
 
-dtnetplot(drugs = drugs(tsea_GO_19), set = "GO:0051117", ont = "MF", desc="ATPase binding")
+#dtnetplot(drugs = drugs(tsea_GO_19), set = "GO:0051117", ont = "MF", desc="ATPase binding")
 ```
 
 ```{r}
-dtnetplot(drugs = drugs(tsea_GO_19), set = "GO:0051117", ont = "MF", desc="ATPase binding")
+#dtnetplot(drugs = drugs(tsea_GO_19), set = "GO:0051117", ont = "MF", desc="ATPase binding")
 
 ```
 
@@ -290,15 +271,6 @@ tsea_28 <- tsea_dup_hyperG(drugs = unique(targets_in19$pert), universe = "Defaul
 #tsea_28 <- dplyr::filter(result(tsea_28), p.adjust != 0.000000e+00)
 ```
 
-```{r}
-table_list = list("P70" = tsea_p70, 
-                  "P21" = tsea_21, 
-                  "P28" = tsea_28)
-
-comp_fea_res(table_list, rank_stat="p.adjust", Nshow=20)
-
-```
-
 drug set enrichment, precystic drugs whose targets match degs
 ```{r}
 dsea_70 <- dsea_hyperG(drugs = unique(targets_39$pert),  type = "GO", ont="BP", pvalueCutoff=0.05, pAdjustMethod="BH")
@@ -309,6 +281,8 @@ dsea_21 <- dsea_hyperG(drugs = unique(targets_in56$pert), type = "GO", ont="BP",
 
 dsea_28 <- dsea_hyperG(drugs = unique(targets_in19$pert), type = "GO", ont="BP", pvalueCutoff=0.05, pAdjustMethod="BH")
 #tsea_28 <- dplyr::filter(result(tsea_28), p.adjust != 0.000000e+00)
+
+
 ```
 
 ```{r}
@@ -316,9 +290,10 @@ table_list = list("P70" = result(dsea_70),
                   "P21" = result(tsea_21), 
                   "P28" = result(tsea_28))
 
-comp_fea_res(table_list, rank_stat="p.adjust", Nshow=20)
+comp_fea_res(table_list, rank_stat="p.adjust", Nshow=20, size = )
 
 ```
+
 drug set enrichment, ss results for each
 ```{r}
 dsea_70 <- dsea_hyperG(drugs = unique(gess_kidneycells_39$pert)[1:10],  type = "GO", ont="BP", pvalueCutoff=0.05, pAdjustMethod="BH")
@@ -343,39 +318,39 @@ comp_fea_res(table_list, rank_stat="p.adjust", Nshow=20)
 Just pulling the cystic-overlapping, targets from precystic drugs that are represented as DEGs in both cystic data sets, and looking at their individual gprofiler results
 ```{r}
 #pull those drugs from previous df
-cystic_overlap_drugs <- dplyr::filter(fda_approved_39, pert %in% unique(cystic_targets$pert))
+#cystic_overlap_drugs <- dplyr::filter(fda_approved_39, pert %in% unique(cystic_targets$pert))
 
-target_enrich <- function(ssres){
+#target_enrich <- function(ssres){
   #res <- vector(mode = "list", length = nrow(ssres))
-  res <- list()
-  for (i in nrow(ssres)) {
-    #m <- rep(i, nrow(ssres))
-    genelist <- stringr::str_split(ssres$t_gn_sym[i], "; ") 
-    fea <- gost(genelist, sources = c("KEGG", "WIKI", "GO:BP"))
-    #tmp <- [,]
-    #res[[i]] <- fea
-    #res <- append(res, list(fea))
-    res[[i]] <- fea
-  }
-  return(res)
-}
+#  res <- list()
+#  for (i in nrow(ssres)) {
+#    #m <- rep(i, nrow(ssres))
+#    genelist <- stringr::str_split(ssres$t_gn_sym[i], "; ") 
+#    fea <- gost(genelist, sources = c("KEGG", "WIKI", "GO:BP"))
+#    #tmp <- [,]
+#    #res[[i]] <- fea
+#    #res <- append(res, list(fea))
+#    res[[i]] <- fea
+#  }
+#  return(res)
+#}
 
-test <- lapply(ssres, function(x)){
-  genelist <- stringr::str_split(x$t_gn_sym[i], "; ")
-}
+#test <- lapply(ssres, function(x)){
+#  genelist <- stringr::str_split(x$t_gn_sym[i], "; ")
+#}
 
 #test <- lapply(ssres$t_gn_sym[1], stringr::str_split("; "))
 #test <- lapply(cystic_overlap_drugs$t_gn_sym[1], stringr::str_split("; "))
 
-fun <- function(x) {
-   stringr::str_split(x$t_gn_sym[1], "; ")
-}
+#fun <- function(x) {
+ #  stringr::str_split(x$t_gn_sym[1], "; ")
+#}
 
-lapply(cystic_overlap_drugs, fun)
+#lapply(cystic_overlap_drugs, fun)
 
-test <- target_enrich(cystic_overlap_drugs)
-test <- stringr::str_split(cystic_overlap_drugs$t_gn_sym[1], "; ") 
-test <- gost(cystic_overlap_drugs)
+#test <- target_enrich(cystic_overlap_drugs)
+#test <- stringr::str_split(cystic_overlap_drugs$t_gn_sym[1], "; ") 
+#test <- gost(cystic_overlap_drugs)
 
 ```
 
@@ -466,14 +441,6 @@ target_alluvial <- ggplot(data = rhub_launched_39_top_septarget,
 target_alluvial
 ```
 
-Save
-```{r }
-#target-separated, rhub-annotated drug results for 39
-gene_drug_targets <- rhub_launched_39_top_septarget
-
-write.csv(gene_drug_targets, file = here("res", "sigsearch_outputs", "gene_drug_targets_39.csv"))
-```
-
 
 MOA's separated, string wrap labels
 ```{r}
@@ -505,24 +472,6 @@ moa_alluvial
 ggsave(here("res", "sigsearch_outputs", "moa_alluvial_wtcs_220819.pdf"), moa_alluvial, width = 10, height = 15)
 
 ```
-
-plot
-```{r}
-moa_alluvial <- ggplot(data = cystic_targets,
-       aes(axis1 = pert, axis2 = t_gn_sym.x)) +
-  geom_alluvium(color = "black", aes(fill = WTCS.x)) + # , colour = trend)) + 
-  geom_stratum(width = 3/12, color = "black") + #the border of the stratum
-  scale_x_discrete(expand = c(.07, .07)) + 
-  scale_y_discrete(expand = c(.007, .007)) + 
-  scale_fill_viridis_c(aesthetics = c("colour", "fill")) +
-  geom_text(stat = "stratum", size = 3.5, fontface = "bold", aes(label = after_stat(stratum))) +
-  labs(title = "MOA of Top 30 Launched Drugs") +
-  theme_void() 
-
-
-moa_alluvial
-```
-
 
 
 P70/'39 Already-Launched Drugs
@@ -703,90 +652,165 @@ MOA's separated, string wrap labels
 ```{r}
 fda_approved_39_moa <- tidyr::separate_rows(fda_approved_39, MOA, sep = ",")
 
-fda_approved_39_moa$MOA <- stringr::str_wrap(fda_approved_39_moa$MOA, width = 40)
+#fda_approved_39_moa$MOA <- stringr::str_wrap(fda_approved_39_moa$MOA, width = 80)
+#fda_approved_39_moa$MOA <- stringr::str_trunc(fda_approved_39_moa$MOA, width = 55)
 
-#rhub_launched_39_top_moasep$Disease.Area <- stringr::str_wrap(rhub_launched_39_top_moasep$Disease.Area, width = 30)
-fda_approved_39_moa_top <- dplyr::slice_min(fda_approved_39_moa, order_by = WTCS, n = 38)
+
+fda_approved_39_moa_top <- fda_approved_39_moa %>% dplyr::slice_min(order_by = NCS, n = 42) %>% mutate(pert = forcats::fct_reorder(pert, NCS))
+
+fda_approved_39_moa_top$MOA <- stringr::str_trunc(fda_approved_39_moa_top$MOA, width = 38)
 ```
+
 
 #####MOA plot
 ```{r}
 moa_alluvial <- ggplot(fda_approved_39_moa_top,
        aes(axis1 = pert, axis2 = MOA)) +
-  geom_alluvium(color = "black", aes(fill = WTCS)) + # , colour = trend)) + 
-  geom_stratum(width = 3/12, color = "black") + #the border of the stratum
-  scale_x_discrete(expand = c(.07, .07)) + 
-  scale_y_discrete(expand = c(.007, .007)) + 
-  scale_fill_viridis_c(aesthetics = c("colour", "fill")) +
-  geom_text(stat = "stratum", size = 3.5, fontface = "bold", aes(label = after_stat(stratum))) +
-  labs(title = "MOA of Top FDA-Approved Drugs") +
-  theme_void() 
-
+  geom_alluvium(color = "black", aes(fill = NCS)) + # , colour = trend)) + 
+  geom_stratum(width = 5/16, color = "black") + #the border of the stratum
+  scale_y_discrete(limits = ) + 
+  scale_fill_viridis_c(aesthetics = c("colour", "fill"), direction = -1) +
+  geom_text(stat = "stratum", size = 3.25, fontface = "bold", aes(label = after_stat(stratum))) +
+  #labs(title = "MOA of Top FDA-Approved Drugs")  + 
+  theme(axis.title.x = element_blank(), plot.title = element_text(face = "bold", hjust = 0.5), axis.text.x = element_blank(), axis.text.y = element_blank(), axis.ticks = element_blank()) + ggtitle(label = "MOA of Top FDA-Approved Drugs") + 
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+panel.background = element_blank() )
 
 moa_alluvial
 ```
 
 
-```{r }
-ggsave(here("res", "sigsearch_outputs", "moa_fda_alluvial_220824.pdf"), moa_alluvial, width = 17, height = 10)
+```{r}
+
+ggsave(here("res", "sigsearch_outputs", "moa_fda_alluvial.png"), moa_alluvial, width = 12, height = 7, dpi = 600)
 
 ```
 
 Frequency of MOA's
 ```{r}
 moa_freq <- as.data.frame(table(fda_approved_39_moa$MOA))
-moa_freq <- dplyr::filter(moa_freq, Freq > 2)
+other <- moa_freq$Var1[moa_freq$Freq==1]
+#other <- cbind(Var1 = as.character(other), Freq = rep("other", length(other)))
+multi_moa <- dplyr::filter(moa_freq, Freq > 1)
+multi_moa$Var1 <- as.character(multi_moa$Var1)
+moa_freqs <- rbind(multi_moa, c(Var1 = "other", Freq = length(other)))
+moa_freqs$Freq <- as.numeric(moa_freqs$Freq)
+#moa_freq$Var1 <- stringr::str_replace(moa_freq$Var1 %in% other == "other")
+
+#moa_freq <- dplyr::filter(moa_freq, Freq > 1)
+
+
+```
+
+
+```{r}
+# Stacked + percent
+moa_freqs %>% mutate(MOA = forcats::fct_reorder(Var1, Freq)) %>%
+ggplot(aes(fill=MOA, y=Freq, x="MOA")) + 
+    geom_bar(position="fill", stat="identity") + 
+  scale_fill_viridis_d(aesthetics = c("colour", "fill")) 
 
 #visualize
-moa_frq <- ggplot(moa_freq, aes(x = Var1, y = Freq, fill = Freq)) +  # Plot with values on top
+moa_freq <- dplyr::filter(moa_freq, Freq > 2)
+moa_freq$Var1 <- str_wrap(moa_freq$Var1, width = 25)
+moa_frq <- moa_freq %>% mutate(MOA = forcats::fct_reorder(Var1, desc(Freq))) %>% ggplot(aes(x = MOA, y = Freq, fill = Freq)) +  
   geom_bar(stat = "identity") + 
   scale_fill_viridis_c(aesthetics = c("colour", "fill")) +
-  #geom_text(aes(label = Var1), vjust = 0) + 
-  theme(axis.text.x = element_text(angle = 50, vjust = 0.90, hjust=0.75)) + ggtitle(label = "Most Frequent MOA's")
+  theme(axis.text.x = element_text(size = 13.5, face = "bold", angle = 50, vjust = 0.97, hjust=0.95), axis.title.x = element_blank(), plot.title = element_text(size = 14, face = "bold", hjust = 0.5)) + ggtitle(label = "Most Frequent Mechanisms of Action") + 
+  theme(plot.margin = unit(c(.2,.2,.2,1.5), "cm"), panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+panel.background = element_blank(), axis.line = element_line(colour = "black")) 
+  
 
 moa_frq
 ```
 
+
 ```{r}
-ggsave(filename = here("res/sigsearch_outputs", "p70_fdaapproved_moa_freq.pdf"), moa_frq)
+ggsave(filename = here("res/sigsearch_outputs", "p70_fdaapproved_moa_freq.pdf"), moa_frq, height = 5.5, width = 9.5)
 
 ```
-Frequency of MOA's
+
+Frequency of original disease area indications
 ```{r}
 indication_freq <- as.data.frame(table(fda_approved_39_moa$Disease.Area))
 indication_freq <- dplyr::filter(indication_freq, Freq > 2)
+```
 
+
+plot
+```{r}
 #visualize
-indication_plot <- ggplot(indication_freq, aes(x = Var1, y = Freq, fill = Freq)) +  # Plot with values on top
+indication_plot <- indication_freq %>% mutate(indication = forcats::fct_reorder(Var1, desc(Freq))) %>% ggplot(aes(x = indication, y = Freq, fill = Freq)) +  
   geom_bar(stat = "identity") + 
   scale_fill_viridis_c(aesthetics = c("colour", "fill")) +
-  #geom_text(aes(label = Var1), vjust = 0) + 
-  theme(axis.text.x = element_text(angle = 50, vjust = 0.90, hjust=0.75)) + ggtitle(label = "Most Frequent Disease Area Indications")
+   theme(axis.text.x = element_text(size = 13.5, face = "bold", angle = 50, vjust = 0.92, hjust=0.85), axis.title.x = element_blank(), plot.title = element_text(size = 14, face = "bold", hjust = 0.5)) + ggtitle(label = "Most Frequent Disease Area Indications") + 
+  theme(plot.margin = unit(c(.2,.2,.2,1), "cm"), panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+panel.background = element_blank(), axis.line = element_line(colour = "black"))
+
 
 indication_plot
 ```
 
-## Targets of Candidate Drugs
+```{r}
+ggsave(filename =
+         here("res/sigsearch_outputs", "p70_fdaapproved_origindication_freq.pdf"), indication_plot, height = 5.5, width = 8)
+
+```
+
+### Targets of Candidate Drugs
+Targets of all FDA-approved drugs
+```{r}
+fda_approved_39_targets <- tidyr::separate_rows(fda_approved_39, t_gn_sym, sep = "; ")
+#remove drugs with empty 'target' field
+fda_approved_39_targets <- dplyr::filter(fda_approved_39_targets, t_gn_sym != "")
+
+```
+
+Save
+```{r }
+#target-separated, rhub-annotated drug results for 39
+#gene_drug_targets <- rhub_launched_39_top_septarget
+
+write.csv(fda_approved_39_targets, file = here("res", "sigsearch_outputs", "fda_drug_targets_39.csv"))
+```
+
 
 Alluvial plot of drugs-targets with just FDA approved drugs
 ```{r}
-
+cystic_targets <- read.csv(file = here("res/sigsearch_outputs", "drug_targets_oe_cysticdegs.csv"), row.names = 1)
 #target_alluvial <- tidyr::separate_rows(cystic_overlap_drugs, t_gn_sym, sep = "; ")
-target_tbl <- cbind(pert = cystic_targets$pert, Upregulated_Target = cystic_targets$t_gn_sym.x) %>% as.data.frame()
+#target_tbl <- cbind(pert = cystic_targets$pert, Upregulated_Target = cystic_targets$t_gn_sym.x) %>% as.data.frame()
 ```
+
+moa_alluvial <- ggplot(fda_approved_39_moa_top,
+       aes(axis1 = pert, axis2 = MOA)) +
+  geom_alluvium(color = "black", aes(fill = NCS)) + # , colour = trend)) + 
+  geom_stratum(width = 5/16, color = "black") + #the border of the stratum
+  scale_y_discrete(limits = ) + 
+  scale_fill_viridis_c(aesthetics = c("colour", "fill"), direction = -1) +
+  geom_text(stat = "stratum", size = 3.25, fontface = "bold", aes(label = after_stat(stratum))) +
+  #labs(title = "MOA of Top FDA-Approved Drugs")  + 
+  theme(axis.title.x = element_blank(), plot.title = element_text(face = "bold", hjust = 0.5), axis.text.x = element_blank(), axis.text.y = element_blank(), axis.ticks = element_blank()) + ggtitle(label = "MOA of Top FDA-Approved Drugs") + 
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+panel.background = element_blank() )
 
 plot
 ```{r}
-target_alluvial <- ggplot(data = target_tbl,
-       aes(axis1 = pert, axis2 = Upregulated_Target)) +
-  geom_alluvium(color = "black", aes(fill = Upregulated_Target), show.legend=FALSE) + # , colour = trend)) + 
+#number of targets per drug
+t <- table(cystic_targets$Drug_Targets) %>% as.data.frame()
+t$Var1 <- as.character(t$Var1)
+
+#cystic_targets$Drug <- as.factor(cystic_targets$Drug)
+cystic_targets <- dplyr::full_join(cystic_targets, t, by= c("Drug_Targets" = "Var1"))
+
+target_alluvial <- cystic_targets %>% mutate(Drug_Targets = forcats::fct_reorder(Drug_Targets, desc(Freq))) %>%  ggplot(aes(axis1 = Drug, axis2 = Drug_Targets)) +
+  geom_alluvium(color = "black", aes(fill = Drug_Targets), show.legend=FALSE) + # , colour = trend)) + 
   geom_stratum(width = 3/12, color = "black") + #the border of the stratum
-  scale_x_discrete(expand = c(.07, .07)) + 
-  scale_y_discrete(expand = c(.007, .007)) + 
   scale_fill_viridis_d(aesthetics = c("colour", "fill")) +
-  geom_text(stat = "stratum", size = 3, fontface = "bold", aes(label = after_stat(stratum))) +
-  labs(title = "Drug Targets in P21 and P28 Cystic DEGs") +
-  theme_void() 
+  geom_text(stat = "stratum", size = 5, fontface = "bold", aes(label = after_stat(stratum))) +
+  theme(axis.title.x = element_blank(), plot.title = element_text(size = 24, face = "bold", hjust = 0.5), axis.text.x = element_blank(), axis.text.y = element_blank(), axis.ticks = element_blank()) + ggtitle(label = "Drug Targets in P21 and P28 Cystic DEGs") + 
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+panel.background = element_blank() )
 
 
 target_alluvial
@@ -794,26 +818,25 @@ target_alluvial
 
 
 ```{r}
-ggsave(here("res/sigsearch_outputs", "targets_cysticupregulated_alluvial.pdf"), target_alluvial, width = 7.5, height = 9)
+ggsave(here("res/sigsearch_outputs", "targets_cysticupregulated_alluvial.pdf"), target_alluvial, width = 8, height = 22)
 
 ```
 
 
-Save
-```{r }
-#target-separated, rhub-annotated drug results for 39
-write.csv(rhub_launched_39_septarget, file = here("res", "sigsearch_outputs", "gene_drug_targets_39.csv"))
-```
-
-Drug data for drugs whose targets are upregulated in both cystic data sets
+Drug data for drugs whose targets are upregulated in both cystic data sets, pull repurposing hub data again, for manuscript
 ```{r}
-cystic_overlap_drugs <- dplyr::filter(fda_approved_39, pert %in% unique(cystic_targets$pert))
+cystic_overlap_drugs <- dplyr::filter(fda_approved_39, pert %in% unique(cystic_targets$Drug))
 
+cystic_overlap_drugs <- cbind(Drug = cystic_overlap_drugs$pert, Drug_Targets = cystic_overlap_drugs$t_gn_sym, MOA = cystic_overlap_drugs$MOA, Original_Indication = cystic_overlap_drugs$Indication) %>% as.data.frame()
+```
+
+```{r}
+write.csv(cystic_overlap_drugs, file = here("res/sigsearch_outputs", "drug_summaries_oe_cystic.csv"))
 ```
 
 LINCS data for drugs with target cystic overlap
 ```{r}
-drug_sigs <- getDEGSig(cmp = "fluoxetine", cell = "HA1E", Nup = 50, Ndown = 50,  padj = 0.05, refdb = lincs)
+fluoxetine_sig <- getDEGSig(cmp = "fluoxetine", cell = "HA1E", Nup = 50, Ndown = 50,  padj = 0.05, refdb = lincs)
 
 #function used forenrichment
 fluox_fea <- enrich(drug_sigs$upset, drug_sigs$downset, topreturned = 30)
@@ -826,76 +849,60 @@ bubbleplot(fluox_fea$topcompared)
 ```
 
 ```{r}
-function (table_list, rank_stat = "pvalue", Nshow = 20, Nchar = 50, 
-    scien = FALSE, ...) 
-{
-    if (is.null(names(table_list))) {
-        stop(paste("The \"table_list\" should be a list with names,", 
-            "which could be names of the enrichment methods"))
-    }
-    newtb <- function(i) {
-        tb <- table_list[[i]]
-        tb_order <- tb[order(tb[[rank_stat]]), ]
-        tb2 <- data.frame(tb_order[, c("Description", rank_stat)], 
-            Method = names(table_list)[i], rank = seq_len(nrow(tb_order)))
-        return(tb2)
-    }
-    df <- do.call(rbind, lapply(seq_along(table_list), newtb))
-    df$Description <- vec_char_redu(df$Description, Nchar = Nchar)
-    if (scien) {
-        df[[rank_stat]] <- signif(df[[rank_stat]], 3)
-    }
-    cat_ranks_list <- split(df$rank, df$Description)
-    cat_mrk_adj <- vapply(cat_ranks_list, function(i) {
-        m <- mean(i) * length(table_list)/length(i)
-    }, FUN.VALUE = numeric(1))
-    cat_rerk <- cat_mrk_adj[order(cat_mrk_adj)]
-    cat_top <- names(cat_rerk)[seq_len(Nshow)]
-    df2 <- df[df$Description %in% cat_top, ]
-    df2$Description <- factor(df2$Description, levels = rev(cat_top), 
-        ordered = TRUE)
-    p <- ggplot(df2, aes_(x = ~Method, y = ~Description)) + geom_point(size = 4, 
-        ...) + aes_string(color = rank_stat) + scale_colour_gradient(low = "red", 
-        high = "blue") + theme_dose(font.size = 12) + ggplot2::theme(axis.text.x = element_text(angle = 45, 
-        hjust = 1))
-    return(p)
-}
+pravastatin_sig <- getDEGSig(cmp = "pravastatin", cell = "HA1E", Nup = 300, Ndown = 300,  padj = 0.05, refdb = lincs)
+
+#function used forenrichment
+pravastatin_fea <- enrich(pravastatin_sig$upset, pravastatin_sig$downset, topreturned = 30)
 
 ```
 
 
 ```{r}
-drugsig <- function(cmp) {
-  res <- getDEGSig(cmp = cmp, cell = "HA1E", Nup = 50, Ndown = 50,  padj = 0.05, refdb = lincs)
-  return(res)
-}
-t <- apply(cystic_overlap_drugs, "pert", drugsig)
+bubbleplot(pravastatin_fea$topcompared)+ ggtitle(label = "Pravastatin HA1E Perturbation Enrichment")
+
 ```
 
+```{r}
+fenofibrate_sig <- getDEGSig(cmp = "fenofibrate", cell = "HA1E", Nup = 200, Ndown = 200,  padj = 0.05, refdb = lincs)
 
+#function used forenrichment
+fenofibrate_fea <- enrich(fenofibrate_sig$upset, fenofibrate_sig$downset, topreturned = 20)
+bubbleplot(fenofibrate_fea$topcompared) + ggtitle(label = "Fenofibrate HA1E Perturbation Enrichment")
+```
+bromocriptine
+```{r}
+bromocriptine_sig <- getDEGSig(cmp = "bromocriptine", cell = "HA1E", Nup = 200, Ndown = 200,  padj = 0.05, refdb = lincs)
+
+#function used forenrichment
+bromocriptine_fea <- enrich(bromocriptine_sig$upset, bromocriptine_sig$downset, topreturned = 20)
+bubbleplot(bromocriptine_fea$topcompared) + ggtitle(label = "Bromocriptine HA1E Perturbation Enrichment")
+```
 
 Side effect data for drugs
 ```{r}
-onsides_res <- dplyr::left_join(cystic_overlap_drugs, labels, by = c("pert" = "ingredients"))
+onsides_res <- dplyr::left_join(cystic_overlap_drugs, labels, by = c("Drug" = "ingredients"))
 
 onsides_res <- dplyr::left_join(onsides_res, reactions, by = c("latest_xml_id" = "xml_id"))
 
 liver_ade <- grep("liver", onsides_res$concept_name, ignore.case = TRUE)
 liver_ade <- onsides_res[liver_ade,]
 
+hepat_ade <- grep("hepat", onsides_res$concept_name, ignore.case = TRUE)
+hepat_ade <- onsides_res[hepat_ade,]
+
 renal_ade <- grep("renal", onsides_res$concept_name, ignore.case = TRUE)
 renal_ade <- onsides_res[renal_ade,]
 
 renal_liver_ade <- rbind(liver_ade, renal_ade)
 
-prioritized_drugs <- dplyr::setdiff(cystic_overlap_drugs$pert, renal_liver_ade$pert)
-prioritized_drugs <- dplyr::filter(cystic_overlap_drugs, pert %in% prioritized_drugs)
+prioritized_drugs <- dplyr::setdiff(cystic_overlap_drugs$Drug, renal_liver_ade$pert)
+prioritized_drugs <- dplyr::filter(cystic_overlap_drugs, Drug %in% prioritized_drugs)
 ```
 
 ```{r}
-simple_tbl <- cbind(Drug = cystic_overlap_drugs$pert, Drug_Targets = cystic_overlap_drugs$t_gn_sym, MOA = cystic_overlap_drugs$MOA, Original_Indication = cystic_overlap_drugs$Indication)
+#simple_tbl <- cbind(Drug = cystic_overlap_drugs$pert, Drug_Targets = cystic_overlap_drugs$t_gn_sym, MOA = cystic_overlap_drugs$MOA, Original_Indication = cystic_overlap_drugs$Indication)
 
-write.csv(simple_tbl, file = here("res/sigsearch_outputs", "drugtarget_cysticoverlap_simpletbl.csv"))
+write.csv(prioritized_drugs, file = here("res/sigsearch_outputs", "drugtarget_cysticoverlap_simpletbl.csv"))
 ```
 
 
@@ -904,7 +911,160 @@ write.csv(onsides_res, file = here("res", "sigsearch_outputs", "adr_onsides_prec
  
 ```
 
+##### Enrichment of prioritized targets, DSEA of prioritized drugs
+```{r}
+dsea_prioritzeddrugs <- dsea_hyperG(
+  drugs = unique(cystic_targets$Drug),
+  type = "GO",
+  ont = "MF",
+  pvalueCutoff = 0.05,
+  pAdjustMethod = "BH",
+  qvalueCutoff = 0.2,
+  minGSSize = 10,
+  maxGSSize = 500
+)
 
+```
+
+
+```{r}
+dsea_prioritzeddrugs <- dsea_prioritzeddrugs@result
+write.csv(dsea_prioritzeddrugs, here("res/sigsearch_outputs", "dsea_cystictargetdrugs_pathways.csv"))
+```
+
+DSEA barplot function
+```{r}
+dsea_barplot <- function(dsea, titlelabel){
+  dsea$Description <- stringr::str_trunc(dsea$Description, width = 75)
+
+dseaplot <- ggplot(dplyr::slice_min(dsea, order_by = p.adjust, n = 20), aes(x=Count, y=Description, fill = p.adjust)) +
+  geom_bar( stat = "identity") + 
+  scale_fill_viridis_c(begin = 0.35, end = 0.95) + 
+  labs(x = "Drugs Enriched for Term", y = "Functional Enrichment Terms", title = titlelabel) + 
+  theme(text = element_text(size = 12), plot.title = element_text(size = 18)) + 
+  theme_minimal(base_size = 14)
+return(dseaplot)
+}
+
+
+
+```
+
+moa_freq$Var1 <- str_wrap(moa_freq$Var1, width = 25)
+moa_frq <- moa_freq %>% mutate(MOA = forcats::fct_reorder(Var1, desc(Freq))) %>% ggplot(aes(x = MOA, y = Freq, fill = Freq)) +  
+  geom_bar(stat = "identity") + 
+  scale_fill_viridis_c(aesthetics = c("colour", "fill")) +
+  theme(axis.text.x = element_text(size = 13.5, face = "bold", angle = 50, vjust = 0.97, hjust=0.95), axis.title.x = element_blank(), plot.title = element_text(size = 14, face = "bold", hjust = 0.5)) + ggtitle(label = "Most Frequent Mechanisms of Action") + 
+  theme(plot.margin = unit(c(.2,.2,.2,1.5), "cm"), panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+panel.background = element_blank(), axis.line = element_line(colour = "black")) 
+  
+
+```{r}
+dsea_prioritzeddrugs$Description <- stringr::str_trunc(dsea_prioritzeddrugs$Description, width = 65)
+dsea_prioritzeddrugs$Count <- as.numeric(dsea_prioritzeddrugs$Count)
+dsea_plot <- dsea_prioritzeddrugs %>% dplyr::slice_min(order_by = p.adjust, n = 20) %>% dplyr::mutate(Description = forcats::fct_reorder(Description, (Count))) %>% ggplot( aes(x=Count, y=Description, fill = p.adjust)) +
+  geom_bar( stat = "identity") + 
+  scale_fill_viridis_c(begin = 0.35, end = 0.95) + 
+  labs(x = "Drugs Enriched for Term", y = "Functional Enrichment Terms") + 
+  theme(axis.text.x = element_text(size = 12.5, face = "bold"), axis.text.y = element_text(size = 12.5, face = "bold"), axis.title.x = element_text(size = 14, face = "bold"),  axis.title.y = element_text(size = 14, face = "bold"),plot.title = element_text(size = 16, face = "bold", hjust = 0.5)) + ggtitle(label = "Drug Target Enrichment Analysis") 
+#  theme(text = element_text(size = 14, face = "bold"), plot.title = element_text(size = 18)) + 
+#  theme_minimal(base_size = 16)
+
+dsea_plot
+
+```
+
+
+```{r}
+
+ggsave(here("res/sigsearch_outputs", "dsea_cystictargetdrugs.png"), dsea_plot, width = 10, height = 8)
+
+```
+
+##### Networks: drug-target for the terms with most drugs
+oxidoreductase activity, acting on CH or CH2 groups
+```{r}
+dtnetplot(drugs = unique(cystic_targets$Drug), set = "GO:0033695", ont = "MF", 
+          desc="oxidoreductase activity, acting on CH or CH2 groups...")
+
+```
+
+
+```{r}
+dtnetplot(drugs = unique(cystic_targets$Drug), set = "GO:1901338", ont = "MF", 
+          desc="catecholamine binding")
+
+```
+
+
+```{r}
+dtnetplot(drugs = drugs(dsea_prioritzeddrugs), set = "GO:0099589", ont = "MF", 
+          desc="serotonin receptor activity")
+
+```
+
+
+```{r}
+dtnetplot(drugs = drugs(dsea_prioritzeddrugs), set = "GO:0004993", ont = "MF", 
+          desc="G protein-coupled serotonin receptor activity")
+
+```
+
+
+histamine receptor activity
+```{r}
+dtnetplot(drugs = unique(cystic_targets$Drug), set = "GO:0004969", ont = "MF", 
+          desc="histamine receptor activity")
+
+```
+
+histamine receptor activity
+```{r}
+dtnetplot(drugs = unique(cystic_targets$Drug), set = "GO:0050998", ont = "MF", 
+          desc="nitric-oxide synthase binding")
+
+```
+
+
+calcium-dependent protein binding
+```{r}
+visExport
+
+dtnetplot(drugs = unique(cystic_targets$Drug), set = "GO:0048306", ont = "MF", 
+          desc="calcium-dependent protein binding")
+
+```
+
+Signor results for prioritized 28 drug targets
+```{r}
+signor_res <- read.delim(here("data", "signor_prioritizedtargets.tsv"))
+
+```
+
+
+Top 16 w/ onsides
+Looking at reactions for 'launched' drugs from P70/'39 results
+```{r}
+#onsides_top16 <- dplyr::left_join(cystic_targets, labels, by = c("Drug" = "ingredients"))
+onsides_top16 <- dplyr::filter(labels, ingredients %in% unique(cystic_targets$Drug))
+
+onsides_top16 <- dplyr::left_join(onsides_top16, reactions, by = c("latest_xml_id" = "xml_id"))
+
+```
+
+
+```{r}
+write.csv(onsides_top16, file = here("res", "sigsearch_outputs", "onsides_top16_ade.csv"))
+ 
+```
+
+epocrates drug prices
+```{r}
+avg_prices <- c(16, 14, 65, 17000, 44, 29, 28, 73, 50, 82, 19, 32, 27, 24)
+#rm outlier
+avg_prices <- c(16, 14, 65, 44, 29, 28, 73, 50, 82, 19, 32, 27, 24)
+summary(avg_prices)
+```
 
 #### Versions  
 ```{r}
