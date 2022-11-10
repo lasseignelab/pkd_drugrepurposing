@@ -28,6 +28,7 @@ library(signatureSearch)
 library(ExperimentHub); library(rhdf5)
 library(here)
 library(dplyr)
+source(here("code", "functions.R"))
 ```
 
 Pull LINCS data from Experiment Hub

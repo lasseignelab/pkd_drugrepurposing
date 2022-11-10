@@ -22,105 +22,10 @@ library(GOSemSim)
 library(VennDiagram)
 library(RColorBrewer)
 library(ComplexHeatmap)
-```
-
-## Custom functions for FEA
-
-Enrichment function for up and down genes
-```{r}
-enrich <- function(upgenes, downgenes, topreturned) {#, filepath) {
-  up_fea <- gost(upgenes, multi_query = FALSE, correction_method = "bonferroni", evcodes = TRUE, sources = c("GO:BP", "GO:MF", "GO:CC", "REAC", "WP"))
-  #remove abitrary pathways -- any pathways with > 1000 genes
-    up_fea <- up_fea$result %>% dplyr::filter(., term_size < 1000 & term_size > 5) %>% dplyr::mutate(., .keep = "all", direction = "upregulated")
-    up_mat <- up_fea  %>% dplyr::slice_max(., recall, n = topreturned) 
-  
-  down_fea <- gost(downgenes, multi_query = FALSE, correction_method = "bonferroni", evcodes = TRUE, sources = c("GO:BP", "GO:MF", "GO:CC", "REAC", "WP"))
-  #remove abitrary pathways -- any pathways with > 1000 genes
-  down_fea <- down_fea$result %>% dplyr::filter(., term_size < 1000 & term_size > 5) %>% dplyr::mutate(., .keep = "all", direction = "downregulated") 
-  down_mat <- down_fea  %>% dplyr::slice_max(., recall, n = topreturned)
-  combined_fea <- rbind(up_mat, down_mat)
-  
-  fea_res <- list(downregulated = down_fea, upregulated = up_fea, topcompared = combined_fea)
-
-return(fea_res)
-}
-```
-
-MOUSE GENES Enrichment function for up and down genes  
-
-```{r}
-#Runs an ordered query
-fea <- function(genelist, sources = c("GO:BP", "GO:MF", "GO:CC", "REAC", "WP")){
-  fea <- gost(genelist, organism = "mmusculus", ordered_query = FALSE, multi_query = FALSE, evcodes = TRUE, correction_method = "bonferroni", sources = sources)
-  #remove abitrary pathways -- any pathways with > 1000 genes
-  if(length(fea) > 0){
-  fea <- fea$result %>% dplyr::filter(., term_size < 1000 & term_size > 10)
-  }
-return(fea)
-}
-
-mouseenrich <- function(upgenes, downgenes, topreturned, sources = c("GO:BP", "GO:MF", "GO:CC", "REAC", "WP")) {
-  
-  up_fea <- fea(upgenes$Mouse.gene.stable.ID, sources = sources)
-  down_fea <- fea(downgenes$Mouse.gene.stable.ID, sources = sources)
-  
-  if(length(up_fea) > 0){
-  up_fea <- dplyr::mutate(up_fea, .keep = "all", direction = "upregulated")
-  up_fea <- up_fea  %>% dplyr::arrange(., desc(recall)) %>% dplyr::slice_head(., n = topreturned)
-  }
-  if(length(down_fea) > 0){
-  down_fea <- dplyr::mutate(down_fea, .keep = "all", direction = "downregulated")
-  down_fea <- down_fea  %>% dplyr::arrange(., desc(recall)) %>% dplyr::slice_head(., n = topreturned)
-  }
-
-  combined_fea <- rbind(up_fea, down_fea)
-  fea_res <- list(downregulated = down_fea, upregulated = up_fea, topcompared = combined_fea)
-
-return(fea_res)
-}
-
-```
-
-Custom background for FEA (for enrichment using mouse to human to entrez to lincs conversion -- background gene list is all possible measured genes that have gone through those conversions)
-```{r}
-#Needs to only be possible genes -- all genes measured in salmon gene counts that map to human entrez
-#mesgenes <- data@NAMES
-#remove version numbers
-#mesgenes <- gsub("\\..*", "", mesgenes)
-
-#genebg <- convertMouseGeneList(mesgenes)
-#write.csv2(genebg, file = "./data/background_genelist_genestoLINCSgenes.csv")
-
-genebg <- read.csv(file = here("data", "background_genelist_genestoLINCSgenes.csv"))
+source(here("code", "functions.R"))
 ```
 
 
-bubbleplot, up and down for x axis and terms on y axis
-```{r}
-bubbleplot <- function(combined_fea){
-  bubbleplot <- ggplot(combined_fea, aes(x=direction, y=term_name, size = recall, fill = p_value)) +
-  geom_point(alpha=0.7, shape = 21) +
-  scale_size(range = c(2, 10), name = "Recall") + 
-  scale_fill_distiller(palette = "Purples", direction = 1) + 
-  labs(x = "Differential Expression Direction", y = "Functional Enrichment Terms") + 
-  theme_minimal(base_size = 8) #+ labs(title = "Top Enriched Terms")
-#  ggsave(filepath, bubbleplot, width = 10, height = 7)
-return(bubbleplot)
-}
-```
-
-barplot, up and down merged, colored by p-value, terms on y axis and # genes on x axis
-```{r}
-barplot <- function(combined_fea){
-  barplot <- ggplot(combined_fea, aes(x=intersection_size, y=term_name,  fill = recall)) + 
-    geom_bar( stat = "identity") + 
-    scale_fill_continuous(type = "viridis") + 
-    labs(x = "Number of Genes Matched to Term", y = "Functional Terms") + 
-    theme_minimal(base_size = 8)
-return(barplot)
-}
-
-```
 
 
  ### Load in (top 100 human) data  
