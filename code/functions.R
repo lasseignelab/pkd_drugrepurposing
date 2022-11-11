@@ -89,6 +89,46 @@ convertMouseGeneList <- function(lfc){
   return(conv_tbl)
 }
 
+convertMouseGeneList_2 <- function(mousegenes){
+  #read in mose to human ens annotation
+  ens_annot <- read.csv(here("data", "annot_ens_humanmouse.csv"))
+  #conversion table
+  ens_mouse2human <- dplyr::filter(ens_annot, Mouse.gene.stable.ID %in% mousegenes)
+  #biomart to conver human ens to human entrez
+  human <- useEnsembl("ensembl", dataset = "hsapiens_gene_ensembl", mirror = "useast")
+  genes <- getBM(filters = "ensembl_gene_id", attributes = c("ensembl_gene_id", "entrezgene_id",  "hgnc_symbol", "description"), values = ens_mouse2human$Gene.stable.ID, mart = human)
+
+  conv_tbl <- merge(genes, ens_mouse2human, by.x = "ensembl_gene_id", by.y = "Gene.stable.ID")
+  return(conv_tbl)
+}
+
+targets_in_degs <- function(conv_tbl, degs, targets){
+  #convert degs gene id's
+  degs <- tibble:::rownames_to_column(degs, var = "Mouse.gene.stable.ID")
+  conv_tbl <- merge(conv_tbl, degs, by = "Mouse.gene.stable.ID")
+  print(str(conv_tbl))
+
+  #remove duplicates due to multiple homolog mapping
+  conv_tbl <- conv_tbl %>% dplyr::arrange(order_by = desc(abs(log2FoldChange))) %>% dplyr::distinct(hgnc_symbol, .keep_all = TRUE)
+
+  #combine degs with drug target data
+  targets_in_degs <- merge(targets, conv_tbl, by.x = "t_gn_sym", by.y = "hgnc_symbol")
+  targets_in_degs <- tidyr::drop_na(targets_in_degs)
+
+  return(targets_in_degs)
+}
+
+
+target_deg_plot <- function(targetdegs, cutoff){
+  target_labels <- dplyr::filter(targetdegs, log2FoldChange > cutoff)
+  print(unique(target_labels$t_gn_sym))
+  print(unique(target_labels))
+  print(unique(target_labels$pert))
+  targetdegs <- dplyr::distinct(targetdegs, t_gn_sym, .keep_all = TRUE)
+
+  volcanoplot <- EnhancedVolcano(targetdegs, lab = targetdegs$t_gn_sym, x = 'log2FoldChange', y = 'padj', selectLab = unique(target_labels$t_gn_sym), pCutoff = 0.05, FCcutoff = cutoff, pointSize = 3.0, labSize = 5.0, col = c("#440154", "#21918c", "#fde725", "#5ec962"), title = "P70 Pre-Cystic Drug Targets Found in P70 \nPre-Cystic DEGs", labFace = 'bold', boxedLabels = TRUE,drawConnectors = TRUE,widthConnectors = 0.5,colConnectors = 'black', max.overlaps = 25)
+  return(volcanoplot)
+}
 
 #__toplincs__: Uses uplfc and downlfc outputs to then find top 100 genes that are available in LINCS (best input for signature reversion)
 eh <- ExperimentHub()
