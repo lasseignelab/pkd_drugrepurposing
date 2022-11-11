@@ -1,0 +1,256 @@
+"","ont","ID","Description","GeneRatio","BgRatio","pvalue","p.adjust","qvalue","itemID","Count"
+"1","MF","GO:1901338","catecholamine binding","8/16","329/22568",2.17916695285701e-11,6.48388305933372e-09,2.52042358391425e-09,"amisulpride/amitriptyline/bromocriptine/fluphenazine/imipramine/mirtazapine/nicotine/perphenazine",8
+"2","MF","GO:0035240","dopamine binding","7/16","195/22568",3.4572239834531e-11,8.9484480771711e-09,3.47845255177255e-09,"amisulpride/bromocriptine/fluphenazine/imipramine/mirtazapine/nicotine/perphenazine",7
+"3","MF","GO:0004993","G protein-coupled serotonin receptor activity","8/16","389/22568",8.27528192912409e-11,1.35279082483471e-08,5.25858635606944e-09,"amisulpride/amitriptyline/bromocriptine/fluoxetine/fluphenazine/imipramine/mirtazapine/perphenazine",8
+"4","MF","GO:0099589","serotonin receptor activity","8/16","389/22568",8.27528192912409e-11,1.35279082483471e-08,5.25858635606944e-09,"amisulpride/amitriptyline/bromocriptine/fluoxetine/fluphenazine/imipramine/mirtazapine/perphenazine",8
+"5","MF","GO:0016712","oxidoreductase activity, acting on paired donors, with incorporation or reduction of molecular oxygen, reduced flavin or flavoprotein as one donor, and incorporation of one atom of oxygen","8/16","412/22568",1.3059813784846e-10,1.84380825526053e-08,7.16727579484132e-09,"amitriptyline/crizotinib/diltiazem/fenofibrate/fluoxetine/fluvastatin/nicotine/paclitaxel",8
+"6","MF","GO:0004952","dopamine neurotransmitter receptor activity","6/16","118/22568",1.37894553629636e-10,1.86217601553761e-08,7.23867519511179e-09,"amisulpride/bromocriptine/fluphenazine/imipramine/mirtazapine/perphenazine",6
+"7","MF","GO:0004969","histamine receptor activity","6/16","135/22568",3.12322390404852e-10,3.2335778153249e-08,1.25696063787497e-08,"amitriptyline/bromocriptine/fluphenazine/imipramine/mirtazapine/perphenazine",6
+"8","MF","GO:0043176","amine binding","7/16","277/22568",4.04974205808451e-10,3.93078088512828e-08,1.52797833573123e-08,"amitriptyline/bromocriptine/diltiazem/fluoxetine/fluphenazine/imipramine/mirtazapine",7
+"9","MF","GO:0051378","serotonin binding","7/16","277/22568",4.04974205808451e-10,3.93078088512828e-08,1.52797833573123e-08,"amitriptyline/bromocriptine/diltiazem/fluoxetine/fluphenazine/imipramine/mirtazapine",7
+"10","MF","GO:0001965","G-protein alpha-subunit binding","7/16","282/22568",4.58818162985195e-10,4.19143886538828e-08,1.62930164998148e-08,"amitriptyline/bromocriptine/fluoxetine/fluphenazine/imipramine/mirtazapine/perphenazine",7
+"11","MF","GO:0008391","arachidonic acid monooxygenase activity","7/16","307/22568",8.29298783830925e-10,6.96162708805095e-08,2.70613287355354e-08,"amitriptyline/crizotinib/fenofibrate/fluoxetine/fluvastatin/nicotine/paclitaxel",7
+"12","MF","GO:0008392","arachidonic acid epoxygenase activity","7/16","307/22568",8.29298783830925e-10,6.96162708805095e-08,2.70613287355354e-08,"amitriptyline/crizotinib/fenofibrate/fluoxetine/fluvastatin/nicotine/paclitaxel",7
+"13","MF","GO:0016725","oxidoreductase activity, acting on CH or CH2 groups","7/16","330/22568",1.37061321972318e-09,1.0603816529257e-07,4.12192956215737e-08,"amitriptyline/fenofibrate/fluoxetine/fluvastatin/nicotine/paclitaxel/perphenazine",7
+"14","MF","GO:0070330","aromatase activity","6/16","173/22568",1.3977852265023e-09,1.0603816529257e-07,4.12192956215737e-08,"crizotinib/diltiazem/fenofibrate/fluvastatin/nicotine/paclitaxel",6
+"15","MF","GO:0050998","nitric-oxide synthase binding","6/16","180/22568",1.77473358290288e-09,1.28193546709218e-07,4.98315647390357e-08,"amitriptyline/fluoxetine/fluphenazine/imipramine/mirtazapine/perphenazine",6
+"16","MF","GO:0001588","dopamine neurotransmitter receptor activity, coupled via Gs","5/16","82/22568",2.36874303671723e-09,1.4765568992653e-07,5.73969147475954e-08,"bromocriptine/fluphenazine/imipramine/mirtazapine/perphenazine",5
+"17","MF","GO:0015464","acetylcholine receptor activity","6/16","238/22568",9.46911316901042e-09,3.96537627707756e-07,1.54142630216829e-07,"amitriptyline/fluoxetine/fluphenazine/imipramine/mirtazapine/nicotine",6
+"18","MF","GO:0017022","myosin binding","6/16","252/22568",1.33188656070981e-08,5.17104957195583e-07,2.01009721728178e-07,"amitriptyline/crizotinib/fluoxetine/fluvastatin/imipramine/mirtazapine",6
+"19","MF","GO:0101020","estrogen 16-alpha-hydroxylase activity","5/16","141/22568",3.66376648018434e-08,1.21060198802687e-06,4.70586803221886e-07,"crizotinib/diltiazem/fenofibrate/fluvastatin/paclitaxel",5
+"20","MF","GO:0033695","oxidoreductase activity, acting on CH or CH2 groups, quinone or similar compound as acceptor","5/16","177/22568",1.14210664495462e-07,3.19584075606221e-06,1.24229143837169e-06,"amitriptyline/fenofibrate/fluoxetine/fluvastatin/paclitaxel",5
+"21","MF","GO:0034875","caffeine oxidase activity","5/16","177/22568",1.14210664495462e-07,3.19584075606221e-06,1.24229143837169e-06,"amitriptyline/fenofibrate/fluoxetine/fluvastatin/paclitaxel",5
+"22","MF","GO:1901618","organic hydroxy compound transmembrane transporter activity","6/16","381/22568",1.54518795800933e-07,4.20995947155876e-06,1.63650100446602e-06,"amiloride/amitriptyline/fluoxetine/imipramine/mirtazapine/pravastatin",6
+"23","MF","GO:0019811","cocaine binding","4/16","74/22568",1.88111155990703e-07,4.74875339404023e-06,1.84594168941747e-06,"amitriptyline/fluoxetine/imipramine/mirtazapine",4
+"24","MF","GO:0005249","voltage-gated potassium channel activity","5/16","219/22568",3.29147277910733e-07,7.09952392493568e-06,2.75973631406149e-06,"amiloride/amitriptyline/diltiazem/fluoxetine/imipramine",5
+"25","MF","GO:0015271","outward rectifier potassium channel activity","4/16","87/22568",3.61892003674414e-07,7.69888057132007e-06,2.99271902101336e-06,"amiloride/amitriptyline/diltiazem/imipramine",4
+"26","MF","GO:0048306","calcium-dependent protein binding","5/16","254/22568",6.85317718372377e-07,1.25952475341101e-05,4.89604125177899e-06,"amiloride/fluphenazine/fluvastatin/perphenazine/pravastatin",5
+"27","MF","GO:0004935","adrenergic receptor activity","5/16","264/22568",8.29128275514516e-07,1.47650856861204e-05,5.73950360320604e-06,"amisulpride/amitriptyline/bromocriptine/imipramine/mirtazapine",5
+"28","MF","GO:0005335","serotonin:sodium symporter activity","4/16","107/22568",8.31902767247606e-07,1.47650856861204e-05,5.73950360320604e-06,"amitriptyline/fluoxetine/imipramine/mirtazapine",4
+"29","MF","GO:0005251","delayed rectifier potassium channel activity","4/16","111/22568",9.63796799560642e-07,1.64480926342602e-05,6.39372428626985e-06,"amitriptyline/diltiazem/fluoxetine/imipramine",4
+"30","MF","GO:0086008","voltage-gated potassium channel activity involved in cardiac muscle cell action potential repolarization","4/16","116/22568",1.14982752713011e-06,1.90982048089097e-05,7.42387938991408e-06,"amitriptyline/diltiazem/fluoxetine/imipramine",4
+"31","MF","GO:0035473","lipase binding","3/16","32/22568",1.43204240157576e-06,2.29274417489397e-05,8.91238542923166e-06,"fenofibrate/fluvastatin/pravastatin",3
+"32","MF","GO:0004937","alpha1-adrenergic receptor activity","4/16","123/22568",1.45354542689973e-06,2.31523697228234e-05,8.99981972822669e-06,"amitriptyline/bromocriptine/imipramine/mirtazapine",4
+"33","MF","GO:0071813","lipoprotein particle binding","4/16","127/22568",1.65181751020341e-06,2.57761729806672e-05,1.00197479949928e-05,"fenofibrate/fluvastatin/paclitaxel/pravastatin",4
+"34","MF","GO:0071814","protein-lipid complex binding","4/16","127/22568",1.65181751020341e-06,2.57761729806672e-05,1.00197479949928e-05,"fenofibrate/fluvastatin/paclitaxel/pravastatin",4
+"35","MF","GO:0051721","protein phosphatase 2A binding","5/16","325/22568",2.30298824208907e-06,3.342561439219e-05,1.2993248960532e-05,"fluvastatin/imipramine/mirtazapine/paclitaxel/pravastatin",5
+"36","MF","GO:0004936","alpha-adrenergic receptor activity","4/16","152/22568",3.38004096721304e-06,4.68678894828736e-05,1.82185478824876e-05,"amitriptyline/bromocriptine/imipramine/mirtazapine",4
+"37","MF","GO:0008504","monoamine transmembrane transporter activity","4/16","155/22568",3.65304757801794e-06,4.97647621812444e-05,1.93446240627266e-05,"amitriptyline/fluoxetine/imipramine/mirtazapine",4
+"38","MF","GO:0005267","potassium channel activity","5/16","391/22568",5.67908129153337e-06,7.31918111680607e-05,2.84512174771294e-05,"amiloride/amitriptyline/diltiazem/fluoxetine/imipramine",5
+"39","MF","GO:0071890","bicarbonate binding","3/16","51/22568",5.9633755970579e-06,7.62232288249458e-05,2.96295941512905e-05,"amiloride/bromocriptine/fluphenazine",3
+"40","MF","GO:0015377","cation:chloride symporter activity","4/16","181/22568",6.75572453444817e-06,8.35987267091475e-05,3.24966074271841e-05,"amitriptyline/fluoxetine/imipramine/mirtazapine",4
+"41","MF","GO:0015378","sodium:chloride symporter activity","4/16","181/22568",6.75572453444817e-06,8.35987267091475e-05,3.24966074271841e-05,"amitriptyline/fluoxetine/imipramine/mirtazapine",4
+"42","MF","GO:0015296","anion:cation symporter activity","4/16","191/22568",8.3560290633287e-06,0.000100220516524838,3.89578515111633e-05,"amitriptyline/fluoxetine/imipramine/mirtazapine",4
+"43","MF","GO:0015373","anion:sodium symporter activity","4/16","191/22568",8.3560290633287e-06,0.000100220516524838,3.89578515111633e-05,"amitriptyline/fluoxetine/imipramine/mirtazapine",4
+"44","MF","GO:0017137","Rab GTPase binding","4/16","191/22568",8.3560290633287e-06,0.000100220516524838,3.89578515111633e-05,"amitriptyline/fluoxetine/imipramine/mirtazapine",4
+"45","MF","GO:0017075","syntaxin-1 binding","4/16","193/22568",8.70698677043909e-06,0.000103616478578482,4.0277934364564e-05,"amitriptyline/fluoxetine/imipramine/mirtazapine",4
+"46","MF","GO:0015103","inorganic anion transmembrane transporter activity","5/16","483/22568",1.58066688516575e-05,0.000161498399517264,6.277787109713e-05,"amitriptyline/fluoxetine/imipramine/mirtazapine/pravastatin",5
+"47","MF","GO:0008519","ammonium transmembrane transporter activity","4/16","229/22568",1.70784199005285e-05,0.000173351543173339,6.73854407495914e-05,"amitriptyline/fluoxetine/imipramine/mirtazapine",4
+"48","MF","GO:0008179","adenylate cyclase binding","4/16","236/22568",1.92218608355814e-05,0.000190744727652766,7.41465423857804e-05,"amitriptyline/fluphenazine/mirtazapine/perphenazine",4
+"49","MF","GO:0004016","adenylate cyclase activity","3/16","79/22568",2.23723103424438e-05,0.000218516968313303,8.49422044448298e-05,"amiloride/bromocriptine/fluphenazine",3
+"50","MF","GO:0001591","dopamine neurotransmitter receptor activity, coupled via Gi/Go","3/16","82/22568",2.50221093214755e-05,0.000241362334013984,9.38226851642119e-05,"amisulpride/bromocriptine/mirtazapine",3
+"51","MF","GO:0030169","low-density lipoprotein particle binding","3/16","83/22568",2.59492156092858e-05,0.000248760073093956,9.66983440670918e-05,"fenofibrate/fluvastatin/pravastatin",3
+"52","MF","GO:0005328","neurotransmitter:sodium symporter activity","4/16","261/22568",2.85190764933291e-05,0.000270887619536025,0.000105299793136483,"amitriptyline/fluoxetine/imipramine/mirtazapine",4
+"53","MF","GO:0005334","norepinephrine:sodium symporter activity","3/16","88/22568",3.09249274484048e-05,0.000291953874330533,0.000113488695515343,"amitriptyline/imipramine/mirtazapine",3
+"54","MF","GO:0019905","syntaxin binding","4/16","273/22568",3.39967954154119e-05,0.000315130460350336,0.000122497928634506,"amitriptyline/fluoxetine/imipramine/mirtazapine",4
+"55","MF","GO:0000149","SNARE binding","4/16","276/22568",3.54789774880823e-05,0.00032411089434701,0.00012598881479514,"amitriptyline/fluoxetine/imipramine/mirtazapine",4
+"56","MF","GO:0005548","phospholipid transporter activity","4/16","278/22568",3.64931138322252e-05,0.000329498870822359,0.000128083236124732,"fenofibrate/fluvastatin/paclitaxel/pravastatin",4
+"57","MF","GO:0050750","low-density lipoprotein particle receptor binding","3/16","95/22568",3.88891214095798e-05,0.000347096583615387,0.000134923842277036,"fenofibrate/fluvastatin/pravastatin",3
+"58","MF","GO:0004499","N,N-dimethylaniline monooxygenase activity","2/16","15/22568",4.92150909345849e-05,0.00042344064388593,0.0001646004061874,"imipramine/nicotine",2
+"59","MF","GO:1902282","voltage-gated potassium channel activity involved in ventricular cardiac muscle cell action potential repolarization","3/16","103/22568",4.95165111531305e-05,0.000424857137131556,0.000165151027312128,"amitriptyline/fluoxetine/imipramine",3
+"60","MF","GO:0005330","dopamine:sodium symporter activity","3/16","105/22568",5.24415481938836e-05,0.00043903894525661,0.000170663798491657,"amitriptyline/imipramine/mirtazapine",3
+"61","MF","GO:0005250","A-type (transient outward) potassium channel activity","2/16","16/22568",5.62225604621114e-05,0.000465672727454181,0.000181016917473801,"amitriptyline/imipramine",2
+"62","MF","GO:1905030","voltage-gated ion channel activity involved in regulation of postsynaptic membrane potential","2/16","16/22568",5.62225604621114e-05,0.000465672727454181,0.000181016917473801,"amitriptyline/imipramine",2
+"63","MF","GO:0004420","hydroxymethylglutaryl-CoA reductase (NADPH) activity","2/16","17/22568",6.3692554465252e-05,0.000517877157510661,0.000201309892454241,"fluvastatin/pravastatin",2
+"64","MF","GO:0042282","hydroxymethylglutaryl-CoA reductase activity","2/16","17/22568",6.3692554465252e-05,0.000517877157510661,0.000201309892454241,"fluvastatin/pravastatin",2
+"65","MF","GO:0016907","G protein-coupled acetylcholine receptor activity","3/16","116/22568",7.05684046544097e-05,0.00055914659402193,0.000217352202305607,"amitriptyline/imipramine/mirtazapine",3
+"66","MF","GO:0070325","lipoprotein particle receptor binding","3/16","120/22568",7.80564001031047e-05,0.000598625132642576,0.000232698351964291,"fenofibrate/fluvastatin/pravastatin",3
+"67","MF","GO:0046911","metal chelating activity","2/16","20/22568",8.88719140492885e-05,0.000644944310834323,0.000250703604069193,"fenofibrate/fluvastatin",2
+"68","MF","GO:0070326","very-low-density lipoprotein particle receptor binding","2/16","22/22568",0.000107960207881264,0.000755235147926142,0.000293576003887649,"fenofibrate/fluvastatin",2
+"69","MF","GO:0017127","cholesterol transporter activity","3/16","134/22568",0.00010831757515142,0.000756032333528787,0.000293885886927685,"fenofibrate/fluvastatin/pravastatin",3
+"70","MF","GO:0009975","cyclase activity","3/16","136/22568",0.000113180169004223,0.000779462538641057,0.000302993707195341,"amiloride/bromocriptine/fluphenazine",3
+"71","MF","GO:0031748","D1 dopamine receptor binding","3/16","136/22568",0.000113180169004223,0.000779462538641057,0.000302993707195341,"amisulpride/bromocriptine/mirtazapine",3
+"72","MF","GO:0022848","acetylcholine-gated cation-selective channel activity","3/16","139/22568",0.000120737940836486,0.000817019704222498,0.000317592978189313,"fluoxetine/fluphenazine/nicotine",3
+"73","MF","GO:0015248","sterol transporter activity","3/16","140/22568",0.000123328480424446,0.000830928980907437,0.0003229998105876,"fenofibrate/fluvastatin/pravastatin",3
+"74","MF","GO:0005326","neurotransmitter transporter activity","4/16","386/22568",0.000130298616268829,0.000865968174983583,0.000336620292373393,"amitriptyline/fluoxetine/imipramine/mirtazapine",4
+"75","MF","GO:0050780","dopamine receptor binding","3/16","143/22568",0.000131317131493003,0.000865968174983583,0.000336620292373393,"amisulpride/bromocriptine/mirtazapine",3
+"76","MF","GO:0015108","chloride transmembrane transporter activity","4/16","397/22568",0.000145175418542527,0.000943336506261691,0.000366695012262229,"amitriptyline/fluoxetine/imipramine/mirtazapine",4
+"77","MF","GO:0005245","voltage-gated calcium channel activity","4/16","398/22568",0.000146586428196408,0.000950516588680678,0.000369486063380465,"amiloride/amitriptyline/bromocriptine/diltiazem",4
+"78","MF","GO:0031727","CCR2 chemokine receptor binding","2/16","26/22568",0.000151641032370026,0.000975149164681781,0.000379061270847597,"fenofibrate/pravastatin",2
+"79","MF","GO:0031694","alpha-2A adrenergic receptor binding","3/16","153/22568",0.000160365608503191,0.00102278353184992,0.000397577764947932,"amitriptyline/bromocriptine/mirtazapine",3
+"80","MF","GO:0043178","alcohol binding","4/16","415/22568",0.000172130618156571,0.00108226255059577,0.000420698527648812,"amiloride/fenofibrate/fluvastatin/pravastatin",4
+"81","MF","GO:0016248","channel inhibitor activity","3/16","158/22568",0.000176336109959587,0.00108670626494936,0.000422425894159661,"fluphenazine/paclitaxel/perphenazine",3
+"82","MF","GO:0051380","norepinephrine binding","3/16","159/22568",0.000179649456680291,0.00110274943171736,0.00042866221512855,"amitriptyline/bromocriptine/mirtazapine",3
+"83","MF","GO:0016849","phosphorus-oxygen lyase activity","3/16","161/22568",0.000186397153837106,0.00113076085901963,0.000439550854134786,"amiloride/bromocriptine/fluphenazine",3
+"84","MF","GO:0051015","actin filament binding","4/16","434/22568",0.000204344063457137,0.00120664004011001,0.000469046709596429,"amitriptyline/fluoxetine/imipramine/mirtazapine",4
+"85","MF","GO:0015370","solute:sodium symporter activity","4/16","438/22568",0.000211645705350687,0.0012473843658809,0.000484884897707457,"amitriptyline/fluoxetine/imipramine/mirtazapine",4
+"86","MF","GO:0034185","apolipoprotein binding","3/16","172/22568",0.000226466029439152,0.0013147728737159,0.000511080247450481,"fenofibrate/paclitaxel/pravastatin",3
+"87","MF","GO:0042806","fucose binding","2/16","32/22568",0.000230854108328561,0.00132293885695297,0.000514254539236472,"fluvastatin/pravastatin",2
+"88","MF","GO:0015294","solute:cation symporter activity","4/16","464/22568",0.000263800022918133,0.00146839224226473,0.00057079537122637,"amitriptyline/fluoxetine/imipramine/mirtazapine",4
+"89","MF","GO:0015238","drug transmembrane transporter activity","4/16","470/22568",0.000277043486438854,0.00153386286787715,0.000596245199259529,"amitriptyline/imipramine/mirtazapine/paclitaxel",4
+"90","MF","GO:0048403","brain-derived neurotrophic factor binding","2/16","36/22568",0.000292737429321115,0.00158321681148942,0.000615430129385694,"amitriptyline/crizotinib",2
+"91","MF","GO:0060175","brain-derived neurotrophic factor-activated receptor activity","2/16","36/22568",0.000292737429321115,0.00158321681148942,0.000615430129385694,"amitriptyline/crizotinib",2
+"92","MF","GO:0042166","acetylcholine binding","3/16","198/22568",0.000342398313978888,0.00181173622354076,0.000704260496967246,"fluoxetine/fluphenazine/nicotine",3
+"93","MF","GO:0060228","phosphatidylcholine-sterol O-acyltransferase activator activity","2/16","41/22568",0.000380236541713991,0.00196181843615225,0.000762600652816835,"fenofibrate/fluvastatin",2
+"94","MF","GO:0070653","high-density lipoprotein particle receptor binding","2/16","41/22568",0.000380236541713991,0.00196181843615225,0.000762600652816835,"fenofibrate/fluvastatin",2
+"95","MF","GO:0051379","epinephrine binding","3/16","206/22568",0.000384496169429657,0.00197395884669176,0.000767319889231521,"amitriptyline/bromocriptine/mirtazapine",3
+"96","MF","GO:0048487","beta-tubulin binding","3/16","210/22568",0.000406741025154149,0.00207104528545703,0.000805059457897858,"amitriptyline/imipramine/mirtazapine",3
+"97","MF","GO:0031800","type 3 metabotropic glutamate receptor binding","2/16","43/22568",0.000418377856446968,0.00212681116550619,0.000826736844421866,"fluphenazine/perphenazine",2
+"98","MF","GO:0031690","adrenergic receptor binding","3/16","221/22568",0.000472150938172092,0.00235771835042205,0.000916495390224048,"amitriptyline/bromocriptine/mirtazapine",3
+"99","MF","GO:0048020","CCR chemokine receptor binding","2/16","49/22568",0.000543514540452367,0.00262768116145491,0.00102143569057809,"fenofibrate/pravastatin",2
+"100","MF","GO:0008374","O-acyltransferase activity","3/16","232/22568",0.000543979068517548,0.00262768116145491,0.00102143569057809,"fenofibrate/nicotine/pravastatin",3
+"101","MF","GO:0015459","potassium channel regulator activity","3/16","243/22568",0.000622480209472001,0.0029428059826789,0.00114393142716396,"amitriptyline/bromocriptine/mirtazapine",3
+"102","MF","GO:0000155","phosphorelay sensor kinase activity","2/16","54/22568",0.000660003127944627,0.00309398858909189,0.00120269932954499,"fluoxetine/imipramine",2
+"103","MF","GO:0015485","cholesterol binding","3/16","248/22568",0.000660436070369583,0.00309398858909189,0.00120269932954499,"fenofibrate/fluvastatin/pravastatin",3
+"104","MF","GO:0045499","chemorepellent activity","2/16","55/22568",0.00068462590316451,0.00317854716775631,0.00123556905189158,"fenofibrate/fluvastatin",2
+"105","MF","GO:0017129","triglyceride binding","2/16","56/22568",0.000709689060156902,0.00327046620303759,0.00127129994065277,"fenofibrate/pravastatin",2
+"106","MF","GO:0008440","inositol-1,4,5-trisphosphate 3-kinase activity","2/16","57/22568",0.000735192040980732,0.00334334770027255,0.00129963053248809,"fluphenazine/perphenazine",2
+"107","MF","GO:0001849","complement component C1q binding","2/16","58/22568",0.000761134288181181,0.00343616729519004,0.00133571148798013,"fenofibrate/pravastatin",2
+"108","MF","GO:0016413","O-acetyltransferase activity","2/16","59/22568",0.000787515244789343,0.00353982973996483,0.00137600729038522,"fenofibrate/nicotine",2
+"109","MF","GO:0070492","oligosaccharide binding","2/16","60/22568",0.000814334354321881,0.0036393129561493,0.00141467853753457,"fluvastatin/pravastatin",2
+"110","MF","GO:1902936","phosphatidylinositol bisphosphate binding","3/16","268/22568",0.000827018446535097,0.00368539353649643,0.00143259104157027,"amiloride/imipramine/paclitaxel",3
+"111","MF","GO:0038048","dynorphin receptor activity","2/16","62/22568",0.000869284808652467,0.00382436064543139,0.00148661051964273,"amitriptyline/mirtazapine",2
+"112","MF","GO:0008009","chemokine activity","2/16","63/22568",0.000897415042908551,0.00394253341340022,0.00153254679403872,"fenofibrate/pravastatin",2
+"113","MF","GO:0022850","serotonin-gated cation-selective channel activity","2/16","64/22568",0.000925981209004383,0.00398903971590515,0.00155062478535372,"diltiazem/mirtazapine",2
+"114","MF","GO:0031997","N-terminal myristoylation domain binding","2/16","64/22568",0.000925981209004383,0.00398903971590515,0.00155062478535372,"fluphenazine/perphenazine",2
+"115","MF","GO:0051766","inositol trisphosphate kinase activity","2/16","64/22568",0.000925981209004383,0.00398903971590515,0.00155062478535372,"fluphenazine/perphenazine",2
+"116","MF","GO:0051393","alpha-actinin binding","3/16","280/22568",0.000938725518529565,0.00403275444059866,0.00156761763085595,"amiloride/diltiazem/fenofibrate",3
+"117","MF","GO:0017124","SH3 domain binding","3/16","287/22568",0.00100811104072332,0.00426593037123521,0.00165825808649025,"bromocriptine/fluvastatin/paclitaxel",3
+"118","MF","GO:0001846","opsonin binding","2/16","67/22568",0.00101428976014046,0.00426881300134995,0.00165937862627458,"fenofibrate/pravastatin",2
+"119","MF","GO:0033691","sialic acid binding","2/16","68/22568",0.00104459411782145,0.0043550460804744,0.00169289926265094,"fluvastatin/pravastatin",2
+"120","MF","GO:0005246","calcium channel regulator activity","3/16","297/22568",0.00111277064168677,0.00459609788973287,0.00178660124022219,"diltiazem/fluphenazine/perphenazine",3
+"121","MF","GO:0008035","high-density lipoprotein particle binding","2/16","73/22568",0.00120260237603252,0.00487634853780289,0.00189554064217302,"fenofibrate/fluvastatin",2
+"122","MF","GO:0001530","lipopolysaccharide binding","3/16","306/22568",0.00121265751592589,0.00491070957557471,0.00190889751014478,"fluvastatin/paclitaxel/pravastatin",3
+"123","MF","GO:0032934","sterol binding","3/16","307/22568",0.0012240944565503,0.0049505695078714,0.00192439191565679,"fenofibrate/fluvastatin/pravastatin",3
+"124","MF","GO:0001848","complement binding","2/16","74/22568",0.00123549746684952,0.00497765574236614,0.00193492091249329,"fenofibrate/pravastatin",2
+"125","MF","GO:0005096","GTPase activator activity","3/16","311/22568",0.00127052656159689,0.00508538079938136,0.00197679593889261,"bromocriptine/fluoxetine/mirtazapine",3
+"126","MF","GO:0043014","alpha-tubulin binding","3/16","316/22568",0.00133011846036886,0.00530265097317359,0.00206125348772498,"amitriptyline/imipramine/mirtazapine",3
+"127","MF","GO:0055131","C3HC4-type RING finger domain binding","2/16","77/22568",0.0013367597269784,0.00530265097317359,0.00206125348772498,"fluoxetine/imipramine",2
+"128","MF","GO:0043548","phosphatidylinositol 3-kinase binding","3/16","319/22568",0.00136670883095479,0.00540542927666878,0.00210120560556447,"crizotinib/fluphenazine/perphenazine",3
+"129","MF","GO:0004673","protein histidine kinase activity","2/16","78/22568",0.00137137098197521,0.00540542927666878,0.00210120560556447,"fluoxetine/imipramine",2
+"130","MF","GO:0033265","choline binding","2/16","78/22568",0.00137137098197521,0.00540542927666878,0.00210120560556447,"fenofibrate/pravastatin",2
+"131","MF","GO:0031432","titin binding","2/16","79/22568",0.00140640990851112,0.0055085866025669,0.00214130505749288,"fluphenazine/perphenazine",2
+"132","MF","GO:0019855","calcium channel inhibitor activity","2/16","80/22568",0.00144187595974169,0.005605089775917,0.00217881789845691,"fluphenazine/perphenazine",2
+"133","MF","GO:0005231","excitatory extracellular ligand-gated ion channel activity","3/16","328/22568",0.00148028650126322,0.00573288014080245,0.00222849273782506,"fluoxetine/fluphenazine/nicotine",3
+"134","MF","GO:0004940","beta1-adrenergic receptor activity","2/16","82/22568",0.00151408725130026,0.00585648194587622,0.00227653939469279,"amitriptyline/mirtazapine",2
+"135","MF","GO:0005227","calcium activated cation channel activity","2/16","85/22568",0.00162559398022259,0.00620052114543567,0.00241027476660274,"amiloride/fluoxetine",2
+"136","MF","GO:0042805","actinin binding","3/16","342/22568",0.00166852719333893,0.00634326250001312,0.00246576137442473,"amiloride/diltiazem/fenofibrate",3
+"137","MF","GO:0043208","glycosphingolipid binding","2/16","88/22568",0.0017409153949519,0.00654634772000071,0.00254470492928485,"fluvastatin/pravastatin",2
+"138","MF","GO:0055102","lipase inhibitor activity","2/16","89/22568",0.00178020103924663,0.006645798591226,0.00258336360325896,"fenofibrate/fluvastatin",2
+"139","MF","GO:0015643","toxic substance binding","2/16","90/22568",0.00181990836604367,0.00676152558006178,0.00262834915116103,"fluphenazine/nicotine",2
+"140","MF","GO:0004941","beta2-adrenergic receptor activity","2/16","91/22568",0.00186003683374152,0.00681282359151081,0.00264828978190358,"amitriptyline/mirtazapine",2
+"141","MF","GO:0004938","alpha2-adrenergic receptor activity","2/16","92/22568",0.00190058590121326,0.00689107136788915,0.00267870636085297,"bromocriptine/mirtazapine",2
+"142","MF","GO:0005030","neurotrophin receptor activity","2/16","92/22568",0.00190058590121326,0.00689107136788915,0.00267870636085297,"amitriptyline/crizotinib",2
+"143","MF","GO:0042626","ATPase activity, coupled to transmembrane movement of substances","3/16","360/22568",0.00193182913424906,0.00696894458882413,0.00270897734211586,"fenofibrate/paclitaxel/pravastatin",3
+"144","MF","GO:0043492","ATPase activity, coupled to movement of substances","3/16","360/22568",0.00193182913424906,0.00696894458882413,0.00270897734211586,"fenofibrate/paclitaxel/pravastatin",3
+"145","MF","GO:0072542","protein phosphatase activator activity","2/16","93/22568",0.00194155502780623,0.00698779828084143,0.00271630617417058,"fluphenazine/perphenazine",2
+"146","MF","GO:0015405","P-P-bond-hydrolysis-driven transmembrane transporter activity","3/16","369/22568",0.00207269930578872,0.0073574903357483,0.0028600133578823,"fenofibrate/paclitaxel/pravastatin",3
+"147","MF","GO:0015399","primary active transmembrane transporter activity","3/16","371/22568",0.00210485358521056,0.00746296565787668,0.00290101386436593,"fenofibrate/paclitaxel/pravastatin",3
+"148","MF","GO:1901981","phosphatidylinositol phosphate binding","3/16","372/22568",0.00212104744522685,0.00749485024445347,0.00291340808295934,"amiloride/imipramine/paclitaxel",3
+"149","MF","GO:0010856","adenylate cyclase activator activity","2/16","98/22568",0.00215268265790101,0.00758076228507997,0.0029468039248269,"fluphenazine/perphenazine",2
+"150","MF","GO:0019211","phosphatase activator activity","2/16","98/22568",0.00215268265790101,0.00758076228507997,0.0029468039248269,"fluphenazine/perphenazine",2
+"151","MF","GO:0004854","xanthine dehydrogenase activity","2/16","99/22568",0.00219616081203068,0.00763006206058982,0.00296596779865677,"nicotine/perphenazine",2
+"152","MF","GO:0016726","oxidoreductase activity, acting on CH or CH2 groups, NAD or NADP as acceptor","2/16","99/22568",0.00219616081203068,0.00763006206058982,0.00296596779865677,"nicotine/perphenazine",2
+"153","MF","GO:0102797","geranial:oxygen oxidoreductase activity","2/16","99/22568",0.00219616081203068,0.00763006206058982,0.00296596779865677,"nicotine/perphenazine",2
+"154","MF","GO:0102798","heptaldehyde:oxygen oxidoreductase activity","2/16","99/22568",0.00219616081203068,0.00763006206058982,0.00296596779865677,"nicotine/perphenazine",2
+"155","MF","GO:0033612","receptor serine/threonine kinase binding","2/16","100/22568",0.00224005525396347,0.00775653469209648,0.00301513040696603,"amitriptyline/mirtazapine",2
+"156","MF","GO:0005004","GPI-linked ephrin receptor activity","2/16","101/22568",0.00228436544682851,0.00783138971065048,0.00304422814861426,"amitriptyline/crizotinib",2
+"157","MF","GO:0031210","phosphatidylcholine binding","2/16","101/22568",0.00228436544682851,0.00783138971065048,0.00304422814861426,"fenofibrate/pravastatin",2
+"158","MF","GO:0042379","chemokine receptor binding","2/16","101/22568",0.00228436544682851,0.00783138971065048,0.00304422814861426,"fenofibrate/pravastatin",2
+"159","MF","GO:0050997","quaternary ammonium group binding","2/16","101/22568",0.00228436544682851,0.00783138971065048,0.00304422814861426,"fenofibrate/pravastatin",2
+"160","MF","GO:0003924","GTPase activity","3/16","387/22568",0.00237339201644682,0.00808592247845054,0.00314317046218957,"crizotinib/fluvastatin/paclitaxel",3
+"161","MF","GO:0097718","disordered domain specific binding","3/16","388/22568",0.00239085026407281,0.00813360451282602,0.00316170548554968,"amitriptyline/fluphenazine/perphenazine",3
+"162","MF","GO:0030295","protein kinase activator activity","3/16","395/22568",0.00251531023164176,0.00844600386970737,0.00328314177603767,"fluoxetine/fluphenazine/perphenazine",3
+"163","MF","GO:0030695","GTPase regulator activity","3/16","397/22568",0.00255159811363531,0.00854936757384171,0.00332332145158655,"bromocriptine/fluoxetine/mirtazapine",3
+"164","MF","GO:0004939","beta-adrenergic receptor activity","2/16","109/22568",0.00265374975414835,0.00881555800682865,0.00342679534816568,"amitriptyline/mirtazapine",2
+"165","MF","GO:0034191","apolipoprotein A-I receptor binding","2/16","112/22568",0.00279906405580721,0.00918045718831806,0.00356863943979422,"fenofibrate/fluvastatin",2
+"166","MF","GO:0035256","G protein-coupled glutamate receptor binding","2/16","114/22568",0.00289798786878716,0.00947489507416096,0.00368309372354445,"fluphenazine/perphenazine",2
+"167","MF","GO:0030165","PDZ domain binding","3/16","416/22568",0.00291270924923011,0.00950301988246714,0.00369402643616423,"amiloride/amitriptyline/mirtazapine",3
+"168","MF","GO:0015278","calcium-release channel activity","2/16","115/22568",0.00294806246652454,0.00958814871311541,0.00372711782761493,"amiloride/nicotine",2
+"169","MF","GO:0034190","apolipoprotein receptor binding","2/16","116/22568",0.00299854481848717,0.00971165819209713,0.00377512859536226,"fenofibrate/fluvastatin",2
+"170","MF","GO:0005125","cytokine activity","3/16","421/22568",0.00301272970240325,0.00972717095183421,0.00378115873580975,"diltiazem/fenofibrate/pravastatin",3
+"171","MF","GO:0005242","inward rectifier potassium channel activity","2/16","119/22568",0.00315243310833569,0.0100838900458194,0.00391982305302297,"fluoxetine/imipramine",2
+"172","MF","GO:0016775","phosphotransferase activity, nitrogenous group as acceptor","2/16","119/22568",0.00315243310833569,0.0100838900458194,0.00391982305302297,"fluoxetine/imipramine",2
+"173","MF","GO:0043546","molybdopterin cofactor binding","2/16","119/22568",0.00315243310833569,0.0100838900458194,0.00391982305302297,"nicotine/perphenazine",2
+"174","MF","GO:0019209","kinase activator activity","3/16","428/22568",0.00315630613955531,0.010085891841007,0.00392060119349138,"fluoxetine/fluphenazine/perphenazine",3
+"175","MF","GO:0099579","G protein-coupled neurotransmitter receptor activity involved in regulation of postsynaptic membrane potential","2/16","121/22568",0.00325705437995714,0.0103334125680765,0.00401681777733546,"amitriptyline/mirtazapine",2
+"176","MF","GO:0060589","nucleoside-triphosphatase regulator activity","3/16","439/22568",0.00339038078402004,0.0106908860052449,0.00415577532382687,"bromocriptine/fluoxetine/mirtazapine",3
+"177","MF","GO:0051117","ATPase binding","3/16","441/22568",0.00343406032000787,0.0107522090261537,0.00417961288948327,"amiloride/bromocriptine/fluphenazine",3
+"178","MF","GO:1904315","transmitter-gated ion channel activity involved in regulation of postsynaptic membrane potential","3/16","442/22568",0.00345603019965272,0.0107992251510275,0.00419788905962266,"fluoxetine/fluphenazine/nicotine",3
+"179","MF","GO:0004031","aldehyde oxidase activity","2/16","129/22568",0.00369168079910706,0.0113979727256725,0.00443063500740379,"nicotine/perphenazine",2
+"180","MF","GO:0017081","chloride channel regulator activity","2/16","131/22568",0.0038043517386252,0.0116646757158636,0.00453430814589609,"fluphenazine/nicotine",2
+"181","MF","GO:0046625","sphingolipid binding","2/16","131/22568",0.0038043517386252,0.0116646757158636,0.00453430814589609,"fluvastatin/pravastatin",2
+"182","MF","GO:0008131","primary amine oxidase activity","2/16","133/22568",0.00391862003855018,0.0119208950438167,0.00463390606136095,"amiloride/fenofibrate",2
+"183","MF","GO:0051861","glycolipid binding","2/16","135/22568",0.00403448152505391,0.0122135473848123,0.00474766626576058,"fluvastatin/pravastatin",2
+"184","MF","GO:0019825","oxygen binding","3/16","471/22568",0.00413141872186173,0.0124584335437889,0.00484285873681697,"crizotinib/diltiazem/nicotine",3
+"185","MF","GO:0008200","ion channel inhibitor activity","2/16","137/22568",0.00415193203167115,0.0124960279945452,0.00485747250135334,"fluphenazine/perphenazine",2
+"186","MF","GO:0004985","opioid receptor activity","2/16","138/22568",0.00421125186751262,0.0125891706453265,0.00489367903554731,"amitriptyline/mirtazapine",2
+"187","MF","GO:0019888","protein phosphatase regulator activity","2/16","140/22568",0.00433107810825797,0.0128977263703253,0.00501362122437492,"fluphenazine/perphenazine",2
+"188","MF","GO:0099530","G protein-coupled receptor activity involved in regulation of postsynaptic membrane potential","2/16","142/22568",0.00445248298509672,0.0131834243581605,0.00512467812343178,"amitriptyline/mirtazapine",2
+"189","MF","GO:0005003","ephrin receptor activity","2/16","151/22568",0.00501822969940355,0.0147182449918295,0.00572129562667449,"amitriptyline/crizotinib",2
+"190","MF","GO:0019208","phosphatase regulator activity","2/16","152/22568",0.00508304223925842,0.0148942728256006,0.00578972139863894,"fluphenazine/perphenazine",2
+"191","MF","GO:0016623","oxidoreductase activity, acting on the aldehyde or oxo group of donors, oxygen as acceptor","2/16","156/22568",0.00534617202859343,0.0155771203759955,0.00605515880003621,"nicotine/perphenazine",2
+"192","MF","GO:0005217","intracellular ligand-gated ion channel activity","2/16","166/22568",0.00603097518068591,0.0174091160884855,0.00676729459229773,"amiloride/nicotine",2
+"193","MF","GO:0043121","neurotrophin binding","2/16","174/22568",0.00660629894295991,0.0188076668348611,0.00731094108502583,"amitriptyline/crizotinib",2
+"194","MF","GO:0008413","8-oxo-7,8-dihydroguanosine triphosphate pyrophosphatase activity","1/16","10/22568",0.00706851364982919,0.0198686003587054,0.0077233485652337,"crizotinib",1
+"195","MF","GO:0035539","8-oxo-7,8-dihydrodeoxyguanosine triphosphate pyrophosphatase activity","1/16","10/22568",0.00706851364982919,0.0198686003587054,0.0077233485652337,"crizotinib",1
+"196","MF","GO:0016175","superoxide-generating NADPH oxidase activity","1/16","11/22568",0.0077727828129468,0.0213648348823122,0.00830496682482532,"fluvastatin",1
+"197","MF","GO:0051371","muscle alpha-actinin binding","1/16","11/22568",0.0077727828129468,0.0213648348823122,0.00830496682482532,"amiloride",1
+"198","MF","GO:0099604","ligand-gated calcium channel activity","2/16","198/22568",0.00847613321491706,0.0228941467965371,0.00889944297137224,"amiloride/nicotine",2
+"199","MF","GO:0099626","voltage-gated calcium channel activity involved in regulation of presynaptic cytosolic calcium levels","2/16","198/22568",0.00847613321491706,0.0228941467965371,0.00889944297137224,"amitriptyline/bromocriptine",2
+"200","MF","GO:0004435","phosphatidylinositol phospholipase C activity","2/16","205/22568",0.00906144866686994,0.0242002231808238,0.00940714270796924,"amitriptyline/imipramine",2
+"201","MF","GO:0035254","glutamate receptor binding","2/16","206/22568",0.00914651682860953,0.0242455956600618,0.00942477995800686,"fluphenazine/perphenazine",2
+"202","MF","GO:0070402","NADPH binding","2/16","206/22568",0.00914651682860953,0.0242455956600618,0.00942477995800686,"fluvastatin/pravastatin",2
+"203","MF","GO:0099511","voltage-gated calcium channel activity involved in regulation of cytosolic calcium levels","2/16","206/22568",0.00914651682860953,0.0242455956600618,0.00942477995800686,"amitriptyline/bromocriptine",2
+"204","MF","GO:0005229","intracellular calcium activated chloride channel activity","1/16","13/22568",0.0091799164508154,0.0242455956600618,0.00942477995800686,"fluoxetine",1
+"205","MF","GO:0034899","trimethylamine monooxygenase activity","1/16","13/22568",0.0091799164508154,0.0242455956600618,0.00942477995800686,"nicotine",1
+"206","MF","GO:0061778","intracellular chloride channel activity","1/16","13/22568",0.0091799164508154,0.0242455956600618,0.00942477995800686,"fluoxetine",1
+"207","MF","GO:0099508","voltage-gated ion channel activity involved in regulation of presynaptic membrane potential","1/16","13/22568",0.0091799164508154,0.0242455956600618,0.00942477995800686,"amitriptyline",1
+"208","MF","GO:0099077","histone-dependent DNA binding","1/16","14/22568",0.00988278150675803,0.025431581905543,0.00988579809728467,"paclitaxel",1
+"209","MF","GO:0004629","phospholipase C activity","2/16","216/22568",0.0100169977055847,0.0256918207048275,0.00998695846695265,"amitriptyline/imipramine",2
+"210","MF","GO:0016641","oxidoreductase activity, acting on the CH-NH2 group of donors, oxygen as acceptor","2/16","222/22568",0.0105564334418509,0.0268607567884817,0.0104413488448126,"amiloride/fenofibrate",2
+"211","MF","GO:0015111","iodide transmembrane transporter activity","1/16","15/22568",0.0105851791078885,0.0268607567884817,0.0104413488448126,"fluoxetine",1
+"212","MF","GO:0099609","microtubule lateral binding","1/16","15/22568",0.0105851791078885,0.0268607567884817,0.0104413488448126,"paclitaxel",1
+"213","MF","GO:0005247","voltage-gated chloride channel activity","1/16","16/22568",0.0112871095443838,0.0280445475566801,0.0109015135552622,"fluoxetine",1
+"214","MF","GO:0030229","very-low-density lipoprotein particle receptor activity","1/16","17/22568",0.0119885731062531,0.0291137670586569,0.0113171419718302,"fluvastatin",1
+"215","MF","GO:0051022","Rho GDP-dissociation inhibitor binding","1/16","17/22568",0.0119885731062531,0.0291137670586569,0.0113171419718302,"fluvastatin",1
+"216","MF","GO:0052597","diamine oxidase activity","1/16","17/22568",0.0119885731062531,0.0291137670586569,0.0113171419718302,"amiloride",1
+"217","MF","GO:0052598","histamine oxidase activity","1/16","17/22568",0.0119885731062531,0.0291137670586569,0.0113171419718302,"amiloride",1
+"218","MF","GO:0052599","methylputrescine oxidase activity","1/16","17/22568",0.0119885731062531,0.0291137670586569,0.0113171419718302,"amiloride",1
+"219","MF","GO:0052600","propane-1,3-diamine oxidase activity","1/16","17/22568",0.0119885731062531,0.0291137670586569,0.0113171419718302,"amiloride",1
+"220","MF","GO:0051537","2 iron, 2 sulfur cluster binding","2/16","239/22568",0.0121536370042888,0.0294915597932194,0.0114639980624336,"nicotine/perphenazine",2
+"221","MF","GO:0016638","oxidoreductase activity, acting on the CH-NH2 group of donors","2/16","242/22568",0.0124459300061431,0.0300833140848875,0.0116940255720222,"amiloride/fenofibrate",2
+"222","MF","GO:0051021","GDP-dissociation inhibitor binding","1/16","18/22568",0.0126895700833407,0.0303650267171466,0.0118035332783974,"fluvastatin",1
+"223","MF","GO:0061575","cyclin-dependent protein serine/threonine kinase activator activity","1/16","18/22568",0.0126895700833407,0.0303650267171466,0.0118035332783974,"fluoxetine",1
+"224","MF","GO:0086057","voltage-gated calcium channel activity involved in bundle of His cell action potential","1/16","19/22568",0.0133901007653218,0.0315551236548478,0.0122661493313825,"diltiazem",1
+"225","MF","GO:0005008","hepatocyte growth factor-activated receptor activity","1/16","20/22568",0.0140901654417042,0.0328558962927426,0.0127717873886792,"crizotinib",1
+"226","MF","GO:0005011","macrophage colony-stimulating factor receptor activity","1/16","20/22568",0.0140901654417042,0.0328558962927426,0.0127717873886792,"crizotinib",1
+"227","MF","GO:0015651","quaternary ammonium group transmembrane transporter activity","1/16","21/22568",0.0147897644018309,0.0339519646948165,0.0131978525451434,"imipramine",1
+"228","MF","GO:0003680","AT DNA binding","1/16","22/22568",0.0154888979348757,0.0352701737431994,0.0137102685069474,"paclitaxel",1
+"229","MF","GO:0048763","calcium-induced calcium release activity","1/16","22/22568",0.0154888979348757,0.0352701737431994,0.0137102685069474,"amiloride",1
+"230","MF","GO:0004796","thromboxane-A synthase activity","1/16","23/22568",0.016187566329848,0.0361802307766686,0.0140640270786047,"nicotine",1
+"231","MF","GO:0019534","toxin transmembrane transporter activity","1/16","23/22568",0.016187566329848,0.0361802307766686,0.0140640270786047,"imipramine",1
+"232","MF","GO:0036134","12-hydroxyheptadecatrienoic acid synthase activity","1/16","23/22568",0.016187566329848,0.0361802307766686,0.0140640270786047,"nicotine",1
+"233","MF","GO:0043539","protein serine/threonine kinase activator activity","2/16","278/22568",0.0161914104248453,0.0361802307766686,0.0140640270786047,"fluphenazine/perphenazine",2
+"234","MF","GO:0050664","oxidoreductase activity, acting on NAD(P)H, oxygen as acceptor","1/16","24/22568",0.0168857698755891,0.0374890644986274,0.0145727986511423,"fluvastatin",1
+"235","MF","GO:0004867","serine-type endopeptidase inhibitor activity","2/16","288/22568",0.017308041454526,0.0381809494018165,0.0148417490642504,"fenofibrate/fluvastatin",2
+"236","MF","GO:0002162","dystroglycan binding","1/16","25/22568",0.0175835088607728,0.0384337639138355,0.0149400234551697,"paclitaxel",1
+"237","MF","GO:0015349","thyroid hormone transmembrane transporter activity","1/16","25/22568",0.0175835088607728,0.0384337639138355,0.0149400234551697,"pravastatin",1
+"238","MF","GO:0086087","voltage-gated potassium channel activity involved in bundle of His cell action potential repolarization","1/16","25/22568",0.0175835088607728,0.0384337639138355,0.0149400234551697,"diltiazem",1
+"239","MF","GO:0086090","voltage-gated potassium channel activity involved in SA node cell action potential repolarization","1/16","25/22568",0.0175835088607728,0.0384337639138355,0.0149400234551697,"diltiazem",1
+"240","MF","GO:0033613","activating transcription factor binding","2/16","292/22568",0.0177637585175935,0.038691608664548,0.0150402532071158,"fenofibrate/nicotine",2
+"241","MF","GO:0004092","carnitine O-acetyltransferase activity","1/16","26/22568",0.0182807835739094,0.0392941963879326,0.0152744919025854,"fenofibrate",1
+"242","MF","GO:0008308","voltage-gated anion channel activity","1/16","26/22568",0.0182807835739094,0.0392941963879326,0.0152744919025854,"fluoxetine",1
+"243","MF","GO:0015279","store-operated calcium channel activity","1/16","26/22568",0.0182807835739094,0.0392941963879326,0.0152744919025854,"amiloride",1
+"244","MF","GO:0032036","myosin heavy chain binding","1/16","26/22568",0.0182807835739094,0.0392941963879326,0.0152744919025854,"crizotinib",1
+"245","MF","GO:0032050","clathrin heavy chain binding","1/16","28/22568",0.0196739413372394,0.041854288899634,0.0162696544439896,"fluvastatin",1
+"246","MF","GO:0030235","nitric-oxide synthase regulator activity","2/16","312/22568",0.0201188115475148,0.0426255311504644,0.0165694527500534,"fluphenazine/perphenazine",2
+"247","MF","GO:0005179","hormone activity","2/16","314/22568",0.020361240921045,0.0427202406056735,0.0166062683345333,"bromocriptine/diltiazem",2
+"248","MF","GO:0008527","taste receptor activity","1/16","29/22568",0.0203698249636196,0.0427202406056735,0.0166062683345333,"amiloride",1
+"249","MF","GO:0070539","linoleic acid binding","1/16","32/22568",0.0224546982752425,0.0458844031861205,0.0178362457906531,"fenofibrate",1
+"250","MF","GO:0000979","RNA polymerase II core promoter sequence-specific DNA binding","1/16","33/22568",0.0231487311483164,0.0468403641346389,0.0182078481927783,"nicotine",1
+"251","MF","GO:0034186","apolipoprotein A-I binding","1/16","35/22568",0.0245354112715926,0.0485453942974687,0.018870629768935,"pravastatin",1
+"252","MF","GO:0004511","tyrosine 3-monooxygenase activity","1/16","36/22568",0.0252280590956578,0.0493440500951595,0.0191810843051303,"nicotine",1
+"253","MF","GO:0030674","protein binding, bridging","2/16","355/22568",0.0256003051551702,0.0498523810733283,0.0193786833941463,"amiloride/paclitaxel",2
+"254","MF","GO:0051536","iron-sulfur cluster binding","2/16","355/22568",0.0256003051551702,0.0498523810733283,0.0193786833941463,"nicotine/perphenazine",2
+"255","MF","GO:0051540","metal cluster binding","2/16","355/22568",0.0256003051551702,0.0498523810733283,0.0193786833941463,"nicotine/perphenazine",2

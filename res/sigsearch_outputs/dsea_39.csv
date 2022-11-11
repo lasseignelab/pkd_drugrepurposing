@@ -1,113 +1,120 @@
 "","ont","ID","Description","GeneRatio","BgRatio","pvalue","p.adjust","qvalue","itemID","Count"
-"1","MF","GO:0000155","phosphorelay sensor kinase activity","5/58","54/22568",2.69977770381875e-07,9.7469615033292e-05,6.60641293165316e-05,"amsacrine/terfenadine/perhexiline/h-89/rottlerin",5
-"2","MF","GO:0030332","cyclin binding","7/58","179/22568",3.75364371116657e-07,9.7469615033292e-05,6.60641293165316e-05,"trichostatin-a/vorinostat/aminopurvalanol-a/tyrphostin-ag-555/scriptaid/carbamazepine/purvalanol-a",7
-"3","MF","GO:0005242","inward rectifier potassium channel activity","6/58","119/22568",6.12589516591428e-07,0.000119274633540142,8.08433973160397e-05,"amsacrine/terfenadine/perhexiline/h-89/rottlerin/nortriptyline",6
-"4","MF","GO:0035851","Krueppel-associated box domain binding","4/58","27/22568",6.59387359499958e-07,0.000119274633540142,8.08433973160397e-05,"trichostatin-a/vorinostat/nsc-3852/scriptaid",4
-"5","MF","GO:0055131","C3HC4-type RING finger domain binding","5/58","77/22568",1.61244649199454e-06,0.000224302824511383,0.000152030669245199,"amsacrine/terfenadine/perhexiline/h-89/rottlerin",5
-"6","MF","GO:0004673","protein histidine kinase activity","5/58","78/22568",1.71952015993678e-06,0.000230949345619095,0.000156535628352866,"amsacrine/terfenadine/perhexiline/h-89/rottlerin",5
-"7","MF","GO:0001046","core promoter sequence-specific DNA binding","5/58","94/22568",4.33315025842788e-06,0.000432759493758374,0.000293320940570503,"etoposide/trichostatin-a/vorinostat/nsc-3852/scriptaid",5
-"8","MF","GO:1902282","voltage-gated potassium channel activity involved in ventricular cardiac muscle cell action potential repolarization","5/58","103/22568",6.79001068388376e-06,0.000508597915648601,0.000344723619335637,"amsacrine/terfenadine/perhexiline/h-89/rottlerin",5
-"9","MF","GO:0005251","delayed rectifier potassium channel activity","5/58","111/22568",9.78660582485169e-06,0.000627432064114882,0.0004252684593744,"amsacrine/terfenadine/perhexiline/h-89/rottlerin",5
-"10","MF","GO:0030544","Hsp70 protein binding","6/58","195/22568",1.07336447492157e-05,0.000663611846003101,0.000449790827586184,"etoposide/trichostatin-a/vorinostat/aminopurvalanol-a/scriptaid/purvalanol-a",6
-"11","MF","GO:0001047","core promoter binding","6/58","196/22568",1.10507464382923e-05,0.000671320534001316,0.00045501571495853,"etoposide/avrainvillamide-analog-3/trichostatin-a/vorinostat/nsc-3852/scriptaid",6
-"12","MF","GO:0071889","14-3-3 protein binding","6/58","197/22568",1.13753928739633e-05,0.000671320534001316,0.00045501571495853,"terfenadine/wortmannin/trichostatin-a/vorinostat/h-89/scriptaid",6
-"13","MF","GO:0086008","voltage-gated potassium channel activity involved in cardiac muscle cell action potential repolarization","5/58","116/22568",1.21281296546525e-05,0.000705060671714502,0.000477884511765414,"amsacrine/terfenadine/perhexiline/h-89/rottlerin",5
-"14","MF","GO:0016775","phosphotransferase activity, nitrogenous group as acceptor","5/58","119/22568",1.37296710781678e-05,0.000766831991607327,0.000519752620755672,"amsacrine/terfenadine/perhexiline/h-89/rottlerin",5
-"15","MF","GO:0030235","nitric-oxide synthase regulator activity","7/58","312/22568",1.48312227567598e-05,0.000790670316243854,0.000535910047466951,"ag-957/berbamine/geldanamycin/malonoben/tyrphostin-ag-555/estradiol-cypionate/benzyl-quinazolin-4-yl-amine",7
-"16","MF","GO:0001103","RNA polymerase II repressing transcription factor binding","6/58","218/22568",2.01898437135157e-05,0.000878820769586084,0.000595657723159759,"niclosamide/trichostatin-a/vorinostat/nsc-3852/scriptaid/cucurbitacin-i",6
-"17","MF","GO:0005249","voltage-gated potassium channel activity","6/58","219/22568",2.07176041157901e-05,0.000878820769586084,0.000595657723159759,"amsacrine/terfenadine/perhexiline/h-89/rottlerin/nortriptyline",6
-"18","MF","GO:0005080","protein kinase C binding","8/58","490/22568",3.44870116459731e-05,0.00115799060656091,0.000784876816770423,"etoposide/amsacrine/ag-957/trichostatin-a/vorinostat/scriptaid/forskolin/purvalanol-a",8
-"19","MF","GO:0002039","p53 binding","8/58","500/22568",3.97861419928457e-05,0.00129139185885112,0.000875295123842606,"etoposide/wortmannin/trichostatin-a/vorinostat/aminopurvalanol-a/nsc-3852/scriptaid/purvalanol-a",8
-"20","MF","GO:0005006","epidermal growth factor-activated receptor activity","4/58","76/22568",4.3891944374462e-05,0.00137870260756879,0.000934473654424029,"ag-957/malonoben/tyrphostin-ag-555/benzyl-quinazolin-4-yl-amine",4
-"21","MF","GO:0048408","epidermal growth factor binding","4/58","85/22568",6.80895607591739e-05,0.00179195161592556,0.00121457054327175,"ag-957/malonoben/tyrphostin-ag-555/benzyl-quinazolin-4-yl-amine",4
-"22","MF","GO:0031490","chromatin DNA binding","6/58","276/22568",7.52444771910814e-05,0.00195384825772841,0.00132430279856303,"niclosamide/trichostatin-a/vorinostat/nsc-3852/scriptaid/cucurbitacin-i",6
-"23","MF","GO:0031492","nucleosomal DNA binding","4/58","88/22568",7.79690136860689e-05,0.00199795597570552,0.00135419865875804,"trichostatin-a/vorinostat/nsc-3852/scriptaid",4
-"24","MF","GO:0033613","activating transcription factor binding","6/58","292/22568",0.00010254337351349,0.00230870774471124,0.00156482373454112,"etoposide/avrainvillamide-analog-3/trichostatin-a/vorinostat/nsc-3852/scriptaid",6
-"25","MF","GO:0051059","NF-kappaB binding","6/58","299/22568",0.000116725203703303,0.00255418353047395,0.00173120526840853,"avrainvillamide-analog-3/trichostatin-a/vorinostat/nsc-3852/scriptaid/carbamazepine",6
-"26","MF","GO:0031420","alkali metal ion binding","6/58","312/22568",0.000147176558619765,0.00288764249509274,0.00195722110065336,"trichostatin-a/vorinostat/scriptaid/l-690488/menadione/carbamazepine",6
-"27","MF","GO:1990841","promoter-specific chromatin binding","5/58","197/22568",0.000151648526536991,0.00290970941311123,0.00197217788205742,"etoposide/trichostatin-a/vorinostat/nsc-3852/scriptaid",5
-"28","MF","GO:0031078","histone deacetylase activity (H3-K14 specific)","5/58","199/22568",0.000158965329688333,0.00299096430533584,0.00202725180130594,"trichostatin-a/vorinostat/nsc-3852/scriptaid/carbamazepine",5
-"29","MF","GO:0032041","NAD-dependent histone deacetylase activity (H3-K14 specific)","5/58","199/22568",0.000158965329688333,0.00299096430533584,0.00202725180130594,"trichostatin-a/vorinostat/nsc-3852/scriptaid/carbamazepine",5
-"30","MF","GO:0031491","nucleosome binding","4/58","106/22568",0.000160490767603387,0.00299096430533584,0.00202725180130594,"trichostatin-a/vorinostat/nsc-3852/scriptaid",4
-"31","MF","GO:0003714","transcription corepressor activity","6/58","325/22568",0.00018361672772319,0.0032613440719873,0.0022105130552109,"trichostatin-a/vorinostat/nsc-3852/scriptaid/carbamazepine/purvalanol-a",6
-"32","MF","GO:0070491","repressing transcription factor binding","6/58","331/22568",0.000202677068981896,0.00347765279156161,0.00235712538375421,"niclosamide/trichostatin-a/vorinostat/nsc-3852/scriptaid/cucurbitacin-i",6
-"33","MF","GO:0099635","voltage-gated calcium channel activity involved in positive regulation of presynaptic cytosolic calcium levels","4/58","124/22568",0.000292853744828039,0.00447319739649102,0.00303189759351381,"aminopurvalanol-a/lylamine/am-404/purvalanol-a",4
-"34","MF","GO:0005267","potassium channel activity","6/58","391/22568",0.000492648563716433,0.00680448991374293,0.00461202910713256,"amsacrine/terfenadine/perhexiline/h-89/rottlerin/nortriptyline",6
-"35","MF","GO:0005245","voltage-gated calcium channel activity","6/58","398/22568",0.000540847838458191,0.00712459563172669,0.00482899421508561,"nnc-55-0396/niguldipine/aminopurvalanol-a/lylamine/am-404/purvalanol-a",6
-"36","MF","GO:0099038","ceramide-translocating ATPase activity","3/58","62/22568",0.000547049841685739,0.00712459563172669,0.00482899421508561,"etoposide/irinotecan/carbamazepine",3
-"37","MF","GO:0017136","NAD-dependent histone deacetylase activity","5/58","261/22568",0.000553338017795421,0.00712459563172669,0.00482899421508561,"trichostatin-a/vorinostat/nsc-3852/scriptaid/carbamazepine",5
-"38","MF","GO:0034979","NAD-dependent protein deacetylase activity","5/58","266/22568",0.000602951074944871,0.0075514290575893,0.00511829851400148,"trichostatin-a/vorinostat/nsc-3852/scriptaid/carbamazepine",5
-"39","MF","GO:0090555","phosphatidylethanolamine-translocating ATPase activity","3/58","67/22568",0.000686648608493528,0.00815395222586064,0.00552668392202108,"etoposide/irinotecan/carbamazepine",3
-"40","MF","GO:1904121","phosphatidylethanolamine transporter activity","3/58","67/22568",0.000686648608493528,0.00815395222586064,0.00552668392202108,"etoposide/irinotecan/carbamazepine",3
-"41","MF","GO:0019789","SUMO transferase activity","3/58","69/22568",0.000748264416532234,0.0086999698578897,0.0058967703272988,"trichostatin-a/vorinostat/scriptaid",3
-"42","MF","GO:0004693","cyclin-dependent protein serine/threonine kinase activity","4/58","161/22568",0.000784478579178481,0.00898689431147113,0.00609124543832703,"etoposide/aminopurvalanol-a/tyrphostin-ag-555/purvalanol-a",4
-"43","MF","GO:0097472","cyclin-dependent protein kinase activity","4/58","161/22568",0.000784478579178481,0.00898689431147113,0.00609124543832703,"etoposide/aminopurvalanol-a/tyrphostin-ag-555/purvalanol-a",4
-"44","MF","GO:0019213","deacetylase activity","6/58","432/22568",0.00082958995471835,0.00944810781762566,0.00640385228203639,"irinotecan/trichostatin-a/vorinostat/nsc-3852/scriptaid/carbamazepine",6
-"45","MF","GO:0051879","Hsp90 protein binding","6/58","447/22568",0.00098963552003638,0.0105782829091504,0.00716987596409677,"methylene-blue/trichostatin-a/vorinostat/aminopurvalanol-a/scriptaid/purvalanol-a",6
-"46","MF","GO:0090554","phosphatidylcholine-translocating ATPase activity","3/58","76/22568",0.000991289669278531,0.0105782829091504,0.00716987596409677,"etoposide/irinotecan/carbamazepine",3
-"47","MF","GO:0004968","gonadotropin-releasing hormone receptor activity","2/58","19/22568",0.00107925612761304,0.0107958614993717,0.00731734900085787,"cmpd-1/t-98475",2
-"48","MF","GO:0031730","CCR5 chemokine receptor binding","2/58","19/22568",0.00107925612761304,0.0107958614993717,0.00731734900085787,"niclosamide/cucurbitacin-i",2
-"49","MF","GO:0032407","MutSalpha complex binding","2/58","19/22568",0.00107925612761304,0.0107958614993717,0.00731734900085787,"wortmannin/cgk-733",2
-"50","MF","GO:0043130","ubiquitin binding","5/58","303/22568",0.00108097201149037,0.0107958614993717,0.00731734900085787,"etoposide/amsacrine/trichostatin-a/vorinostat/scriptaid",5
-"51","MF","GO:0030955","potassium ion binding","4/58","183/22568",0.00126150329289783,0.0118972283918572,0.00806384671489167,"trichostatin-a/vorinostat/scriptaid/menadione",4
-"52","MF","GO:0004407","histone deacetylase activity","5/58","318/22568",0.00133888898121172,0.0124504842596018,0.00843883913872883,"trichostatin-a/vorinostat/nsc-3852/scriptaid/carbamazepine",5
-"53","MF","GO:0000980","RNA polymerase II distal enhancer sequence-specific DNA binding","5/58","322/22568",0.00141475256015516,0.0129264392679334,0.00876143765528735,"etoposide/trichostatin-a/vorinostat/nsc-3852/scriptaid",5
-"54","MF","GO:0001158","enhancer sequence-specific DNA binding","5/58","322/22568",0.00141475256015516,0.0129264392679334,0.00876143765528735,"etoposide/trichostatin-a/vorinostat/nsc-3852/scriptaid",5
-"55","MF","GO:0033558","protein deacetylase activity","5/58","323/22568",0.00143420481755889,0.0130215099403074,0.00882587580036242,"trichostatin-a/vorinostat/nsc-3852/scriptaid/carbamazepine",5
-"56","MF","GO:0003680","AT DNA binding","2/58","22/22568",0.00145074105474597,0.013108244388765,0.00888466371921427,"etoposide/methylene-blue",2
-"57","MF","GO:0070840","dynein complex binding","3/58","88/22568",0.00151399920401236,0.0134023338627912,0.00908399522407414,"trichostatin-a/vorinostat/scriptaid",3
-"58","MF","GO:0070888","E-box binding","4/58","195/22568",0.00159297729701299,0.0138689532807437,0.00940026615177493,"trichostatin-a/vorinostat/nsc-3852/scriptaid",4
-"59","MF","GO:0008525","phosphatidylcholine transporter activity","3/58","90/22568",0.00161496592759453,0.0139784273066237,0.00947446677522122,"etoposide/irinotecan/carbamazepine",3
-"60","MF","GO:0008559","xenobiotic transmembrane transporting ATPase activity","3/58","91/22568",0.00166699250510919,0.0143649022287617,0.00973641640152269,"etoposide/irinotecan/carbamazepine",3
-"61","MF","GO:0099626","voltage-gated calcium channel activity involved in regulation of presynaptic cytosolic calcium levels","4/58","198/22568",0.00168446793069631,0.0143881635746977,0.00975218275666286,"aminopurvalanol-a/lylamine/am-404/purvalanol-a",4
-"62","MF","GO:0008934","inositol monophosphate 1-phosphatase activity","2/58","25/22568",0.00187477789311613,0.0154381815934193,0.0104638766127412,"l-690488/carbamazepine",2
-"63","MF","GO:0052832","inositol monophosphate 3-phosphatase activity","2/58","25/22568",0.00187477789311613,0.0154381815934193,0.0104638766127412,"l-690488/carbamazepine",2
-"64","MF","GO:0052833","inositol monophosphate 4-phosphatase activity","2/58","25/22568",0.00187477789311613,0.0154381815934193,0.0104638766127412,"l-690488/carbamazepine",2
-"65","MF","GO:0052834","inositol monophosphate phosphatase activity","2/58","25/22568",0.00187477789311613,0.0154381815934193,0.0104638766127412,"l-690488/carbamazepine",2
-"66","MF","GO:0042903","tubulin deacetylase activity","3/58","95/22568",0.00188556338464895,0.0154942392050795,0.0105018720157663,"trichostatin-a/vorinostat/scriptaid",3
-"67","MF","GO:0099511","voltage-gated calcium channel activity involved in regulation of cytosolic calcium levels","4/58","206/22568",0.00194622190967051,0.0157927798711805,0.0107042205031878,"aminopurvalanol-a/lylamine/am-404/purvalanol-a",4
-"68","MF","GO:0004677","DNA-dependent protein kinase activity","2/58","26/22568",0.00202766279568397,0.0162505073851627,0.0110144645691475,"wortmannin/cgk-733",2
-"69","MF","GO:0048487","beta-tubulin binding","4/58","210/22568",0.00208712082757097,0.0164561449866173,0.0111538440987598,"trichostatin-a/vorinostat/scriptaid/nortriptyline",4
-"70","MF","GO:0004012","phospholipid-translocating ATPase activity","3/58","99/22568",0.00212123071231134,0.0166241320411522,0.0112677043873278,"etoposide/irinotecan/carbamazepine",3
-"71","MF","GO:0042910","xenobiotic transmembrane transporter activity","3/58","101/22568",0.00224561862542378,0.0172859378379953,0.0117162710891676,"etoposide/irinotecan/carbamazepine",3
-"72","MF","GO:0004709","MAP kinase kinase kinase activity","4/58","215/22568",0.00227298250005573,0.0174276906254273,0.0118123500002896,"ag-957/malonoben/tyrphostin-ag-555/benzyl-quinazolin-4-yl-amine",4
-"73","MF","GO:0035326","enhancer binding","5/58","364/22568",0.0024155796200535,0.0181986124180046,0.0123348746555924,"etoposide/trichostatin-a/vorinostat/nsc-3852/scriptaid",5
-"74","MF","GO:0035620","ceramide transporter activity","3/58","105/22568",0.00250777894244189,0.0186764798868282,0.0126587694226512,"etoposide/irinotecan/carbamazepine",3
-"75","MF","GO:0032405","MutLalpha complex binding","2/58","32/22568",0.00306407597271007,0.0215103747966564,0.0145795608377851,"wortmannin/cgk-733",2
-"76","MF","GO:0008179","adenylate cyclase binding","4/58","236/22568",0.00317898452100232,0.0219931522367745,0.0149067835443093,"berbamine/alprenolol/forskolin/nortriptyline",4
-"77","MF","GO:0031403","lithium ion binding","2/58","33/22568",0.00325639041014793,0.0223303532526869,0.0151353357091382,"l-690488/carbamazepine",2
-"78","MF","GO:0051787","misfolded protein binding","3/58","119/22568",0.003571317597361,0.0241079411468303,0.0163401706361058,"trichostatin-a/vorinostat/scriptaid",3
-"79","MF","GO:0032182","ubiquitin-like protein binding","5/58","400/22568",0.00361860365100637,0.0243427654933848,0.0164993327092519,"etoposide/amsacrine/trichostatin-a/vorinostat/scriptaid",5
-"80","MF","GO:0046624","sphingolipid transporter activity","3/58","120/22568",0.00365626430051896,0.0245114448373861,0.0166136622261102,"etoposide/irinotecan/carbamazepine",3
-"81","MF","GO:0032404","mismatch repair complex binding","2/58","36/22568",0.00386632122424113,0.0257865088500329,0.0174778904657476,"wortmannin/cgk-733",2
-"82","MF","GO:0004937","alpha1-adrenergic receptor activity","3/58","123/22568",0.00391849506559362,0.0259126286595707,0.0175633734688746,"rs-17053/niguldipine/nortriptyline",3
-"83","MF","GO:0051428","peptide hormone receptor binding","3/58","123/22568",0.00391849506559362,0.0259126286595707,0.0175633734688746,"forskolin/cucurbitacin-i/t-98475",3
-"84","MF","GO:0008320","protein transmembrane transporter activity","2/58","37/22568",0.00408053225097743,0.0267120556597598,0.0181052187270259,"etoposide/tw-37",2
-"85","MF","GO:0022884","macromolecule transmembrane transporter activity","2/58","37/22568",0.00408053225097743,0.0267120556597598,0.0181052187270259,"etoposide/tw-37",2
-"86","MF","GO:0008013","beta-catenin binding","5/58","412/22568",0.00410142494413584,0.0268037754318944,0.0181673856585883,"pyrvinium-pamoate/trichostatin-a/vorinostat/scriptaid/estradiol-cypionate",5
-"87","MF","GO:0004935","adrenergic receptor activity","4/58","264/22568",0.00473384116152208,0.0294541714442947,0.0199638029814989,"rs-17053/niguldipine/alprenolol/nortriptyline",4
-"88","MF","GO:0004949","cannabinoid receptor activity","2/58","40/22568",0.00475547122840507,0.0295415636916073,0.0200230367511792,"lylamine/am-404",2
-"89","MF","GO:1902936","phosphatidylinositol bisphosphate binding","4/58","268/22568",0.00499113692189044,0.0306632150012039,0.0207832830816889,"terfenadine/methylene-blue/h-89/brefeldin-a",4
-"90","MF","GO:0051087","chaperone binding","5/58","432/22568",0.00500629012159913,0.0307078740529584,0.0208135526315303,"etoposide/amsacrine/nsc-663284/methylene-blue/menadione",5
-"91","MF","GO:0004969","histamine receptor activity","3/58","135/22568",0.00508080480363143,0.0310670874570556,0.021057024617876,"terfenadine/thiothixene/nortriptyline",3
-"92","MF","GO:0051015","actin filament binding","5/58","434/22568",0.00510397914566439,0.0311598726839542,0.0211199137061975,"ag-957/malonoben/tyrphostin-ag-555/benzyl-quinazolin-4-yl-amine/nortriptyline",5
-"93","MF","GO:0015232","heme transporter activity","2/58","42/22568",0.00523207137117327,0.0317428629138939,0.021515059844077,"etoposide/irinotecan",2
-"94","MF","GO:0035173","histone kinase activity","4/58","274/22568",0.0053944761795374,0.0326265290672332,0.0221140017297806,"aminopurvalanol-a/tyrphostin-ag-555/cucurbitacin-i/purvalanol-a",4
-"95","MF","GO:0035005","1-phosphatidylinositol-4-phosphate 3-kinase activity","2/58","43/22568",0.00547828001101875,0.0330308059487895,0.0223880173824915,"wortmannin/nortriptyline",2
-"96","MF","GO:0031593","polyubiquitin modification-dependent protein binding","3/58","139/22568",0.00550956055008202,0.0331168801582862,0.0224463577966305,"trichostatin-a/vorinostat/scriptaid",3
-"97","MF","GO:0015052","beta3-adrenergic receptor activity","2/58","44/22568",0.00572972408155793,0.0338126941586494,0.0229179749881475,"alprenolol/nortriptyline",2
-"98","MF","GO:0101020","estrogen 16-alpha-hydroxylase activity","3/58","141/22568",0.00573185262493638,0.0338126941586494,0.0229179749881475,"etoposide/irinotecan/carbamazepine",3
-"99","MF","GO:0051434","BH3 domain binding","2/58","45/22568",0.00598637600073298,0.0349055906030763,0.0236587314999028,"etoposide/tw-37",2
-"100","MF","GO:0030549","acetylcholine receptor activator activity","2/58","48/22568",0.00678730457133778,0.0376498559666682,0.0255187727219523,"aminopurvalanol-a/purvalanol-a",2
-"101","MF","GO:0043125","ErbB-3 class receptor binding","3/58","151/22568",0.00692380686748585,0.0380369925935929,0.0257811708464917,"wortmannin/aminopurvalanol-a/purvalanol-a",3
-"102","MF","GO:0004936","alpha-adrenergic receptor activity","3/58","152/22568",0.00705047583196144,0.0382702120854085,0.0259392451618686,"rs-17053/niguldipine/nortriptyline",3
-"103","MF","GO:0048020","CCR chemokine receptor binding","2/58","49/22568",0.00706451411794831,0.0382702120854085,0.0259392451618686,"niclosamide/cucurbitacin-i",2
-"104","MF","GO:0005176","ErbB-2 class receptor binding","2/58","52/22568",0.00792646383410754,0.0412748350719905,0.0279757547086149,"aminopurvalanol-a/purvalanol-a",2
-"105","MF","GO:0051400","BH domain binding","2/58","52/22568",0.00792646383410754,0.0412748350719905,0.0279757547086149,"etoposide/tw-37",2
-"106","MF","GO:0046875","ephrin receptor binding","4/58","315/22568",0.00874595866500217,0.0445300771244228,0.0301821318635369,"ag-957/wortmannin/aminopurvalanol-a/purvalanol-a",4
-"107","MF","GO:0070513","death domain binding","2/58","55/22568",0.00883333197847366,0.0448401359283372,0.0303922872530963,"etoposide/tw-37",2
-"108","MF","GO:0043014","alpha-tubulin binding","4/58","316/22568",0.0088413926554462,0.0448401359283372,0.0303922872530963,"trichostatin-a/vorinostat/scriptaid/nortriptyline",4
-"109","MF","GO:0016307","phosphatidylinositol phosphate kinase activity","2/58","56/22568",0.00914547901643184,0.0458450975148031,0.0310734422179924,"wortmannin/nortriptyline",2
-"110","MF","GO:0003916","DNA topoisomerase activity","3/58","169/22568",0.00941685154874496,0.046950929641447,0.0318229664322003,"etoposide/amsacrine/irinotecan",3
-"111","MF","GO:0005310","dicarboxylic acid transmembrane transporter activity","2/58","57/22568",0.00946251085199895,0.046950929641447,0.0318229664322003,"etoposide/irinotecan",2
-"112","MF","GO:0070330","aromatase activity","3/58","173/22568",0.0100330884551884,0.0489446600079133,0.0331743010066473,"etoposide/irinotecan/carbamazepine",3
+"1","MF","GO:0035851","Krueppel-associated box domain binding","5/50","27/22568",3.38169002592651e-09,3.09288019472585e-06,1.94921873227503e-06,"vorinostat/panobinostat/nsc-3852/trichostatin-a/apicidin",5
+"2","MF","GO:0001047","core promoter binding","8/50","196/22568",1.10206528469793e-08,3.14957297204091e-06,1.98494809020996e-06,"etoposide/avrainvillamide-analog-3/vorinostat/panobinostat/nsc-3852/trichostatin-a/avrainvillamide-analog-4/apicidin",8
+"3","MF","GO:0033613","activating transcription factor binding","9/50","292/22568",1.4146514178412e-08,3.24121604264205e-06,2.04270409065368e-06,"etoposide/avrainvillamide-analog-3/vorinostat/panobinostat/15-delta-prostaglandin-j2/nsc-3852/trichostatin-a/avrainvillamide-analog-4/apicidin",9
+"4","MF","GO:0001103","RNA polymerase II repressing transcription factor binding","8/50","218/22568",2.52548839082502e-08,4.47126240102885e-06,2.81791336239424e-06,"niclosamide/cucurbitacin-i/vorinostat/panobinostat/15-delta-prostaglandin-j2/nsc-3852/trichostatin-a/apicidin",8
+"5","MF","GO:0001046","core promoter sequence-specific DNA binding","6/50","94/22568",6.0897332481536e-08,9.48780440062331e-06,5.9794770251344e-06,"etoposide/vorinostat/panobinostat/nsc-3852/trichostatin-a/apicidin",6
+"6","MF","GO:0005080","protein kinase C binding","10/50","490/22568",1.00219962376749e-07,1.44576575354607e-05,9.11161607261517e-06,"etoposide/amsacrine/ly-294002/vorinostat/purvalanol-a/ag-957/panobinostat/trichostatin-a/apicidin/dactinomycin",10
+"7","MF","GO:0002039","p53 binding","10/50","500/22568",1.20894138693377e-07,1.56960890070234e-05,9.89210987484052e-06,"etoposide/ly-294002/wortmannin/camptothecin/vorinostat/purvalanol-a/panobinostat/nsc-3852/trichostatin-a/apicidin",10
+"8","MF","GO:0070888","E-box binding","7/50","195/22568",2.3548373897344e-07,2.47917429770698e-05,1.56244428410315e-05,"camptothecin/vorinostat/panobinostat/15-delta-prostaglandin-j2/nsc-3852/trichostatin-a/apicidin",7
+"9","MF","GO:0071889","14-3-3 protein binding","7/50","197/22568",2.52356680749021e-07,2.52033146542933e-05,1.58838267073338e-05,"ly-294002/wortmannin/vorinostat/panobinostat/terfenadine/trichostatin-a/apicidin",7
+"10","MF","GO:1990841","promoter-specific chromatin binding","7/50","197/22568",2.52356680749021e-07,2.52033146542933e-05,1.58838267073338e-05,"etoposide/vorinostat/panobinostat/nsc-3852/trichostatin-a/apicidin/dactinomycin",7
+"11","MF","GO:0051059","NF-kappaB binding","8/50","299/22568",2.86386259889882e-07,2.72066946895388e-05,1.71464122737665e-05,"ly-294002/avrainvillamide-analog-3/vorinostat/panobinostat/nsc-3852/trichostatin-a/avrainvillamide-analog-4/apicidin",8
+"12","MF","GO:0070491","repressing transcription factor binding","8/50","331/22568",6.18098176434631e-07,4.58057860069861e-05,2.88680745809855e-05,"niclosamide/cucurbitacin-i/vorinostat/panobinostat/15-delta-prostaglandin-j2/nsc-3852/trichostatin-a/apicidin",8
+"13","MF","GO:0031492","nucleosomal DNA binding","5/50","88/22568",1.48276740980872e-06,8.02135980722911e-05,5.05528304045896e-05,"vorinostat/panobinostat/nsc-3852/trichostatin-a/apicidin",5
+"14","MF","GO:0031490","chromatin DNA binding","7/50","276/22568",2.41658925785514e-06,0.000112054942373164,7.06201271844384e-05,"niclosamide/cucurbitacin-i/vorinostat/panobinostat/nsc-3852/trichostatin-a/apicidin",7
+"15","MF","GO:0031491","nucleosome binding","5/50","106/22568",3.72262873213649e-06,0.0001553523391777,9.79073454394693e-05,"vorinostat/panobinostat/nsc-3852/trichostatin-a/apicidin",5
+"16","MF","GO:0030544","Hsp70 protein binding","6/50","195/22568",4.46268291903009e-06,0.000167404338565355,0.000105502849141114,"etoposide/vorinostat/purvalanol-a/panobinostat/trichostatin-a/apicidin",6
+"17","MF","GO:0043130","ubiquitin binding","7/50","303/22568",4.46984626721359e-06,0.000167404338565355,0.000105502849141114,"etoposide/amsacrine/vorinostat/panobinostat/trichostatin-a/apicidin/dactinomycin",7
+"18","MF","GO:0000155","phosphorelay sensor kinase activity","4/50","54/22568",6.21246556878614e-06,0.0002044635580086,0.000128858595304656,"amsacrine/rottlerin/terfenadine/perhexiline",4
+"19","MF","GO:0000980","RNA polymerase II distal enhancer sequence-specific DNA binding","7/50","322/22568",6.65528164466551e-06,0.000207378576047777,0.000130695720381979,"etoposide/vorinostat/panobinostat/15-delta-prostaglandin-j2/nsc-3852/trichostatin-a/apicidin",7
+"20","MF","GO:0001158","enhancer sequence-specific DNA binding","7/50","322/22568",6.65528164466551e-06,0.000207378576047777,0.000130695720381979,"etoposide/vorinostat/panobinostat/15-delta-prostaglandin-j2/nsc-3852/trichostatin-a/apicidin",7
+"21","MF","GO:0003714","transcription corepressor activity","7/50","325/22568",7.07036026162923e-06,0.000214596820654182,0.000135244857986772,"vorinostat/purvalanol-a/panobinostat/15-delta-prostaglandin-j2/nsc-3852/trichostatin-a/apicidin",7
+"22","MF","GO:0035326","enhancer binding","7/50","364/22568",1.47447410761226e-05,0.000370521074138694,0.000233512639657167,"etoposide/vorinostat/panobinostat/15-delta-prostaglandin-j2/nsc-3852/trichostatin-a/apicidin",7
+"23","MF","GO:0019789","SUMO transferase activity","4/50","69/22568",1.65723433151647e-05,0.000403821975180224,0.000254499789506191,"vorinostat/panobinostat/trichostatin-a/apicidin",4
+"24","MF","GO:0055131","C3HC4-type RING finger domain binding","4/50","77/22568",2.56062528882184e-05,0.000520694276085761,0.000328155949417471,"amsacrine/rottlerin/terfenadine/perhexiline",4
+"25","MF","GO:0004677","DNA-dependent protein kinase activity","3/50","26/22568",2.56658047495921e-05,0.000520694276085761,0.000328155949417471,"ly-294002/cgk-733/wortmannin",3
+"26","MF","GO:0004673","protein histidine kinase activity","4/50","78/22568",2.69464596751529e-05,0.000520694276085761,0.000328155949417471,"amsacrine/rottlerin/terfenadine/perhexiline",4
+"27","MF","GO:0032182","ubiquitin-like protein binding","7/50","400/22568",2.70039136763347e-05,0.000520694276085761,0.000328155949417471,"etoposide/amsacrine/vorinostat/panobinostat/trichostatin-a/apicidin/dactinomycin",7
+"28","MF","GO:0008013","beta-catenin binding","7/50","412/22568",3.26003967036735e-05,0.000609637947735489,0.000384210713902888,"pyrvinium-pamoate/ly-294002/vorinostat/y-134/panobinostat/trichostatin-a/apicidin",7
+"29","MF","GO:0003916","DNA topoisomerase activity","5/50","169/22568",3.58050039046438e-05,0.000648653442830641,0.000408799359146289,"etoposide/amsacrine/camptothecin/irinotecan/dactinomycin",5
+"30","MF","GO:0070840","dynein complex binding","4/50","88/22568",4.33401248644e-05,0.000711208844396442,0.000448223505204379,"vorinostat/panobinostat/trichostatin-a/apicidin",4
+"31","MF","GO:0030332","cyclin binding","5/50","179/22568",4.71005790269818e-05,0.000754966071234955,0.000475800521078282,"vorinostat/purvalanol-a/panobinostat/trichostatin-a/apicidin",5
+"32","MF","GO:0030955","potassium ion binding","5/50","183/22568",5.23205247811875e-05,0.000805976891721688,0.000507948952501852,"vorinostat/panobinostat/trichostatin-a/menadione/apicidin",5
+"33","MF","GO:0051879","Hsp90 protein binding","7/50","447/22568",5.46213113521141e-05,0.00082461243300963,0.000519693586589678,"camptothecin/methylene-blue/vorinostat/purvalanol-a/panobinostat/trichostatin-a/apicidin",7
+"34","MF","GO:0042903","tubulin deacetylase activity","4/50","95/22568",5.8498543595509e-05,0.000857809976722596,0.000540615597788553,"vorinostat/panobinostat/trichostatin-a/apicidin",4
+"35","MF","GO:0030235","nitric-oxide synthase regulator activity","6/50","312/22568",6.33854655235416e-05,0.000894515899326791,0.000563748686502284,"ly-294002/geldanamycin/malonoben/tyrphostin-ag-556/y-134/ag-957",6
+"36","MF","GO:0031078","histone deacetylase activity (H3-K14 specific)","5/50","199/22568",7.78193087763406e-05,0.00105196543912777,0.000662977745840405,"vorinostat/panobinostat/nsc-3852/trichostatin-a/apicidin",5
+"37","MF","GO:0032041","NAD-dependent histone deacetylase activity (H3-K14 specific)","5/50","199/22568",7.78193087763406e-05,0.00105196543912777,0.000662977745840405,"vorinostat/panobinostat/nsc-3852/trichostatin-a/apicidin",5
+"38","MF","GO:1902282","voltage-gated potassium channel activity involved in ventricular cardiac muscle cell action potential repolarization","4/50","103/22568",8.01914651412342e-05,0.00106967724905859,0.000674140218851327,"amsacrine/rottlerin/terfenadine/perhexiline",4
+"39","MF","GO:0005251","delayed rectifier potassium channel activity","4/50","111/22568",0.000107221881302552,0.00131744235859129,0.000830288650830322,"amsacrine/rottlerin/terfenadine/perhexiline",4
+"40","MF","GO:0086008","voltage-gated potassium channel activity involved in cardiac muscle cell action potential repolarization","4/50","116/22568",0.00012715253179261,0.00150534684295506,0.000948711259447661,"amsacrine/rottlerin/terfenadine/perhexiline",4
+"41","MF","GO:0005242","inward rectifier potassium channel activity","4/50","119/22568",0.000140326610204153,0.00160633277915711,0.00101235539247196,"amsacrine/rottlerin/terfenadine/perhexiline",4
+"42","MF","GO:0016775","phosphotransferase activity, nitrogenous group as acceptor","4/50","119/22568",0.000140326610204153,0.00160633277915711,0.00101235539247196,"amsacrine/rottlerin/terfenadine/perhexiline",4
+"43","MF","GO:0051787","misfolded protein binding","4/50","119/22568",0.000140326610204153,0.00160633277915711,0.00101235539247196,"vorinostat/panobinostat/trichostatin-a/apicidin",4
+"44","MF","GO:0031593","polyubiquitin modification-dependent protein binding","4/50","139/22568",0.000254742761761431,0.00269625830723036,0.00169925663737888,"vorinostat/panobinostat/trichostatin-a/apicidin",4
+"45","MF","GO:0017136","NAD-dependent histone deacetylase activity","5/50","261/22568",0.000275811535780298,0.00283273345991959,0.00178526705723464,"vorinostat/panobinostat/nsc-3852/trichostatin-a/apicidin",5
+"46","MF","GO:0034979","NAD-dependent protein deacetylase activity","5/50","266/22568",0.000300977604507296,0.00303706676050756,0.00191404356070634,"vorinostat/panobinostat/nsc-3852/trichostatin-a/apicidin",5
+"47","MF","GO:0019213","deacetylase activity","6/50","432/22568",0.000370344472418936,0.00352687462120233,0.00222273403598239,"vorinostat/irinotecan/panobinostat/nsc-3852/trichostatin-a/apicidin",6
+"48","MF","GO:0019787","ubiquitin-like protein transferase activity","5/50","286/22568",0.000419480971783395,0.00391817358536289,0.00246934147721539,"vorinostat/panobinostat/pevonedistat/trichostatin-a/apicidin",5
+"49","MF","GO:0030957","Tat protein binding","2/50","15/22568",0.000495888020031949,0.00446070170444444,0.00281125771900937,"avrainvillamide-analog-3/avrainvillamide-analog-4",2
+"50","MF","GO:0031420","alkali metal ion binding","5/50","312/22568",0.000622619555624937,0.00531999837029271,0.00335281026944736,"vorinostat/panobinostat/trichostatin-a/menadione/apicidin",5
+"51","MF","GO:0005006","epidermal growth factor-activated receptor activity","3/50","76/22568",0.000641951022859454,0.00531999837029271,0.00335281026944736,"malonoben/tyrphostin-ag-556/ag-957",3
+"52","MF","GO:0004407","histone deacetylase activity","5/50","318/22568",0.000678475057335688,0.00554016844512055,0.00349156754652284,"vorinostat/panobinostat/nsc-3852/trichostatin-a/apicidin",5
+"53","MF","GO:0033558","protein deacetylase activity","5/50","323/22568",0.000727825768608238,0.00586931960399397,0.00369900772015781,"vorinostat/panobinostat/nsc-3852/trichostatin-a/apicidin",5
+"54","MF","GO:0051721","protein phosphatase 2A binding","5/50","325/22568",0.000748301253717461,0.00597260939186375,0.00376410380429059,"etoposide/ly-294002/tw-37/methylene-blue/ski-ii",5
+"55","MF","GO:0031730","CCR5 chemokine receptor binding","2/50","19/22568",0.000803027526639626,0.00626812067387043,0.00395034319612616,"niclosamide/cucurbitacin-i",2
+"56","MF","GO:0032407","MutSalpha complex binding","2/50","19/22568",0.000803027526639626,0.00626812067387043,0.00395034319612616,"cgk-733/wortmannin",2
+"57","MF","GO:0048408","epidermal growth factor binding","3/50","85/22568",0.000889394229346632,0.0067435036690122,0.00424994272174487,"malonoben/tyrphostin-ag-556/ag-957",3
+"58","MF","GO:0008301","DNA binding, bending","3/50","88/22568",0.000983543336014636,0.00724177938332137,0.00456396987282088,"etoposide/amsacrine/dactinomycin",3
+"59","MF","GO:0003918","DNA topoisomerase type II (ATP-hydrolyzing) activity","3/50","89/22568",0.00101627255056566,0.00738504026950231,0.00465425684980187,"etoposide/amsacrine/dactinomycin",3
+"60","MF","GO:0061505","DNA topoisomerase II activity","3/50","89/22568",0.00101627255056566,0.00738504026950231,0.00465425684980187,"etoposide/amsacrine/dactinomycin",3
+"61","MF","GO:0003680","AT DNA binding","2/50","22/22568",0.00108019521151421,0.00773411828832322,0.00487425548229707,"etoposide/methylene-blue",2
+"62","MF","GO:0043024","ribosomal small subunit binding","3/50","93/22568",0.00115406824342017,0.0081580686172805,0.00514144071765371,"ly-294002/avrainvillamide-analog-3/avrainvillamide-analog-4",3
+"63","MF","GO:0048487","beta-tubulin binding","4/50","210/22568",0.00120035528716267,0.00836383514042683,0.00527112047766377,"vorinostat/panobinostat/trichostatin-a/apicidin",4
+"64","MF","GO:0048156","tau protein binding","5/50","363/22568",0.00122540342035678,0.00849278705033749,0.00535238954162206,"geldanamycin/vorinostat/panobinostat/trichostatin-a/apicidin",5
+"65","MF","GO:0005249","voltage-gated potassium channel activity","4/50","219/22568",0.00140084931585239,0.00909384680874179,0.00573119404310138,"amsacrine/rottlerin/terfenadine/perhexiline",4
+"66","MF","GO:0140030","modification-dependent protein binding","5/50","376/22568",0.00143139193134243,0.00924588983843911,0.0058270157700804,"etoposide/vorinostat/panobinostat/trichostatin-a/apicidin",5
+"67","MF","GO:0042169","SH2 domain binding","4/50","221/22568",0.00144839097979341,0.00934020342101876,0.00588645480111229,"ly-294002/cucurbitacin-i/purvalanol-a/ag-957",4
+"68","MF","GO:0001025","RNA polymerase III transcription factor binding","2/50","26/22568",0.00151117983001672,0.00957080559010589,0.00603178667282669,"ly-294002/wortmannin",2
+"69","MF","GO:0001032","RNA polymerase III type 3 promoter DNA binding","2/50","26/22568",0.00151117983001672,0.00957080559010589,0.00603178667282669,"ly-294002/wortmannin",2
+"70","MF","GO:0001156","TFIIIC-class transcription factor complex binding","2/50","26/22568",0.00151117983001672,0.00957080559010589,0.00603178667282669,"ly-294002/wortmannin",2
+"71","MF","GO:0000182","rDNA binding","2/50","27/22568",0.00162976789668111,0.0100442182872989,0.00633014446212584,"ly-294002/wortmannin",2
+"72","MF","GO:0001030","RNA polymerase III type 1 promoter DNA binding","2/50","27/22568",0.00162976789668111,0.0100442182872989,0.00633014446212584,"ly-294002/wortmannin",2
+"73","MF","GO:0001031","RNA polymerase III type 2 promoter DNA binding","2/50","27/22568",0.00162976789668111,0.0100442182872989,0.00633014446212584,"ly-294002/wortmannin",2
+"74","MF","GO:0080084","5S rDNA binding","2/50","27/22568",0.00162976789668111,0.0100442182872989,0.00633014446212584,"ly-294002/wortmannin",2
+"75","MF","GO:0005245","voltage-gated calcium channel activity","5/50","398/22568",0.00183683873571619,0.0110922277141311,0.0069906290194862,"bntx/nnc-55-0396/penfluridol/am-404/purvalanol-a",5
+"76","MF","GO:0043021","ribonucleoprotein complex binding","4/50","249/22568",0.00223751459235142,0.0129304441204878,0.00814912389405516,"ly-294002/avrainvillamide-analog-3/wortmannin/avrainvillamide-analog-4",4
+"77","MF","GO:0032405","MutLalpha complex binding","2/50","32/22568",0.00228681454719335,0.0131180304290399,0.00826734597946653,"cgk-733/wortmannin",2
+"78","MF","GO:0051087","chaperone binding","5/50","432/22568",0.00262134159110844,0.0146067603681937,0.00920558480606113,"etoposide/amsacrine/nsc-663284/methylene-blue/menadione",5
+"79","MF","GO:0001727","lipid kinase activity","2/50","35/22568",0.00273165404046989,0.0150919042377734,0.00951133590500304,"wortmannin/ski-ii",2
+"80","MF","GO:0032404","mismatch repair complex binding","2/50","36/22568",0.00288825774918929,0.0158670859423022,0.00999987687789983,"cgk-733/wortmannin",2
+"81","MF","GO:1902936","phosphatidylinositol bisphosphate binding","4/50","268/22568",0.00291681980557119,0.016001426961549,0.0100845423077717,"ly-294002/brefeldin-a/methylene-blue/terfenadine",4
+"82","MF","GO:0008320","protein transmembrane transporter activity","2/50","37/22568",0.00304899270433435,0.0166095476690661,0.0104677968148807,"etoposide/tw-37",2
+"83","MF","GO:0022884","macromolecule transmembrane transporter activity","2/50","37/22568",0.00304899270433435,0.0166095476690661,0.0104677968148807,"etoposide/tw-37",2
+"84","MF","GO:0017081","chloride channel regulator activity","3/50","131/22568",0.00306989805046883,0.0166535555801896,0.0104955318189317,"ly-294002/am-404/triflupromazine",3
+"85","MF","GO:0015232","heme transporter activity","2/50","42/22568",0.00391399672913429,0.0202996235152837,0.0127933847814719,"etoposide/irinotecan",2
+"86","MF","GO:0035005","1-phosphatidylinositol-4-phosphate 3-kinase activity","2/50","43/22568",0.00409913630439698,0.0209971247989574,0.0132329694023833,"ly-294002/wortmannin",2
+"87","MF","GO:0001016","RNA polymerase III regulatory region DNA binding","2/50","44/22568",0.0042882800452423,0.0217202220757071,0.0136886853268155,"ly-294002/wortmannin",2
+"88","MF","GO:0001784","phosphotyrosine residue binding","4/50","299/22568",0.00430841732660577,0.0217565179000134,0.0137115599602274,"ly-294002/wortmannin/ag-957/pd-198306",4
+"89","MF","GO:0004707","MAP kinase activity","4/50","299/22568",0.00430841732660577,0.0217565179000134,0.0137115599602274,"etoposide/ly-294002/pd-198306/cmpd-1",4
+"90","MF","GO:0008094","DNA-dependent ATPase activity","3/50","148/22568",0.00432337480221062,0.0217565179000134,0.0137115599602274,"etoposide/amsacrine/dactinomycin",3
+"91","MF","GO:0051434","BH3 domain binding","2/50","45/22568",0.00448141002715982,0.022321089585406,0.0140673686678378,"etoposide/tw-37",2
+"92","MF","GO:0046875","ephrin receptor binding","4/50","315/22568",0.00517731469931294,0.0250939017934488,0.0158148716930809,"ly-294002/wortmannin/purvalanol-a/ag-957",4
+"93","MF","GO:0043014","alpha-tubulin binding","4/50","316/22568",0.00523523597538427,0.0252052967022257,0.0158850758488184,"vorinostat/panobinostat/trichostatin-a/apicidin",4
+"94","MF","GO:0048020","CCR chemokine receptor binding","2/50","49/22568",0.00529343586711699,0.0252052967022257,0.0158850758488184,"niclosamide/cucurbitacin-i",2
+"95","MF","GO:0051400","BH domain binding","2/50","52/22568",0.0059434409227238,0.0278038424278195,0.0175227513118506,"etoposide/tw-37",2
+"96","MF","GO:0070513","death domain binding","2/50","55/22568",0.00662805026848727,0.0304078395709752,0.0191638624091654,"etoposide/tw-37",2
+"97","MF","GO:0016307","phosphatidylinositol phosphate kinase activity","2/50","56/22568",0.00686386207561481,0.0312321761501398,0.0196833821450243,"ly-294002/wortmannin",2
+"98","MF","GO:0005310","dicarboxylic acid transmembrane transporter activity","2/50","57/22568",0.00710344943135035,0.032088494670838,0.0202230577859318,"etoposide/irinotecan",2
+"99","MF","GO:0043560","insulin receptor substrate binding","3/50","182/22568",0.00765775522413439,0.034010212768533,0.0214341777383201,"ly-294002/wortmannin/cucurbitacin-i",3
+"100","MF","GO:0034452","dynactin binding","2/50","60/22568",0.00784469310923566,0.0346822697621713,0.0218577266631669,"ly-294002/methylene-blue",2
+"101","MF","GO:0099038","ceramide-translocating ATPase activity","2/50","62/22568",0.00835741951557545,0.0364117997910138,0.0229477243733921,"etoposide/irinotecan",2
+"102","MF","GO:0001091","RNA polymerase II basal transcription factor binding","3/50","189/22568",0.00848889737910639,0.0369020706379681,0.0232567066354278,"etoposide/pyrvinium-pamoate/y-134",3
+"103","MF","GO:0045309","protein phosphorylated amino acid binding","4/50","369/22568",0.00896164665738945,0.0385697389287646,0.0243077173655507,"ly-294002/wortmannin/ag-957/pd-198306",4
+"104","MF","GO:1901981","phosphatidylinositol phosphate binding","4/50","372/22568",0.00921327719521085,0.0394782339662775,0.0248802760919828,"ly-294002/brefeldin-a/methylene-blue/terfenadine",4
+"105","MF","GO:1904680","peptide transmembrane transporter activity","2/50","66/22568",0.00942681612909182,0.0400845511166077,0.0252623939474168,"etoposide/tw-37",2
+"106","MF","GO:0004860","protein kinase inhibitor activity","3/50","197/22568",0.00950148088765192,0.0402701502256847,0.0253793636446988,"etoposide/avrainvillamide-analog-3/avrainvillamide-analog-4",3
+"107","MF","GO:0035033","histone deacetylase regulator activity","2/50","67/22568",0.00970322223885912,0.0408401410847998,0.0257385876656315,"etoposide/ly-294002",2
+"108","MF","GO:0090555","phosphatidylethanolamine-translocating ATPase activity","2/50","67/22568",0.00970322223885912,0.0408401410847998,0.0257385876656315,"etoposide/irinotecan",2
+"109","MF","GO:1904121","phosphatidylethanolamine transporter activity","2/50","67/22568",0.00970322223885912,0.0408401410847998,0.0257385876656315,"etoposide/irinotecan",2
+"110","MF","GO:0004721","phosphoprotein phosphatase activity","4/50","385/22568",0.0103571045112404,0.0428247580374536,0.0269893482179155,"etoposide/ly-294002/nsc-663284/menadione",4
+"111","MF","GO:0070064","proline-rich region binding","2/50","70/22568",0.0105539106095888,0.0435460612546065,0.0274439334763171,"purvalanol-a/ag-957",2
+"112","MF","GO:0019210","kinase inhibitor activity","3/50","205/22568",0.0105818662163458,0.0436152051985893,0.0274875099042255,"etoposide/avrainvillamide-analog-3/avrainvillamide-analog-4",3
+"113","MF","GO:0005267","potassium channel activity","4/50","391/22568",0.0109147988112578,0.0447506751261568,0.028203114490696,"amsacrine/rottlerin/terfenadine/perhexiline",4
+"114","MF","GO:0035259","glucocorticoid receptor binding","2/50","72/22568",0.0111387625686298,0.0453714744681344,0.0285943594242793,"niclosamide/cucurbitacin-i",2
+"115","MF","GO:0030295","protein kinase activator activity","4/50","395/22568",0.0112972170267288,0.0458839002284762,0.0289173043261419,"etoposide/ly-294002/wortmannin/pd-198306",4
+"116","MF","GO:0004709","MAP kinase kinase kinase activity","3/50","215/22568",0.0120289763308888,0.048058161453765,0.0302875839497818,"malonoben/tyrphostin-ag-556/ag-957",3
+"117","MF","GO:0004711","ribosomal protein S6 kinase activity","2/50","75/22568",0.0120423018174261,0.048058161453765,0.0302875839497818,"ly-294002/purvalanol-a",2
+"118","MF","GO:0043225","ATPase-coupled anion transmembrane transporter activity","2/50","75/22568",0.0120423018174261,0.048058161453765,0.0302875839497818,"etoposide/irinotecan",2
+"119","MF","GO:0090554","phosphatidylcholine-translocating ATPase activity","2/50","76/22568",0.0123504194064684,0.0491869975339413,0.0309990077019529,"etoposide/irinotecan",2
