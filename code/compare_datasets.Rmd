@@ -342,7 +342,7 @@ go_56_up <- dplyr::filter(fea_56$upregulated, source == "GO:BP")
 go_56_down <- dplyr::filter(fea_56$downregulated, source == "GO:BP")
 go_56 <- rbind(go_56_up, go_56_down)
 
-simMatrix_56 <- calculateSimMatrix(go_56$term_id, orgdb = "org.Hs.eg.db", ont = "BP", method = "Rel")
+simMatrix_56 <- calculateSimMatrix(go_56$term_id, orgdb = "org.Hs.eg.db", ont = "BP", method = "Wang")
 
 scores_56 <- setNames(-log10(go_56$p_value), go_56$term_id)
 reducedTerms_56 <- reduceSimMatrix(simMatrix_56, scores_56, threshold=0.80, orgdb="org.Hs.eg.db")
@@ -368,10 +368,10 @@ go_19_up <- dplyr::filter(fea_19$upregulated, source == "GO:BP")
 go_19_down <- dplyr::filter(fea_19$downregulated, source == "GO:BP")
 go_19 <- rbind(go_19_up, go_19_down)
 
-simMatrix_19 <- calculateSimMatrix(go_19$term_id, orgdb = "org.Hs.eg.db", ont = "BP", method = "Rel")
+simMatrix_19 <- calculateSimMatrix(go_19$term_id, orgdb = "org.Hs.eg.db", ont = "BP", method = "Wang")
 
 scores_19 <- setNames(-log10(go_19$p_value), go_19$term_id)
-reducedTerms_19 <- reduceSimMatrix(simMatrix_19, scores_19, threshold=0.7, orgdb="org.Hs.eg.db")
+reducedTerms_19 <- reduceSimMatrix(simMatrix_19, scores_19, threshold=0.8, orgdb="org.Hs.eg.db")
 
 sp_19 <- scatterPlot(simMatrix_19, reducedTerms_19, labelSize = 2.5) + labs(title = "Cystic P28 Signature Enrichment Overview")
 sp_19
@@ -395,80 +395,34 @@ Using ALL mouse DEGs (0.05 alpha and -2 and 2 LFC cutoff) before mapping to huma
 '39 
 ```{r}
 #pseudogenes and ribo genes removed, still mouse
-#all_39 <- read.csv(here("res/deseq2_outputs", "deseq2_p70_fullannotatedres.csv"))
+all_39 <- read.csv(here("res/deseq2_outputs", "deseq2_p70_fullannotatedres.csv"))
 
 #using same LFC as for signature for '39
-#musdegs_39_UP <- dplyr::filter(all_39, log2FoldChange > 1.3 & padj < 0.05)
-#musdegs_39_DOWN <- dplyr::filter(all_39, log2FoldChange < -1.3 & padj < 0.05)
-#musdegs_39_UP <- read.csv(here("res", "deseq2_outputs", "deseq2_upgenes_res_39.csv"), row.names = 1)
+musdegs_39_UP <- dplyr::filter(all_39, log2FoldChange > 1.1 & padj < 0.05)
+musdegs_39_DOWN <- dplyr::filter(all_39, log2FoldChange < -1.1 & padj < 0.05)
 
-#musdegs_39_DOWN <- read.csv(here("res", "deseq2_outputs", "deseq2_downgenes_res_39.csv"), row.names = 1)
 ```
 
 '19
 ```{r}
 #pseudogenes and ribo genes removed, still mouse
-#all_19 <- read.csv(here("res/deseq2_outputs", "deseq2_p28_fullannotatedres.csv"))
+all_19 <- read.csv(here("res/deseq2_outputs", "deseq2_p28_fullannotatedres.csv"))
 
-#musdegs_19_UP <- dplyr::filter(all_19, log2FoldChange > 2 & padj < 0.05)
-#musdegs_19_DOWN <- dplyr::filter(all_19, log2FoldChange < -2 & padj < 0.05)
+musdegs_19_UP <- dplyr::filter(all_19, log2FoldChange > 2 & padj < 0.05)
+musdegs_19_DOWN <- dplyr::filter(all_19, log2FoldChange < -2 & padj < 0.05)
 
-#musdegs_19_UP <- read.csv(here("res", "deseq2_outputs", "deseq2_upgenes_res_19.csv"), row.names = 1)
-
-#musdegs_19_DOWN <- read.csv(here("res", "deseq2_outputs", "deseq2_downgenes_res_19.csv"), row.names = 1)
 ```
 
 '56
 ```{r}
 #pseudogenes and ribo genes removed, still mouse
-#all_56 <- read.csv(here("res/deseq2_outputs", "deseq2_p21_fullannotatedres.csv"))
+all_56 <- read.csv(here("res/deseq2_outputs", "deseq2_p21_fullannotatedres.csv"))
 
-#musdegs_56_UP <- dplyr::filter(all_56, log2FoldChange > 2 & padj < 0.05)
-#musdegs_56_DOWN <- dplyr::filter(all_56, log2FoldChange < -2 & padj < 0.05)
-
-#musdegs_56_UP <- read.csv(here("res", "deseq2_outputs", "deseq2_upgenes_res_56.csv"), row.names = 1)
-
-#musdegs_56_DOWN <- read.csv(here("res", "deseq2_outputs", "deseq2_upgenes_res_56.csv"), row.names = 1)
-```
-
-#### Gene overlaps
-Overlap comparing DEGs before human ortholog mapping, using Ensembl ID's
-```{r}
-degs_19_56_overlap_up <- merge(musdegs_19_UP, musdegs_56_UP, by = "Mouse.gene.stable.ID")
-
-degs_19_56_overlap_down <- merge(musdegs_19_DOWN, musdegs_56_DOWN, by = "Mouse.gene.stable.ID")
-
-degs_39_56_overlap_up <- merge(musdegs_39_UP, musdegs_56_UP, by = "Mouse.gene.stable.ID")
-
-degs_39_56_overlap_down <- merge(musdegs_39_DOWN, musdegs_56_DOWN, by = "Mouse.gene.stable.ID")
-
-
-degs_39_19_overlap_up <- merge(musdegs_39_UP, musdegs_19_UP, by = "Mouse.gene.stable.ID")
-
-degs_39_19_overlap_down <- merge(musdegs_39_DOWN, musdegs_19_DOWN, by = "Mouse.gene.stable.ID")
-
-
-degs_all_overlap_up <- merge(degs_19_56_overlap_up, musdegs_39_UP, by = "Mouse.gene.stable.ID")
-
-degs_all_overlap_down <- merge(degs_19_56_overlap_down, musdegs_39_DOWN, by = "Mouse.gene.stable.ID")
-
-alldegs_overlap <- rbind(degs_all_overlap_up, degs_all_overlap_down)
-alldegs_lfc <- cbind(CysticP28 = alldegs_overlap$log2FoldChange.x, CysticP21 = alldegs_overlap$log2FoldChange.y, PrecysticP70 = alldegs_overlap$log2FoldChange)
-row.names(alldegs_lfc) <- alldegs_overlap$X.x
-
-t <- merge(alldegs_overlap, coding_genes, by.x = "Mouse.gene.stable.ID", by.y = "ensembl_gene_id")
-t2 <- merge(rbind(degs_19_56_overlap_up, degs_19_56_overlap_down), coding_genes, by.x = "Mouse.gene.stable.ID", by.y = "ensembl_gene_id")
-
-annot39 <- merge(rbind(musdegs_39_UP, musdegs_39_DOWN), coding_genes, by.x = "Mouse.gene.stable.ID", by.y = "ensembl_gene_id")
-
+musdegs_56_UP <- dplyr::filter(all_56, log2FoldChange > 2 & padj < 0.05)
+musdegs_56_DOWN <- dplyr::filter(all_56, log2FoldChange < -2 & padj < 0.05)
 
 ```
 
-heatmap of overlapped genes ?
-```{r}
-#lfc_heatmap <- pheatmap(alldegs_lfc, cluster_rows = TRUE, cluster_cols = TRUE, show_rownames = TRUE, color = viridis(n= 10000, alpha = 1, begin = 0, end = 1, option = "viridis"), border_color = "NA", main = "LFC of Overlapped Genes")
-#lfc_heatmap
-```
 
 #### AKI Genes  
 AKI-associated DEGs were pulled in to compare to the data sets to see if the cystic data sets look more similar to AKI. 157 upregulated and 88 downregulated
@@ -480,10 +434,6 @@ aki_downgenes <- c("1700040L02Rik", "Abhd14b", "Acad12", "Acmsd", "Acot11", "Aco
 
 combine all data sets
 ```{r}
-#load in
-all_39 <- read.csv(here("res/deseq2_outputs", "deseq2_p70_fullannotatedres.csv"))
-all_19 <- read.csv(here("res/deseq2_outputs", "deseq2_p28_fullannotatedres.csv"))
-all_56 <- read.csv(here("res/deseq2_outputs", "deseq2_p21_fullannotatedres.csv"))
 #at least some lfc and padj > 0.1 
 all_39 <- dplyr::filter(all_39, log2FoldChange > 0.15 | log2FoldChange < -0.15 & padj < 0.1)
 all_56 <- dplyr::filter(all_56, log2FoldChange > 0.15 | log2FoldChange < -0.15 & padj < 0.1)
@@ -533,7 +483,7 @@ write.csv(aki_res, file = here("res/deseq2_outputs", "aki_gene_lfc.csv"))
 
 ### FEA p70 precystic '39 Mouse
 ```{r}
-fea_mouse_39 <- mouseenrich(musdegs_39_UP, musdegs_39_DOWN, 30)
+fea_mouse_39 <- mouseenrich(musdegs_39_UP$ensembl_gene_id, musdegs_39_DOWN$ensembl_gene_id, 30)
 
 bp_mouse_39_overall <- barplot(fea_mouse_39$topcompared) + ggtitle("Pre-Cystic Top Upregulated ") 
 bp_mouse_39_overall
@@ -689,6 +639,25 @@ Save plots
 ``` {r}
 ggsave(filename = here("res", "fea", "mouse_19_overall.pdf"), bp_mouse_19)
 
+```
+
+### Gene overlaps
+Overlap comparing DEGs before human ortholog mapping, using Ensembl ID's
+```{r}
+degs_19_56_overlap_up <- merge(musdegs_19_UP, musdegs_56_UP, by = "ensembl_gene_id")
+degs_19_56_overlap_down <- merge(musdegs_19_DOWN, musdegs_56_DOWN, by = "ensembl_gene_id")
+degs_39_56_overlap_up <- merge(musdegs_39_UP, musdegs_56_UP, by = "ensembl_gene_id")
+degs_39_56_overlap_down <- merge(musdegs_39_DOWN, musdegs_56_DOWN, by = "ensembl_gene_id")
+degs_39_19_overlap_up <- merge(musdegs_39_UP, musdegs_19_UP, by = "ensembl_gene_id")
+degs_39_19_overlap_down <- merge(musdegs_39_DOWN, musdegs_19_DOWN, by = "ensembl_gene_id")
+degs_all_overlap_up <- merge(degs_19_56_overlap_up, musdegs_39_UP, by = "ensembl_gene_id")
+degs_all_overlap_down <- merge(degs_19_56_overlap_down, musdegs_39_DOWN, by = "ensembl_gene_id")
+alldegs_overlap <- rbind(degs_all_overlap_up, degs_all_overlap_down)
+alldegs_lfc <- cbind(CysticP28 = alldegs_overlap$log2FoldChange.x, CysticP21 = alldegs_overlap$log2FoldChange.y, PrecysticP70 = alldegs_overlap$log2FoldChange)
+row.names(alldegs_lfc) <- alldegs_overlap$X.x
+#t <- merge(alldegs_overlap, coding_genes, by.x = "Mouse.gene.stable.ID", by.y = "ensembl_gene_id")
+#t2 <- merge(rbind(degs_19_56_overlap_up, degs_19_56_overlap_down), coding_genes, by.x = "Mouse.gene.stable.ID", by.y = "ensembl_gene_id")
+#annot39 <- merge(rbind(musdegs_39_UP, musdegs_39_DOWN), coding_genes, by.x = "Mouse.gene.stable.ID", by.y = "ensembl_gene_id")
 ```
 
 ###### Precyst Unique and Cystic Overlap

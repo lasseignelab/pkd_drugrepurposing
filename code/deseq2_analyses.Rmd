@@ -262,7 +262,7 @@ dsq2_39 <- as.data.frame(res_nf)
 
 Save full deseq results
 ```{r}
-#write.csv(dsq2_39, file = here("res", "deseq2_outputs", "deseq2_fullres_39.csv"))
+write.csv(dsq2_39, file = here("res", "deseq2_outputs", "deseq2_fullres_39.csv"))
 
 ```
 
@@ -381,9 +381,9 @@ heatmap_p70 <- pheatmap::pheatmap(conv_cts[rownames(top20lfc), ], cluster_rows =
 ```
 
 ```{r}
-#write.csv(genes, file = here("res/deseq2_outputs", "deseq2_p70_fullannotatedres.csv"))
+write.csv(genes, file = here("res/deseq2_outputs", "deseq2_p70_fullannotatedres.csv"))
 
-#ggsave(heatmap_p70, filename = here("res", "fea", "heatmap_p70.pdf"), height = 7, width = 14)
+ggsave(heatmap_p70, filename = here("res", "fea", "heatmap_p70.pdf"), height = 7, width = 14)
 
 ```
 
@@ -406,9 +406,9 @@ heatmap_p70 <- pheatmap::pheatmap(sig_39_cts[row.names(sig_39_cts), ], cluster_r
 ```
 
 ```{r}
-#write.csv(sig_39, here("res/deseq2_outputs", "signature_annotation_p70.csv"))
+write.csv(sig_39, here("res/deseq2_outputs", "signature_annotation_p70.csv"))
 
-#ggsave(heatmap_p70, filename = here("res/deseq2_outputs", "heatmap_p70_signature.pdf"))
+ggsave(heatmap_p70, filename = here("res/deseq2_outputs", "heatmap_p70_signature.pdf"))
 
 ```
 
@@ -467,7 +467,7 @@ volcano_39
 ```
 
 ```{r}
-#ggsave(volcano_39, filename =  here("res/sigsearch_outputs", "volcano_drugtargets_p70degs.pdf"))
+ggsave(volcano_39, filename =  here("res/sigsearch_outputs", "volcano_drugtargets_p70degs.pdf"))
 ```
 
 
@@ -610,8 +610,8 @@ musdegs_56_DOWN <- downlfc(dsq2_56, -2.0)
 
 Total genes above threshold before mapping from mouse ensembl to human symbol/entrez
 ```{r}
-dim(musdegs_56_UP)
-dim(musdegs_56_DOWN)
+dim(musdegs_56_UP) #364
+dim(musdegs_56_DOWN) #57
 ```
 
 Map to human entrez and filter by LINCS genes
@@ -620,8 +620,8 @@ hom_56_UP <- lincsGenes(musdegs_56_UP, "up")
 
 hom_56_DOWN <-  lincsGenes(musdegs_56_DOWN, "down")
 #should be 100 or less
-dim(hom_56_UP)
-dim(hom_56_DOWN)
+dim(hom_56_UP) #100
+dim(hom_56_DOWN) #28
 ```
 
 
@@ -697,9 +697,9 @@ heatmap_21 <- pheatmap::pheatmap(conv_cts_56[rownames(top20lfc_56), ], cluster_r
 
 
 ```{r }
-#write.csv(genes_56, file = here("res/deseq2_outputs", "deseq2_p21_fullannotatedres.csv"))
+write.csv(genes_56, file = here("res/deseq2_outputs", "deseq2_p21_fullannotatedres.csv"))
 
-#ggsave(heatmap_21, filename = here("res", "fea", "heatmap_p21_top20.pdf"), height = 7, width = 14)
+ggsave(heatmap_21, filename = here("res", "fea", "heatmap_p21_top20.pdf"), height = 7, width = 14)
 ```
 
 gene signature
@@ -721,8 +721,8 @@ heatmap_p21 <- pheatmap::pheatmap(sig_56_cts[row.names(sig_56_cts), ], cluster_r
 
 
 ```{r}
-#write.csv(sig_56, here("res/deseq2_outputs", "signature_annotation_p21.csv"))
-#ggsave(heatmap_p21, filename = here("res/deseq2_outputs", "heatmap_p21_signature.pdf"))
+write.csv(sig_56, here("res/deseq2_outputs", "signature_annotation_p21.csv"))
+ggsave(heatmap_p21, filename = here("res/deseq2_outputs", "heatmap_p21_signature.pdf"))
 
 ```
 
@@ -772,7 +772,7 @@ volcano_56
 
 
 ```{r}
-#ggsave(volcano_56, filename =  here("res", "deseq2_outputs", "volcano_drugtargets_p21degs.pdf"))
+ggsave(volcano_56, filename =  here("res", "deseq2_outputs", "volcano_drugtargets_p21degs.pdf"))
 ```
 
 ### DEA p28 cystic GSE134719
@@ -820,7 +820,7 @@ dsq2_19 <- as.data.frame(res_19)
 
 Save full deseq2 results
 ```{r}
-#write.csv(res_19, file = here("res", "deseq2_outputs", "deseq2_fullres_19.csv"))
+write.csv(res_19, file = here("res", "deseq2_outputs", "deseq2_fullres_19.csv"))
 
 ```
 
@@ -833,8 +833,8 @@ musdegs_19_DOWN <- downlfc(dsq2_19, -2.0)
 
 Total genes above threshold before mapping from mouse ensembl to human symbol/entrez
 ```{r}
-dim(musdegs_19_UP)
-dim(musdegs_19_DOWN)
+dim(musdegs_19_UP) #1831
+dim(musdegs_19_DOWN) #1631
 ```
 
 
@@ -863,8 +863,8 @@ hom_19_UP <- lincsGenes(musdegs_19_UP, "up")
 
 hom_19_DOWN <-  lincsGenes(musdegs_19_DOWN, "down")
 #should be 100 or less
-dim(hom_19_UP)
-dim(hom_19_DOWN)
+dim(hom_19_UP) #100
+dim(hom_19_DOWN) #100
 ```
 
 
@@ -924,9 +924,9 @@ heatmap_p28 <- pheatmap::pheatmap(conv_cts_19[rownames(top20lfc_19), ], cluster_
 
 
 ```{r}
-#write.csv(genes_19, file = here("res/deseq2_outputs", "deseq2_p28_fullannotatedres.csv"))
+write.csv(genes_19, file = here("res/deseq2_outputs", "deseq2_p28_fullannotatedres.csv"))
 
-#ggsave(heatmap_p28, filename = here("res", "fea", "heatmap_p28.pdf"), height = 7, width = 14)
+ggsave(heatmap_p28, filename = here("res", "fea", "heatmap_p28.pdf"), height = 7, width = 14)
 ```
 
 gene signature
@@ -958,9 +958,9 @@ heatmap_p28 <- pheatmap::pheatmap(sig_19_cts[row.names(sig_19_cts), ], cluster_r
 ```
 
 ```{r}
-#write.csv(sig_19, here("res/deseq2_outputs", "signature_annotation_p28.csv"))
+write.csv(sig_19, here("res/deseq2_outputs", "signature_annotation_p28.csv"))
 
-#ggsave(heatmap_p28, filename = here("res/deseq2_outputs", "heatmap_p28_signature.pdf"))
+ggsave(heatmap_p28, filename = here("res/deseq2_outputs", "heatmap_p28_signature.pdf"))
 
 ```
 
@@ -1011,7 +1011,7 @@ volcano_19
 
 
 ```{r}
-#ggsave(volcano_19, filename =  here("res/sigsearch_outputs", "volcano_drugtargets_p28degs.pdf"))
+ggsave(volcano_19, filename =  here("res/sigsearch_outputs", "volcano_drugtargets_p28degs.pdf"))
 ```
 
 Targets upregulated in both cystic data sets
