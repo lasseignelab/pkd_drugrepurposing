@@ -102,6 +102,7 @@ convertMouseGeneList_2 <- function(mousegenes){
   return(conv_tbl)
 }
 
+#Conversion table from mouse ensembl to human symbol and find targets that are expressed above a LFC cutoff
 targets_in_degs <- function(conv_tbl, degs, targets, cutoff){
   #convert degs gene id's
   degs <- tibble:::rownames_to_column(degs, var = "Mouse.gene.stable.ID")
