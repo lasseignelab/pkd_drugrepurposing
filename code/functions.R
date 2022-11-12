@@ -102,31 +102,40 @@ convertMouseGeneList_2 <- function(mousegenes){
   return(conv_tbl)
 }
 
-targets_in_degs <- function(conv_tbl, degs, targets){
+targets_in_degs <- function(conv_tbl, degs, targets, cutoff){
   #convert degs gene id's
   degs <- tibble:::rownames_to_column(degs, var = "Mouse.gene.stable.ID")
   conv_tbl <- merge(conv_tbl, degs, by = "Mouse.gene.stable.ID")
   print(str(conv_tbl))
 
   #remove duplicates due to multiple homolog mapping
-  conv_tbl <- conv_tbl %>% dplyr::arrange(order_by = desc(abs(log2FoldChange))) %>% dplyr::distinct(hgnc_symbol, .keep_all = TRUE)
+  conv_degs <- conv_tbl %>% dplyr::arrange(order_by = desc(abs(log2FoldChange))) %>% dplyr::distinct(hgnc_symbol, .keep_all = TRUE)
 
   #combine degs with drug target data
-  targets_in_degs <- merge(targets, conv_tbl, by.x = "t_gn_sym", by.y = "hgnc_symbol")
-  targets_in_degs <- tidyr::drop_na(targets_in_degs)
+  targetdegs <- merge(targets, conv_degs, by.x = "t_gn_sym", by.y = "hgnc_symbol")
+  targetdegs <- tidyr::drop_na(targetdegs)
 
-  return(targets_in_degs)
+  targetdegs <- dplyr::filter(targetdegs, log2FoldChange > cutoff)
+  print(unique(targetdegs$t_gn_sym))
+  print(unique(targetdegs))
+  print(unique(targetdegs$pert))
+
+  targetdeglist <- list(degs = conv_degs, targetdegs = targetdegs)
+
+  return(targetdeglist)
 }
 
 
-target_deg_plot <- function(targetdegs, cutoff){
-  target_labels <- dplyr::filter(targetdegs, log2FoldChange > cutoff)
-  print(unique(target_labels$t_gn_sym))
-  print(unique(target_labels))
-  print(unique(target_labels$pert))
-  targetdegs <- dplyr::distinct(targetdegs, t_gn_sym, .keep_all = TRUE)
+target_deg_plot <- function(targetdegs, cutoff, title){
 
-  volcanoplot <- EnhancedVolcano(targetdegs, lab = targetdegs$t_gn_sym, x = 'log2FoldChange', y = 'padj', selectLab = unique(target_labels$t_gn_sym), pCutoff = 0.05, FCcutoff = cutoff, pointSize = 3.0, labSize = 5.0, col = c("#440154", "#21918c", "#fde725", "#5ec962"), title = "P70 Pre-Cystic Drug Targets Found in P70 \nPre-Cystic DEGs", labFace = 'bold', boxedLabels = TRUE,drawConnectors = TRUE,widthConnectors = 0.5,colConnectors = 'black', max.overlaps = 25)
+  #targetdegs <- dplyr::distinct(targetdegs, t_gn_sym, .keep_all = TRUE)
+
+  volcanoplot <- EnhancedVolcano(targetdegs$degs, lab = targetdegs$degs$hgnc_symbol,
+  x = 'log2FoldChange', y = 'padj', selectLab = unique(targetdegs$targetdegs$t_gn_sym),
+  pCutoff = 0.05, FCcutoff = cutoff, pointSize = 3.0, labSize = 5.0,
+  col = c("#440154", "#21918c", "#fde725", "#5ec962"), title = title,
+  labFace = 'bold', boxedLabels = TRUE,drawConnectors = TRUE,widthConnectors = 0.5,colConnectors = 'black',
+  max.overlaps = 25)
   return(volcanoplot)
 }
 
