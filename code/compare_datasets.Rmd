@@ -314,6 +314,7 @@ scatterPlot <- function (simMatrix, reducedTerms, size = "score", addLabel = TRU
 
 
 #trying to add outline to font for treemap
+#inflate.labels = FALSE to TRUE
 treemap2 <- function (dtf, index, vSize, vColor = NULL, stdErr = NULL, type = "index", 
     fun.aggregate = "sum", title = NA, title.legend = NA, algorithm = "pivotSize", 
     sortID = "-size", mirror.x = FALSE, mirror.y = FALSE, palette = NA, 
@@ -324,7 +325,7 @@ treemap2 <- function (dtf, index, vSize, vColor = NULL, stdErr = NULL, type = "i
         length(index) - 1)), fontfamily.title = "sans", fontfamily.labels = "sans", 
     fontfamily.legend = "sans", border.col = "black", border.lwds = c(length(index) + 
         1, (length(index) - 1):1), lowerbound.cex.labels = 0.4, 
-    inflate.labels = FALSE, bg.labels = NULL, force.print.labels = FALSE, 
+    inflate.labels = TRUE, bg.labels = NULL, force.print.labels = FALSE, 
     overlap.labels = 0.5, align.labels = c("center", "center"), 
     xmod.labels = 0, ymod.labels = 0, eval.labels = FALSE, position.legend = NULL, 
     reverse.legend = FALSE, format.legend = NULL, drop.unused.levels = TRUE, 
@@ -500,7 +501,7 @@ treemap2 <- function (dtf, index, vSize, vColor = NULL, stdErr = NULL, type = "i
             }
         }
     }
-    palette.HCL.options <- tmSetHCLoptions(palette.HCL.options)
+    palette.HCL.options <- treemap:::tmSetHCLoptions(palette.HCL.options)
     if (!all(is.na(range))) {
         if (length(range) != 2) 
             stop("length range should be 2")
@@ -602,22 +603,22 @@ treemap2 <- function (dtf, index, vSize, vColor = NULL, stdErr = NULL, type = "i
     args <- list(...)
     args$na.rm <- na.rm
     if (inherits(dtf, c("tbl_df"))) {
-        dtfDT <- as.data.table(data.frame(dtf[, c(index, vSize, 
+        dtfDT <- data.table::as.data.table(data.frame(dtf[, c(index, vSize, 
             vColor, sortID, stdErr)]))
     }
-    else if (is.data.table(dtf)) {
+    else if (data.table::is.data.table(dtf)) {
         dtfDT <- copy(dtf[, c(index, vSize, vColor, sortID, stdErr), 
             with = FALSE])
     }
     else {
-        dtfDT <- as.data.table(dtf[, c(index, vSize, vColor, 
+        dtfDT <- data.table::as.data.table(dtf[, c(index, vSize, vColor, 
             sortID, stdErr)])
     }
     if (is.null(vColor)) {
         vColor <- "vColor.temp"
         vColorX <- 1
         dtfDT[, `:=`(vColor.temp, 1)]
-        setcolorder(dtfDT, c(1:(ncol(dtfDT) - 3), ncol(dtfDT), 
+        data.table::setcolorder(dtfDT, c(1:(ncol(dtfDT) - 3), ncol(dtfDT), 
             ncol(dtfDT) - 2, ncol(dtfDT) - 1))
     }
     indexList <- paste0("index", 1:depth)
@@ -663,18 +664,18 @@ treemap2 <- function (dtf, index, vSize, vColor = NULL, stdErr = NULL, type = "i
         dtfDT[, `:=`("se", integer(dtfDT[["se"]]))]
     }
     setkeyv(dtfDT, indexList)
-    datlist <- tmAggregate(dtfDT, indexList, type, ascending, 
+    datlist <- treemap:::tmAggregate(dtfDT, indexList, type, ascending, 
         drop.unused.levels, fun.aggregate, args)
     catLabels <- switch(type, categorical = levels(datlist$c), 
         index = levels(datlist$index1), depth = index, standErr = datlist$se, 
         NA)
     if (!draw) 
         position.legend <- "none"
-    vps <- tmGetViewports(vp, fontsize.title, fontsize.labels, 
+    vps <- treemap:::tmGetViewports(vp, fontsize.title, fontsize.labels, 
         fontsize.legend, position.legend, type, aspRatio, title.legend, 
         catLabels)
     if (draw) 
-        tmPrintTitles(vps, title, title.legend, position.legend, 
+        treemap:::tmPrintTitles(vps, title, title.legend, position.legend, 
             fontfamily.title, fontfamily.legend)
     if (type == "color") {
         datlist$color <- as.character(datlist$c)
@@ -682,19 +683,19 @@ treemap2 <- function (dtf, index, vSize, vColor = NULL, stdErr = NULL, type = "i
     }
     else {
         attr(datlist, "range") <- 1:2
-        datlist <- tmColorsLegend(datlist, vps, position.legend, 
+        datlist <- treemap:::tmColorsLegend(datlist, vps, position.legend, 
             type, palette, range, mapping, indexNames = index, 
             palette.HCL.options = palette.HCL.options, border.col, 
             fontfamily.legend, n, na.color, na.text, format.legend, 
             reverse.legend)
     }
-    datlist <- tmGenerateRect(datlist, vps, indexList, algorithm)
+    datlist <- treemap:::tmGenerateRect(datlist, vps, indexList, algorithm)
     if (mirror.x) 
         datlist <- within(datlist, x0 <- 1 - x0 - w)
     if (mirror.y) 
         datlist <- within(datlist, y0 <- 1 - y0 - h)
     if (draw) {
-        tmDrawRect(datlist, vps, indexList, lowerbound.cex.labels, 
+        treemap:::tmDrawRect(datlist, vps, indexList, lowerbound.cex.labels, 
             inflate.labels, bg.labels, force.print.labels, cex_indices, 
             overlap.labels, border.col, border.lwds, fontcolor.labels, 
             fontface.labels, fontfamily.labels, align.labels, 
@@ -705,7 +706,7 @@ treemap2 <- function (dtf, index, vSize, vColor = NULL, stdErr = NULL, type = "i
         "l", "x0", "y0", "w", "h", "color"), with = FALSE]
     if (type == "dens") 
         tm[, `:=`(c, c * s)]
-    setnames(tm, c(index, "vSize", "vColor", "stdErr", "vColorValue", 
+    data.table::setnames(tm, c(index, "vSize", "vColor", "stdErr", "vColorValue", 
         "level", "x0", "y0", "w", "h", "color"))
     tmSave <- list(tm = as.data.frame(tm), type = type, vSize = vSize, 
         vColor = ifelse(vColor == "vColor.temp", NA, vColor), 
@@ -723,8 +724,8 @@ treemapPlot2 <- function (reducedTerms, size = "score", title = "", ...)
             "Consider installing it before using this function.", 
             call. = FALSE)
     }
-    treemap::treemap(reducedTerms, index = c("parentTerm", "term"), 
-        vSize = size, type = "index", title = title, palette = gg_color_hue(length(unique(reducedTerms$parent))), 
+    treemap2(reducedTerms, index = c("parentTerm", "term"), 
+        vSize = size, type = "index", title = title, palette = metafolio::gg_color_hue(length(unique(reducedTerms$parent))), 
         fontcolor.labels = c("#FFFFFFDD", "#00000080"), bg.labels = 0, 
         border.col = "#00000080", ...)
 }
@@ -746,11 +747,14 @@ reducedTerms <- reduceSimMatrix(simMatrix, scores, threshold=0.80, orgdb="org.Hs
 sp <- scatterPlot(simMatrix, reducedTerms, labelSize = 2.5) + labs(title = "Precystic P70 Signature Enrichment Overview") #+ geom_label_repel(max.overlaps = 20) #+ theme(text = element_text(size = 14), plot.title = element_text(size = 24))
 sp
 tm <- treemapPlot(reducedTerms, title = "Enrichment for Precystic P70 Signature") 
+library(treemap)
+tm2 <- treemapPlot2(reducedTerms, title = "Enrichment for Precystic P70 Signature") 
+
 hm <- heatmapPlot(simMatrix, reducedTerms, annotateParent=TRUE, annotationLabel="parentTerm", fontsize=6)
 ```
 
 ```{r}
-ggsave(here("res/fea", "precysticp70_sig_enrichment_scatter.pdf"), sp, height = 5, width = 7)
+#ggsave(here("res/fea", "precysticp70_sig_enrichment_scatter.pdf"), sp, height = 5, width = 7)
 
 #ggsave(here("res/fea", "precysticp70_sig_enrichment_treemap.pdf"), tm, height = 4, width = 7)
 
@@ -929,7 +933,6 @@ bubbleplot(fea_mouse_39$topcompared) + labs(title = "Top Enriched Terms for Pre-
 ```
 
 ``` {r}
-
 ggsave(bubbleplot_p70, filename = here("res", "fea", "p70_fea_bubbleplot.pdf"), height = 7, width = 14)
 ```
 
@@ -1230,104 +1233,6 @@ ggsave(hm, filename = here("res", "test.pdf"))
 
 ```
 
-##### Combined plot
-Adapted from Jen's code
-````{r}
-mmGO <- godata('org.Mm.eg.db', ont="BP")
-```
-
-```{r}
-
-getterms <- function(fea, direction){
-  goterms <- fea$term_id[ fea$source == "GO:BP" & fea$direction == direction]
-
-return(goterms)
-}
-
-plotheatmap <- function(terms1, terms2, terms3, go_groupings, groupings_colors, simmatrix){
-  row_ha = HeatmapAnnotation(CysticP28=terms1,CysticP21= terms2, PrecysticP70= terms3,GO_BP_Group= go_groupings , col = list(CysticP28 = c("TRUE" = "#fde725", "FALSE" = "#440154"),CysticP21 = c("TRUE" = "#fde725", "FALSE" = "#440154"),PrecysticP70 = c("TRUE" = "#fde725", "FALSE" = "#440154"), GO_BP_Group= groupings_colors ))
-  col_fun = circlize:::colorRamp2(c(0, 0.5, 1), c( "black", "blue", "white"))
-
-  Heatmap(simmatrix, nam= "Term Similarity", col = col_fun, show_column_names = FALSE,  show_row_names = FALSE, top_annotation = row_ha,  
-          clustering_distance_rows= "euclidean",
-          clustering_distance_columns=  "euclidean",
-          clustering_method_rows = "complete" ,
-          clustering_method_columns="complete")
-}
-
-go_term_heatmap<- function(fea1, fea2, fea3, direction, threshold = 0.95){
-  
-  #get terms
-  set1 <- getterms(fea1, direction)
-  set2 <- getterms(fea2, direction)
-  set3 <- getterms(fea3, direction)
- # limma_bp<- fea1$term_id[ fea1$source == "GO:BP" & fea1$direction == direction]
-  #deseq2_bp <- fea2$term_id[ fea2$source == "GO:BP" & fea2$direction == direction]
-  #TFL_bp <- fea3$term_id[ fea3$source == "GO:BP" & fea3$direction == direction]
-  
-  #run the go term semantic similarity 
-  go1 <-  unique(c(set1, set2, set3))
-  go_gbm_up_sim <- mgoSim(go1, go1, semData=mmGO, measure="Wang", combine=NULL)
-  str(go_gbm_up_sim)
-  
-  #get the parent terms from rrvgo for the pathways
-  res <- reduceSimMatrix(go_gbm_up_sim, threshold = threshold, orgdb = "org.Mm.eg.db")
-  print(unique(res$parentTerm))
-  res_v2<- res[match(colnames(go_gbm_up_sim), res$go),]
-  #str(res_v2)
-  #print(res_v2$parentTerms)
-  
-  #determine which pathway is enriched in the different methods for the heatmap annotation
-  res1 <- grepl(paste(set1,collapse="|"), colnames(go_gbm_up_sim)) 
-  res2<- grepl(paste(set2,collapse="|"), colnames(go_gbm_up_sim))
-  res3 <- grepl(paste(set3,collapse="|"), colnames(go_gbm_up_sim)) 
-  
-  #handing the case where there are no pathways enriched
-  if(length(set2) ==0){ res2 <- rep(FALSE,ncol(go_gbm_up_sim) )} 
-  if(length(set1) ==0){ res1 <- rep(FALSE,ncol(go_gbm_up_sim) )} 
-  if(length(set3) ==0){ res3 <- rep(FALSE,ncol(go_gbm_up_sim) )} 
-  
-  #pick the number of colors note limit is about 9 
-  #mycolors <- colorRampPalette(brewer.pal(8, "Set2"))(nb.cols)
-  #bp_color <- brewer.pal(n = length(unique(res$parentTerm)), name = "Paired")
-  bp_color <- colorRampPalette(brewer.pal(12, name = "Paired"))(length(unique(res_v2$parentTerm)))
-  #str(bp_color)
-  #print(bp_color)
-  names(bp_color)<- unique(res_v2$parentTerm)
-  
-  #create heatmap
-  plotheatmap(res1, res2, res3, res_v2$parentTerm, bp_color, go_gbm_up_sim)
-#  row_ha = HeatmapAnnotation(CysticP28=res1,CysticP21= res2, PrecysticP70= res3,GO_BP_Group= res_v2$parentTerm , col = list(CysticP28 = c("TRUE" = "#fde725", "FALSE" = "#440154"),CysticP21 = c("TRUE" = "#fde725", "FALSE" = "#440154"),PrecysticP70 = c("TRUE" = "#fde725", "FALSE" = "#440154"), GO_BP_Group= bp_color ))
-#  col_fun = circlize:::colorRamp2(c(0, 0.5, 1), c( "black", "blue", "white"))
-
-#  Heatmap(go_gbm_up_sim, nam= "Term Similarity", col = col_fun, show_column_names = FALSE,  show_row_names = FALSE, top_annotation = row_ha,  
-#          clustering_distance_rows= "euclidean",
-#          clustering_distance_columns=  "euclidean",
-#          clustering_method_rows = "complete" ,
-#          clustering_method_columns="complete")
-}
-
-```
-
-
-```{r}
-#go_term_heatmap(limma_pathways, deseq2_pathways, TFL_pathways, "Up")
-comb_39 <- mouseenrich(musdegs_39_UP, musdegs_39_DOWN, 200, sources = "GO:BP")
-
-comb_56 <- mouseenrich(musdegs_56_UP, musdegs_56_DOWN, 200,  sources = "GO:BP")
-
-comb_19 <- mouseenrich(musdegs_19_UP, musdegs_19_DOWN, 200,  sources = "GO:BP")
-```
-
-
-```{r}
-pdf(here("res/fea", "alldata_musgenes_gosim_heatmap_lfcshrinkage.pdf"), width = 12, height = 8)
-combined_heatmap <- go_term_heatmap(comb_39$topcompared, comb_56$topcompared, comb_19$topcompared, "upregulated", threshold = 0.95)
-#pdf((here("res/fea", "alldata_musgenes_gosim_heatmap.pdf"), width = 8, height = 8)
-combined_heatmap <- draw(combined_heatmap, merge_legend = TRUE)
-combined_heatmap
-dev.off()
-```
 
 
 #### Compare Mouse FEA  
