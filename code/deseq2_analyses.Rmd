@@ -263,7 +263,7 @@ dsq2_39 <- as.data.frame(res_nf)
 Save full deseq results
 ```{r}
 write.csv(dsq2_39, file = here("res", "deseq2_outputs", "deseq2_fullres_39.csv"))
-
+saveRDS(dsq2_39, file = here("res", "deseq2_outputs", "deseq2_fullres_39.rds"))
 ```
 
 #### LFC cutoffs
@@ -416,7 +416,7 @@ ggsave(heatmap_p70, filename = here("res/deseq2_outputs", "heatmap_p70_signature
 
 #####p70 DEGs to p70 targets
 Conversion table from mouse ensembl to human symbol
-```{r}
+```{r eval=FALSE, include=FALSE}
 ens_annot <- read.csv(here("data", "annot_ens_humanmouse.csv"))
 ens_mouse2human <- tibble:::rownames_to_column(dsq2_39, var = "Mouse.gene.stable.ID")
   #conversion table
@@ -433,13 +433,13 @@ conv_tbl <- conv_tbl %>% dplyr::arrange(order_by = desc(abs(log2FoldChange))) %>
 ```
 
 Convert gene ID's of rlog normalized count data to human symbols
-```{r}
+```{r eval=FALSE, include=FALSE}
 volc_39 <- merge(conv_cts_all, conv_tbl, by.x = "ensembl_gene_id", by.y = "Mouse.gene.stable.ID")
 
 ```
 
 Read in drug targets from FDA approved candidates from signature reversion of p70 (from markdown: sigsearch_analyses)
-```{r}
+```{r eval=FALSE, include=FALSE}
 fda_approved_39_targets <- read.csv(here("res", "sigsearch_outputs", "fda_drug_targets_39.csv"), row.names = 1)
 #targets_39 <- tidyr::separate_rows(targets_39, "t_gn_sym", sep = "; ")
 
@@ -448,7 +448,7 @@ fda_approved_39_targets <- read.csv(here("res", "sigsearch_outputs", "fda_drug_t
 
 
 targets in > 1.5 LFC
-```{r}
+```{r eval=FALSE, include=FALSE}
 targets_in39 <- merge(fda_approved_39_targets, volc_39, by.x = "t_gn_sym", by.y = "hgnc_symbol")
 
 #only targets that are upregulated > 1.5 LFC
@@ -460,19 +460,19 @@ unique(targets_in39$pert)
 ```
 
 
-```{r}
+```{r eval=FALSE, include=FALSE}
 volcano_39 <- EnhancedVolcano(volc_39, lab = volc_39$hgnc_symbol, x = 'log2FoldChange', y = 'padj', selectLab = unique(targets_in39$t_gn_sym), pCutoff = 0.05, FCcutoff = 1.3, pointSize = 3.0, labSize = 4.0, col = c("#440154", "#21918c", "#fde725", "#5ec962"), title = "P70 Pre-Cystic Drug Targets Found in P70 \nPre-Cystic DEGs", labFace = 'bold', boxedLabels = TRUE,drawConnectors = TRUE,widthConnectors = 0.5,colConnectors = 'black', max.overlaps = 25)
 
 volcano_39
 ```
 
-```{r}
+```{r eval=FALSE, include=FALSE}
 ggsave(volcano_39, filename =  here("res/sigsearch_outputs", "volcano_drugtargets_p70degs.pdf"))
 ```
 
 
 ##ALT attempt
-```{r}
+```{r eval=FALSE, include=FALSE}
 
 convertMouseGeneList_2 <- function(mousegenes){
   #read in mose to human ens annotation
@@ -491,19 +491,19 @@ return(conv_tbl)
 ```
 
 testing new functions
-```{r}
-test <- convertMouseGeneList_2(row.names(dsq2_39))
+```{r eval=FALSE, include=FALSE}
+conv_genes <- convertMouseGeneList_2(row.names(dsq2_39))
 
 ```
 
 
 Read in drug targets from FDA approved candidates from signature reversion of p70 (from markdown: sigsearch_analyses)
-```{r}
+```{r eval=FALSE, include=FALSE}
 fda_approved_39_targets <- read.csv(here("res", "sigsearch_outputs", "fda_drug_targets_39.csv"), row.names = 1)
 ```
 
 Functions for data wrangling for target-deg volcano plot
-```{r}
+```{r eval=FALSE, include=FALSE}
 targets_in_degs <- function(conv_tbl, degs, targets){
   #convert degs gene id's
   degs <- tibble:::rownames_to_column(degs, var = "Mouse.gene.stable.ID")
@@ -528,25 +528,23 @@ target_deg_plot <- function(targetdegs, cutoff){
   print(unique(target_labels$pert))
   targetdegs <- dplyr::distinct(targetdegs, t_gn_sym, .keep_all = TRUE)
 
-  volcanoplot <- EnhancedVolcano(targetdegs, lab = targetdegs$t_gn_sym, x = 'log2FoldChange', y = 'padj', selectLab = unique(target_labels$t_gn_sym), pCutoff = 0.05, FCcutoff = cutoff, pointSize = 3.0, labSize = 4.0, col = c("#440154", "#21918c", "#fde725", "#5ec962"), title = "P70 Pre-Cystic Drug Targets Found in P70 \nPre-Cystic DEGs", labFace = 'bold', boxedLabels = TRUE,drawConnectors = TRUE,widthConnectors = 0.5,colConnectors = 'black', max.overlaps = 25)
+  volcanoplot <- EnhancedVolcano(targetdegs, lab = targetdegs$t_gn_sym, x = 'log2FoldChange', y = 'padj', selectLab = unique(target_labels$t_gn_sym), pCutoff = 0.05, FCcutoff = cutoff, pointSize = 3.0, labSize = 5.0, col = c("#440154", "#21918c", "#fde725", "#5ec962"), title = "P70 Pre-Cystic Drug Targets Found in P70 \nPre-Cystic DEGs", labFace = 'bold', boxedLabels = TRUE,drawConnectors = TRUE,widthConnectors = 0.5,colConnectors = 'black', max.overlaps = 25)
 return(volcanoplot)
 }
 
 ```
 
 testing new functions
-```{r}
-test2 <- targets_in_degs(test, dsq2_39, fda_approved_39_targets)
+```{r eval=FALSE, include=FALSE}
+test2 <- targets_in_degs(conv_genes, dsq2_39, fda_approved_39_targets, 1.1)
 
 #test3 <- test2 %>% dplyr::group_by(t_gn_sym) %>% stringr::str_flatten(pert, collapse = ", ")
 #test3 <- stringr::str_flatten(test2$pert, collapse = ", ")
 
-vp <- target_deg_plot(test2, 1.1)
+vp <- target_deg_plot(test2, 1.1, "P70 Pre-Cystic Drug Targets Found in P70 \nPre-Cystic DEGs")
 vp
 
 ```
-
-
 
 
 ### DEA p21 cystic GSE69556
@@ -596,7 +594,7 @@ dsq2_56 <- as.data.frame(res_56)
 
 ```{r}
 write.csv(dsq2_56, file = here("res/deseq2_outputs", "deseq2_fullres_56.csv"))
-
+saveRDS(dsq2_56, file = here("res", "deseq2_outputs", "deseq2_fullres_56.rds"))
 ```
 
 
@@ -731,7 +729,7 @@ ggsave(heatmap_p21, filename = here("res/deseq2_outputs", "heatmap_p21_signature
 ##### p21 DEGs to p70 Targets
 
 convert from mouse ensembl to human symbol
-```{r}
+```{r eval=FALSE, include=FALSE}
 #dsq2_56 <- read.csv(here("res", "deseq2_outputs", "deseq2_fullres_56.csv"), row.names = 1)
 ens_mouse2human_56 <- tibble:::rownames_to_column(dsq2_56, var = "Mouse.gene.stable.ID")
 #convert from mouse to human with  with conversion table
@@ -748,13 +746,13 @@ conv_tbl_56 <- conv_tbl_56 %>% dplyr::arrange(order_by = desc(abs(log2FoldChange
 ```
 
 Convert gene ID's of rlog normalized count data to human symbols
-```{r}
+```{r eval=FALSE, include=FALSE}
 volc_56 <- merge(conv_cts_all, conv_tbl_56, by.x = "ensembl_gene_id", by.y = "Mouse.gene.stable.ID")
 
 ```
 
-targets in > 1.5 LFC
-```{r}
+targets in 2 LFC
+```{r eval=FALSE, include=FALSE}
 targets_in56 <- merge(fda_approved_39_targets, volc_56, by.x = "t_gn_sym", by.y = "hgnc_symbol")
 targets_in56 <- dplyr::filter(targets_in56, log2FoldChange >  2.0 )#| log2FoldChange < -2.0)
 #how many total drug targets are upregulated > 2.0 LFC?
@@ -764,14 +762,24 @@ unique(targets_in56$pert)
 ```
 
 Plot volcano plot
-```{r}
-volcano_56 <- EnhancedVolcano(volc_56, lab = volc_56$hgnc_symbol, x = 'log2FoldChange', y = 'padj', selectLab = unique(targets_in56$t_gn_sym), pCutoff = 0.05, FCcutoff = 2.0, pointSize = 3.0, labSize = 4.0, col = c("#440154", "#21918c", "#fde725", "#5ec962"), title = "P70 Pre-Cystic Drug Targets Found in P21 \nCystic DEGs", labFace = 'bold', boxedLabels = TRUE,drawConnectors = TRUE,widthConnectors = 0.5,colConnectors = 'black', max.overlaps = 70)
+```{r eval=FALSE, include=FALSE}
+volcano_56 <- EnhancedVolcano(volc_56, lab = volc_56$hgnc_symbol, x = 'log2FoldChange', y = 'padj', selectLab = unique(targets_in56$t_gn_sym), pCutoff = 0.05, FCcutoff = 2.0, pointSize = 3.0, labSize = 5.0, col = c("#440154", "#21918c", "#fde725", "#5ec962"), title = "P70 Pre-Cystic Drug Targets Found in P21 \nCystic DEGs", labFace = 'bold', boxedLabels = TRUE,drawConnectors = TRUE,widthConnectors = 0.5,colConnectors = 'black', max.overlaps = 70)
 
 volcano_56
 ```
 
+```{r eval=FALSE, include=FALSE}
+targets_56 <- targets_in_degs(conv_genes, dsq2_56, fda_approved_39_targets)
 
-```{r}
+#test3 <- test2 %>% dplyr::group_by(t_gn_sym) %>% stringr::str_flatten(pert, collapse = ", ")
+#test3 <- stringr::str_flatten(test2$pert, collapse = ", ")
+
+volcplot_56 <- target_deg_plot(targets_56, 2)
+volcplot_56
+
+```
+
+```{r eval=FALSE, include=FALSE}
 ggsave(volcano_56, filename =  here("res", "deseq2_outputs", "volcano_drugtargets_p21degs.pdf"))
 ```
 
@@ -820,8 +828,8 @@ dsq2_19 <- as.data.frame(res_19)
 
 Save full deseq2 results
 ```{r}
-write.csv(res_19, file = here("res", "deseq2_outputs", "deseq2_fullres_19.csv"))
-
+write.csv(dsq2_19, file = here("res", "deseq2_outputs", "deseq2_fullres_19.csv"))
+saveRDS(dsq2_19, file = here("res", "deseq2_outputs", "deseq2_fullres_19.rds"))
 ```
 
 #### LFC cutoffs
@@ -968,7 +976,7 @@ ggsave(heatmap_p28, filename = here("res/deseq2_outputs", "heatmap_p28_signature
 #####p28 DEGs to p70 Targets
 
 convert from mouse ensembl to human symbol
-```{r}
+```{r eval=FALSE, include=FALSE}
 #dsq2_19 <- read.csv(here("res", "deseq2_outputs", "deseq2_fullres_19.csv"), row.names = 1)
 ens_mouse2human_19 <- tibble:::rownames_to_column(dsq2_19, var = "Mouse.gene.stable.ID")
   #conversion table
@@ -986,13 +994,13 @@ conv_tbl_19 <- conv_tbl_19 %>% dplyr::arrange(order_by = desc(abs(log2FoldChange
 ```
 
 Convert gene ID's of rlog normalized count data to human symbols
-```{r}
+```{r eval=FALSE, include=FALSE}
 volc_19 <- merge(conv_cts_all, conv_tbl_19, by.x = "ensembl_gene_id", by.y = "Mouse.gene.stable.ID")
 
 ```
 
 targets in > 2 LFC
-```{r}
+```{r eval=FALSE, include=FALSE}
 targets_in19 <- merge(fda_approved_39_targets, conv_tbl_19, by.x = "t_gn_sym", by.y = "hgnc_symbol")
 targets_in19 <- dplyr::filter(targets_in19, log2FoldChange > 2.0)# | log2FoldChange < -2.0)
 #how many total drug targets are upregulated > 2.0 LFC?
@@ -1002,20 +1010,31 @@ unique(targets_in19$pert)
 ```
 
 
-```{r}
-volcano_19 <-  EnhancedVolcano(volc_19, lab = volc_19$hgnc_symbol, x = 'log2FoldChange', y = 'padj', selectLab = unique(targets_in19$t_gn_sym), pCutoff = 0.05, FCcutoff = 2.0, pointSize = 3.0, labSize = 4.0, col = c("#440154", "#21918c", "#fde725", "#5ec962"), title = "P70 Pre-Cystic Drug Targets Found in P28 \nCystic DEGs", labFace = 'bold', boxedLabels = TRUE,drawConnectors = TRUE,widthConnectors = 0.5,colConnectors = 'black', max.overlaps = 70) 
+```{r eval=FALSE, include=FALSE}
+volcano_19 <-  EnhancedVolcano(volc_19, lab = volc_19$hgnc_symbol, x = 'log2FoldChange', y = 'padj', selectLab = unique(targets_in19$t_gn_sym), pCutoff = 0.05, FCcutoff = 2.0, pointSize = 3.0, labSize = 5.0, col = c("#440154", "#21918c", "#fde725", "#5ec962"), title = "P70 Pre-Cystic Drug Targets Found in P28 \nCystic DEGs", labFace = 'bold', boxedLabels = TRUE,drawConnectors = TRUE,widthConnectors = 0.5,colConnectors = 'black', max.overlaps = 70) 
 #EnhancedVolcano(conv_tbl_19, lab = conv_tbl_19$hgnc_symbol, x = 'log2FoldChange', y = 'padj', selectLab = unique(targets_in19$t_gn_sym), pCutoff = 0.05, FCcutoff = 0.5, pointSize = 3.0, labSize = 4.0, col = c("#440154", "#21918c", "#5ec962", "#fde725"), title = "P70 Pre-Cystic Drug Targets Found in P28 \nCystic DEGs", labFace = 'bold', boxedLabels = TRUE,drawConnectors = TRUE,widthConnectors = 0.5,colConnectors = 'black', max.overlaps = 25) 
 
 volcano_19
 ```
+```{r eval=FALSE, include=FALSE}
+targets_19 <- targets_in_degs(conv_genes, dsq2_19, fda_approved_39_targets)
+
+#test3 <- test2 %>% dplyr::group_by(t_gn_sym) %>% stringr::str_flatten(pert, collapse = ", ")
+#test3 <- stringr::str_flatten(test2$pert, collapse = ", ")
+
+volcplot_19 <- target_deg_plot(targets_19, 2)
+volcplot_19
+
+```
 
 
-```{r}
+```{r eval=FALSE, include=FALSE}
 ggsave(volcano_19, filename =  here("res/sigsearch_outputs", "volcano_drugtargets_p28degs.pdf"))
+ggsave(volcplot_19, filename =  here("res/sigsearch_outputs", "volcano_drugtargets_p28degs_2.pdf"))
 ```
 
 Targets upregulated in both cystic data sets
-```{r}
+```{r eval=FALSE, include=FALSE}
 cystic_targets <- merge(targets_in19, targets_in56, by = "pert")
 
 #unique overlapping drugs
@@ -1025,7 +1044,7 @@ length(unique(cystic_targets$t_gn_sym.x))
 ```
 
 Data wrangling - remove completely redundant columns and rows 
-```{r}
+```{r eval=FALSE, include=FALSE}
 cystic_targets <- cbind(Drug = cystic_targets$pert, Drug_Targets = cystic_targets$t_gn_sym.x, MOA = cystic_targets$MOA.x, Original_Indication = cystic_targets$Indication.x) %>% as.data.frame()
 
 cystic_targets <- dplyr::distinct(cystic_targets)

@@ -596,6 +596,11 @@ fda_approved_39 <- dplyr::filter(fda_approved_39, fda_approval == TRUE)
 fda_approved_39 <- dplyr::distinct(fda_approved_39, pert, .keep_all = TRUE)
 ```
 
+save FDA-approved drug candidates
+```{r}
+saveRDS(fda_approved_39, file = here("res", "sigsearch_outputs", "p70_fdaapproved_drugs.rds"))
+```
+
 Compare false pos to using agrep
 ```{r}
 #test <- fda_approved_39 #101 drugs for grep, 144 agrep

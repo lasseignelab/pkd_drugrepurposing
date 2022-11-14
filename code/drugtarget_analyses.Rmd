@@ -27,37 +27,10 @@ library(dplyr)
 source(here("code", "functions.R"))
 ```
 
-### Drug Targets in Cystic DEGs
-read in DEGs from all 3 data sets (from markdown: deseq2_analyses)
-```{r}
-dsq2_39 <- readRDS(file = here("res", "deseq2_outputs", "deseq2_fullres_39.rds"))
-dsq2_56 <- readRDS(file = here("res", "deseq2_outputs", "deseq2_fullres_56.rds"))
-dsq2_19 <- readRDS(file = here("res", "deseq2_outputs", "deseq2_fullres_19.rds"))
-```
-
-
-Read in drug targets from FDA approved candidates from signature reversion of p70 (from markdown: sigsearch_analyses)
-```{r}
-fda_approved_39_targets <- read.csv(here("res", "sigsearch_outputs", "fda_drug_targets_39.csv"), row.names = 1)
-```
-
-
-testing new functions
-```{r}
-test2 <- targets_in_degs(conv_genes, dsq2_39, fda_approved_39_targets, 1.1)
-
-#test3 <- test2 %>% dplyr::group_by(t_gn_sym) %>% stringr::str_flatten(pert, collapse = ", ")
-#test3 <- stringr::str_flatten(test2$pert, collapse = ", ")
-
-vp <- target_deg_plot(test2, 1.1, "P70 Pre-Cystic Drug Targets Found in P70 \nPre-Cystic DEGs")
-vp
-
-```
-
-
 ### Targets of Candidate Drugs
 Targets of all FDA-approved drugs
 ```{r}
+fda_approved_39 <- readRDS(here("res", "sigsearch_outputs", "p70_fdaapproved_drugs.rds"))
 fda_approved_39_targets <- tidyr::separate_rows(fda_approved_39, t_gn_sym, sep = "; ")
 #remove drugs with empty 'target' field
 fda_approved_39_targets <- dplyr::filter(fda_approved_39_targets, t_gn_sym != "")
@@ -73,13 +46,92 @@ Save
 ```
 
 
+
+### Drug Targets in Cystic DEGs
+Read in DEGs from all 3 data sets (from markdown: deseq2_analyses)
+```{r}
+dsq2_p70 <- readRDS(file = here("res", "deseq2_outputs", "deseq2_fullres_39.rds"))
+dsq2_p21 <- readRDS(file = here("res", "deseq2_outputs", "deseq2_fullres_56.rds"))
+dsq2_p28 <- readRDS(file = here("res", "deseq2_outputs", "deseq2_fullres_19.rds"))
+```
+
+Read in drug targets from FDA approved candidates from signature reversion of p70 (from markdown: sigsearch_analyses)
+```{r}
+fda_approved_39_targets <- read.csv(here("res", "sigsearch_outputs", "fda_drug_targets_39.csv"), row.names = 1)
+```
+
+Gene conversion
+```{r}
+conv_genes <- convertMouseGeneList_2(row.names(dsq2_p70))
+
+```
+
+####P70 DEGs to P70 targets
+targets expressed in pre-cystic P70 / 39 degs
+```{r}
+targetdegs_p70 <- targets_in_degs(conv_genes, dsq2_p70, fda_approved_39_targets, 1.1)
+
+volcano_p70 <- target_deg_plot(targetdegs_p70, 1.1, "P70 Pre-Cystic Drug Targets Found in P70 \nPre-Cystic DEGs")
+volcano_p70
+
+```
+
+save
+```{r}
+ggsave(volcano_p70, filename =  here("res/sigsearch_outputs", "volcano_drugtargets_p70degs.pdf"))
+```
+
+####P21 DEGs to P70 targets
+targets expressed in cystic P21 / 56 degs
+```{r}
+targetdegs_p21 <- targets_in_degs(conv_genes, dsq2_p21, fda_approved_39_targets, 2)
+
+volcano_p21 <- target_deg_plot(targetdegs_p21, 2, "P70 Pre-Cystic Drug Targets Found in P21 \nCystic DEGs")
+volcano_p21
+
+```
+
+save
+```{r}
+ggsave(volcano_p21, filename =  here("res/sigsearch_outputs", "volcano_drugtargets_p21degs.pdf"))
+```
+
+
+####P28 DEGs to P70 targets
+targets expressed in cystic P28 / 19 degs
+```{r}
+targetdegs_p28 <- targets_in_degs(conv_genes, dsq2_p28, fda_approved_39_targets, 2)
+
+volcano_p28 <- target_deg_plot(targetdegs_p28, 2, "P70 Pre-Cystic Drug Targets Found in P28 \nCystic DEGs")
+volcano_p28
+
+```
+
+save
+```{r}
+ggsave(volcano_p28, filename =  here("res/sigsearch_outputs", "volcano_drugtargets_p28degs.pdf"))
+```
+
+#### Targets in Both Cystic DEG Data Sets
+
+Targets upregulated in both cystic data sets
+```{r}
+cystic_targets <- merge(targetdegs_p21$targetdegs, targetdegs_p28$targetdegs, by = "pert")
+
+#unique overlapping drugs
+length(unique(cystic_targets$pert))
+#unique overlapping targets
+length(unique(cystic_targets$t_gn_sym.x))
+```
+
+
+
 Alluvial plot of drugs-targets with just FDA approved drugs
 ```{r}
 cystic_targets <- read.csv(file = here("res/sigsearch_outputs", "drug_targets_oe_cysticdegs.csv"), row.names = 1)
 #target_alluvial <- tidyr::separate_rows(cystic_overlap_drugs, t_gn_sym, sep = "; ")
 #target_tbl <- cbind(pert = cystic_targets$pert, Upregulated_Target = cystic_targets$t_gn_sym.x) %>% as.data.frame()
 ```
-
 
 
 plot
@@ -103,8 +155,6 @@ panel.background = element_blank() )
 
 target_alluvial
 ```
-
-
 
 
 ```{r}
@@ -264,15 +314,8 @@ histamine receptor activity
 
 calcium-dependent protein binding
 ```{r}
-visExport
 
 #dtnetplot(drugs = unique(cystic_targets$Drug), set = "GO:0048306", ont = "MF", desc="calcium-dependent protein binding")
-
-```
-
-Signor results for prioritized 28 drug targets
-```{r}
-signor_res <- read.delim(here("data", "signor_prioritizedtargets.tsv"))
 
 ```
 
