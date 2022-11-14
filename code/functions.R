@@ -4,9 +4,9 @@
 #__salmon2dds__: Salmon merged gene counts from nf-core RNAseq pipeline (results/star_salmon/salmon.merged.gene_counts.rds) and SRA metadata as inputs, function data wrangles and runs DESeq2, resulting in a dds object with design by genotype. Just for dataset  GSE69556 (aka 56, p21), set argument data = not "regular", for extra characters in counts rownames just in that dataset
 
 #Salmon merged gene counts to dds results
-salmon2dds <- function(counts, metadata, dataset = "regular") {
+salmon2dds <- function(counts, metadata) {
   #round, salmon outputs have decimals
-  cts <- round(cts)
+  cts <- round(counts)
 
   #remove version numbers from transcript id's
   rownames(cts) <- gsub("\\..*", "", rownames(cts))

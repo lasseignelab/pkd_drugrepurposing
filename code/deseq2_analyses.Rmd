@@ -257,16 +257,16 @@ __Filepath to fastq's and metadata__: /data/project/lasseigne_lab/DATASET_dir/pk
 __Filepath to counts data__: /data/project/lasseigne_lab/Lizzy/PKD_drugrepurposing_220324/GSE69556_nfcore/results/star_salmon/salmon.merged.gene_counts.rds  
 ```{r}
 cts_56 <- readRDS(here("data", "GSE69556_salmonmerged_gene_counts.rds"))
-#cts_56 <- GSE69556_salmonmerged_gene_counts
-#colnames(cts_56) <- str_sub(colnames(cts_56), 1, -2)
+cts_56 <- cts_56@assays@data@listData[["counts"]]
+colnames(cts_56) <- str_sub(colnames(cts_56), 1, -2) #remove random period at the end of the sample names
 
 meta_56 <- read.csv(here("data", "GSE69556_metadata.txt"), row.names = 1)
 ```
 
+
 #### DDS
 ```{r}
-cts_56 <- cts_56@assays@data@listData[["counts"]]
-dds_56 <- salmon2dds(cts_56, meta_56, dataset = "dataset56")
+dds_56 <- salmon2dds(cts_56, meta_56)
 
 ```
 
@@ -285,7 +285,7 @@ dds_56 <- DESeq(dds_56) #can also look at setting replaceOutliers lower for deal
 #extract results table with log2 fold changes, p values and adjusted p values for desired coefficients
 #res_56 <- results(dds_56, alpha = 0.05, contrast = c("Genotype", "Pkhd1CrePkd2FF", "wildtype"))
 res_56 <- lfcShrink(dds_56, coef = c("Genotype_Pkhd1CrePkd2FF_vs_wildtype"), type="apeglm")
-res_nf
+res_56
 ```
 
 DESeq2 results as df and by LFC threshold
@@ -443,6 +443,7 @@ meta_19 <- read.csv(here("data", "GSE134719_metadata.txt"), row.names = 1)
 
 #### DDS
 ```{r}
+cts_19 <- cts_19@assays@data@listData[["counts"]]
 dds_19 <- salmon2dds(cts_19, meta_19)
 str(dds_19)
 ```
