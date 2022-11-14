@@ -43,133 +43,6 @@ library(EnhancedVolcano)
 source(here("code", "functions.R"))
 ```
 
-#### Custom functions  
-
-__salmon2dds__: Salmon merged gene counts from nf-core RNAseq pipeline (results/star_salmon/salmon.merged.gene_counts.rds) and SRA metadata as inputs, function data wrangles and runs DESeq2, resulting in a dds object with design by genotype. Just for dataset  GSE69556 (aka 56, p21), set argument data = not "regular", for extra characters in counts rownames just in that dataset  
-
-```{r}
-#Salmon merged gene counts to dds results
-salmon2dds <- function(counts, metadata, dataset = "regular") {
-  #count matrix in the sumarized experiment object
-  cts <- counts@assays@data@listData[["counts"]]
-  #round, salmon outputs have decimals
-  cts <- round(cts)
-  if (dataset == "dataset56"){
-    colnames(cts) <- str_sub(colnames(cts), 1, -2) ##ALTERATION just for GSE69556  
-  }
-  
-  #remove version numbers from transcript id's
-  rownames(cts) <- gsub("\\..*", "", rownames(cts))
-  
-  #remove all non-alphanumeric characters from Genotype
-  metadata$Genotype <- str_replace_all(metadata$Genotype, "[^[:alnum:]]", "")
-  
-  #remove IFT88 for dataset39
-  #if (dataset == "dataset39"){
-  #metadata <- dplyr::filter(metadata, Genotype != "Ift88flflPkd2flflPax8rtTATetOcre")
-
-  #select only non-IFT88 samples from counts
-  #cts <- dplyr::select(cts, c(rownames(metadata)))
-  #}
-  
-  #contrasts need to be factor levels
-  metadata$Genotype <- as.factor(metadata$Genotype)
-
-  #check ordering matches
-  print("Checking order of count column names to metadata rownames... If false, fix and rerun!")
-  print(colnames((cts)) == rownames(metadata))
-  dds <- DESeqDataSetFromMatrix(cts, metadata, design = ~ Genotype)
-
-return(dds)
-}
-
-
-```
-
-
-__uplfc__ & __downlfc__: Formats deseq2 res() output to select for upregulated and downregulated genes by log2 fold change threshold > 2 and < -2 and p-adjusted < 0.05.  
-
-```{r}
-uplfc <- function(res, lfcutoff){
-  #NAs removed first
-  res <- res[!is.na(res$padj),]
-  #p-adjusted value cutoff 0.05 and log2fc greater than 2.0 and less than -2.0 
-  upfc <- res[res$log2FoldChange > lfcutoff & res$padj < 0.05,]
-
-  #pull just logfold change values from DESeqResults object and name the values by associated gene
-  #up <- upfc$log2FoldChange
-  #names(up) <- rownames(upfc)
-  #up <- cbind(Mouse.gene.stable.ID = rownames(upfc), LFC = upfc$log2FoldChange, padj = upfc$padj)
-#  up <- upfc %>% as.data.frame() %>% dplyr::select(LFC = log2FoldChange, padj = upfc$padj) %>% tibble::rownames_to_column(var = "Mouse.gene.stable.ID")
-    up <- upfc %>% tibble::rownames_to_column(var = "Mouse.gene.stable.ID")
-
-return(up)
-}
-
-downlfc <- function(res, lfcutoff){
-  #NAs removed first
-  res <- res[!is.na(res$padj),]
-  #p-adjusted value cutoff 0.05 and log2fc greater than 2.0 and less than -2.0
-  downfc <- res[res$log2FoldChange < lfcutoff & res$padj < 0.05,]
-
-  #pull just logfold change values from DESeqResults object and name the values by associated gene
-  #down <- downfc$log2FoldChange
-  #names(down) <- rownames(downfc)
-  #down <- cbind(Mouse.gene.stable.ID = rownames(downfc), LFC = down)
- down <- downfc %>% tibble::rownames_to_column(var = "Mouse.gene.stable.ID")
- 
-  return(down)
-}
-```
-
-__convertMouseGeneList__: Uses Ensembl human GRCh38.p13 and Ensembl mouse C57BL_6NJ_v1 genes and to find human orthologous genes (more details [here](https://docs.google.com/document/d/1jU3EOVaZXJMzxwH9SsssHoArz8pMdcfW8MSr8hbeE4Q/edit) ), and biomart to convert to human entrez  
-
-```{r}
-convertMouseGeneList <- function(lfc){
-  #read in mose to human ens annotation
-  ens_annot <- read.csv(here("data", "annot_ens_humanmouse.csv"))
-  #conversion table
-  ens_mouse2human <- merge(lfc, ens_annot, by = "Mouse.gene.stable.ID")
-  #biomart to conver human ens to human entrez
-  human <- useEnsembl("ensembl", dataset = "hsapiens_gene_ensembl", mirror = "useast")
-  genes <- getBM(filters = "ensembl_gene_id", attributes = c("ensembl_gene_id","entrezgene_id",  "hgnc_symbol", "description"), values = ens_mouse2human$Gene.stable.ID, mart = human)
-  
-  #names(ens_mouse2human) <- c("mouse_ensembl_gene_id", "log2FoldChange", "ensembl_gene_id")
-  conv_tbl <- merge(genes, ens_mouse2human, by.x = "ensembl_gene_id", by.y = "Gene.stable.ID")
-return(conv_tbl)
-}
-```
-
-__toplincs__: Uses uplfc and downlfc outputs to then find top 100 genes that are available in LINCS (best input for signature reversion)  
-```{r message=FALSE}
-eh <- ExperimentHub()
-lincs <- eh[["EH3226"]]; lincs_expr <- eh[["EH3227"]]
-
-lincs_genes <- rhdf5:::h5read(lincs, "rownames", drop=TRUE)
-
-toplincs <- function(conv_tbl, direction){
-  lincs_genes <- cbind(entrezgene_id = lincs_genes)
-  conv_tbl <- merge(conv_tbl, lincs_genes, by = "entrezgene_id")
-  #conv_tbl$log2FoldChange <- as.numeric(conv_tbl$log2FoldChange)
-  if(direction == "up"){
-  top100 <- slice_max(conv_tbl, n = 100, order_by = log2FoldChange)
-  }
-  else{
-    top100 <- slice_min(conv_tbl, n = 100, order_by = log2FoldChange)
-  }
-return(top100)
-}
-```
-
-__lincsGenes__: Wraps convertMouseGeneList to map orthologs, and toplincs to filter for LINCS-available genes  
-```{r}
-lincsGenes <- function(lfc, direction){
-  conv_tbl <- convertMouseGeneList(lfc)
-  top100 <- toplincs(conv_tbl, direction = direction)
-  return(top100)
-}
-```
-
 ### DEA p70 precystic GSE149739
 
 #### Read in data  
@@ -184,52 +57,16 @@ meta_39 <- read.csv(here("data", "GSE149739_metadata.txt"), row.names = 1)
 
 Remove IFT88
 ```{r}
-cts_39_2 <- cts_39@assays@data@listData[["counts"]]
-  #round, salmon outputs have decimals
-cts_39_2 <- round(cts_39_2)
-  #remove version numbers from transcript id's
-rownames(cts_39_2) <- gsub("\\..*", "", rownames(cts_39_2))
-  
-  
-meta_39_2 <- meta_39
-  #remove all non-alphanumeric characters from Genotype
-meta_39_2$Genotype <- str_replace_all(meta_39_2$Genotype, "[^[:alnum:]]", "")
-
-#remove IFT88
-meta_39_2 <- dplyr::filter(meta_39_2, Genotype != "Ift88flflPkd2flflPax8rtTATetOcre")
-  #contrasts need to be factor levels
-  meta_39_2$Genotype <- as.factor(meta_39_2$Genotype)
-
-  
-cts_39_2 <- dplyr::select(cts_39_2, c(rownames(meta_39_2)))
-
-#check ordering matches
-colnames((cts_39_2)) == rownames(meta_39_2) #TRUE, good to proceed to DESeq2!
-  
-dds_39 <- DESeqDataSetFromMatrix(cts_39_2, meta_39_2, design = ~ Genotype)
-
-#dds$Genotype <- relevel(dds$Genotype, ref = "Wildtype")
-
-#run DESeq: estimates size factors, estimates dispersion, fits negative binomial GLM's and performs Wald stats
-#dds <- DESeq(dds) 
-
-#res <- results(dds, alpha = 0.05, contrast = c("Genotype", "Pkd2flflPax8rtTATetOcre", "Wildtype"))
-
-#resultsNames(res)
-
-#test <- c(cts_39, meta_39, dataset = "dataset39")
-#test <- DESeq(test)
-#test <- results(test, alpha = 0.05, contrast = c("Genotype", "Pkd2flflPax8rtTATetOcre", "Wildtype"))
-
-#test_up <- uplfc(res)
-#head(test_up)
-#test_down <- downlfc(res)
-#head(test_down)
+ift88 <- grep("Ift88", meta_39$Genotype, ignore.case = TRUE, value = TRUE)
+nonift88 <- meta_39$Genotype[!(meta_39$Genotype %in% ift88)]
+meta_39 <- dplyr::filter(meta_39, Genotype %in% nonift88)
 ```
 
 #### DDS
 ```{r}
-#dds_39 <- salmon2dds(cts_39, meta_39)
+cts_39 <- cts_39@assays@data@listData[["counts"]]
+dds_39 <- salmon2dds(cts_39, meta_39)
+
 ```
 
 
@@ -239,8 +76,7 @@ dds_39 <- DESeqDataSetFromMatrix(cts_39_2, meta_39_2, design = ~ Genotype)
 dds_39$Genotype <- relevel(dds_39$Genotype, ref = "Wildtype")
 
 #run DESeq: estimates size factors, estimates dispersion, fits negative binomial GLM's and performs Wald stats
-dds_39 <- DESeq(dds_39) #can also look at setting replaceOutliers lower for dealing with outliers flagged by extreme Cook's distances
-#save(ds, file = here("res", "deseq2_outputs", "GSE149739_dds_kasi2021alignment.rds")
+dds_39 <- DESeq(dds_39) 
 ```
 
 #### Results  
@@ -412,140 +248,6 @@ ggsave(heatmap_p70, filename = here("res/deseq2_outputs", "heatmap_p70_signature
 
 ```
 
-#### Volcano plots
-
-#####p70 DEGs to p70 targets
-Conversion table from mouse ensembl to human symbol
-```{r eval=FALSE, include=FALSE}
-ens_annot <- read.csv(here("data", "annot_ens_humanmouse.csv"))
-ens_mouse2human <- tibble:::rownames_to_column(dsq2_39, var = "Mouse.gene.stable.ID")
-  #conversion table
-ens_mouse2human <- merge(ens_mouse2human, ens_annot, by = "Mouse.gene.stable.ID")
-#biomart to convert human ens to human entrez
-human <- useEnsembl("ensembl", dataset = "hsapiens_gene_ensembl", mirror = "useast")
-convgenes <- getBM(filters = "ensembl_gene_id", attributes = c("ensembl_gene_id","entrezgene_id",  "hgnc_symbol", "description"), values = ens_mouse2human$Gene.stable.ID, mart = human)
-  
-conv_tbl <- merge(convgenes, ens_mouse2human, by.x = "ensembl_gene_id", by.y = "Gene.stable.ID")
-conv_tbl <- tidyr::drop_na(conv_tbl)
-#remove duplicates due to multiple homolog mapping
-conv_tbl <- conv_tbl %>% dplyr::arrange(order_by = desc(abs(log2FoldChange))) %>% dplyr::distinct(hgnc_symbol, .keep_all = TRUE)
-
-```
-
-Convert gene ID's of rlog normalized count data to human symbols
-```{r eval=FALSE, include=FALSE}
-volc_39 <- merge(conv_cts_all, conv_tbl, by.x = "ensembl_gene_id", by.y = "Mouse.gene.stable.ID")
-
-```
-
-Read in drug targets from FDA approved candidates from signature reversion of p70 (from markdown: sigsearch_analyses)
-```{r eval=FALSE, include=FALSE}
-fda_approved_39_targets <- read.csv(here("res", "sigsearch_outputs", "fda_drug_targets_39.csv"), row.names = 1)
-#targets_39 <- tidyr::separate_rows(targets_39, "t_gn_sym", sep = "; ")
-
-#fda_approved_39_targets
-```
-
-
-targets in > 1.5 LFC
-```{r eval=FALSE, include=FALSE}
-targets_in39 <- merge(fda_approved_39_targets, volc_39, by.x = "t_gn_sym", by.y = "hgnc_symbol")
-
-#only targets that are upregulated > 1.5 LFC
-targets_in39 <- dplyr::filter(targets_in39, log2FoldChange >  1.3)
-#how many total drug targets are upregulated >  LFC?
-length(unique(targets_in39$t_gn_sym))
-#drugs matching to these
-unique(targets_in39$pert)
-```
-
-
-```{r eval=FALSE, include=FALSE}
-volcano_39 <- EnhancedVolcano(volc_39, lab = volc_39$hgnc_symbol, x = 'log2FoldChange', y = 'padj', selectLab = unique(targets_in39$t_gn_sym), pCutoff = 0.05, FCcutoff = 1.3, pointSize = 3.0, labSize = 4.0, col = c("#440154", "#21918c", "#fde725", "#5ec962"), title = "P70 Pre-Cystic Drug Targets Found in P70 \nPre-Cystic DEGs", labFace = 'bold', boxedLabels = TRUE,drawConnectors = TRUE,widthConnectors = 0.5,colConnectors = 'black', max.overlaps = 25)
-
-volcano_39
-```
-
-```{r eval=FALSE, include=FALSE}
-ggsave(volcano_39, filename =  here("res/sigsearch_outputs", "volcano_drugtargets_p70degs.pdf"))
-```
-
-
-##ALT attempt
-```{r eval=FALSE, include=FALSE}
-
-convertMouseGeneList_2 <- function(mousegenes){
-  #read in mose to human ens annotation
-  ens_annot <- read.csv(here("data", "annot_ens_humanmouse.csv"))
-  #conversion table
-  ens_mouse2human <- dplyr::filter(ens_annot, Mouse.gene.stable.ID %in% mousegenes)
-  #biomart to conver human ens to human entrez
-  human <- useEnsembl("ensembl", dataset = "hsapiens_gene_ensembl", mirror = "useast")
-  genes <- getBM(filters = "ensembl_gene_id", attributes = c("ensembl_gene_id", "entrezgene_id",  "hgnc_symbol", "description"), values = ens_mouse2human$Gene.stable.ID, mart = human)
-  
-  conv_tbl <- merge(genes, ens_mouse2human, by.x = "ensembl_gene_id", by.y = "Gene.stable.ID")
-return(conv_tbl)
-}
-
-
-```
-
-testing new functions
-```{r eval=FALSE, include=FALSE}
-conv_genes <- convertMouseGeneList_2(row.names(dsq2_39))
-
-```
-
-
-Read in drug targets from FDA approved candidates from signature reversion of p70 (from markdown: sigsearch_analyses)
-```{r eval=FALSE, include=FALSE}
-fda_approved_39_targets <- read.csv(here("res", "sigsearch_outputs", "fda_drug_targets_39.csv"), row.names = 1)
-```
-
-Functions for data wrangling for target-deg volcano plot
-```{r eval=FALSE, include=FALSE}
-targets_in_degs <- function(conv_tbl, degs, targets){
-  #convert degs gene id's
-  degs <- tibble:::rownames_to_column(degs, var = "Mouse.gene.stable.ID")
-  conv_tbl <- merge(conv_tbl, degs, by = "Mouse.gene.stable.ID")
-  print(str(conv_tbl))
-  
-    #remove duplicates due to multiple homolog mapping
-  conv_tbl <- conv_tbl %>% dplyr::arrange(order_by = desc(abs(log2FoldChange))) %>% dplyr::distinct(hgnc_symbol, .keep_all = TRUE)
-  
-  #combine degs with drug target data
-  targets_in_degs <- merge(targets, conv_tbl, by.x = "t_gn_sym", by.y = "hgnc_symbol")
-  targets_in_degs <- tidyr::drop_na(targets_in_degs)
-
-return(targets_in_degs)
-}
-
-
-target_deg_plot <- function(targetdegs, cutoff){
-  target_labels <- dplyr::filter(targetdegs, log2FoldChange > cutoff)
-  print(unique(target_labels$t_gn_sym))
-  print(unique(target_labels))
-  print(unique(target_labels$pert))
-  targetdegs <- dplyr::distinct(targetdegs, t_gn_sym, .keep_all = TRUE)
-
-  volcanoplot <- EnhancedVolcano(targetdegs, lab = targetdegs$t_gn_sym, x = 'log2FoldChange', y = 'padj', selectLab = unique(target_labels$t_gn_sym), pCutoff = 0.05, FCcutoff = cutoff, pointSize = 3.0, labSize = 5.0, col = c("#440154", "#21918c", "#fde725", "#5ec962"), title = "P70 Pre-Cystic Drug Targets Found in P70 \nPre-Cystic DEGs", labFace = 'bold', boxedLabels = TRUE,drawConnectors = TRUE,widthConnectors = 0.5,colConnectors = 'black', max.overlaps = 25)
-return(volcanoplot)
-}
-
-```
-
-testing new functions
-```{r eval=FALSE, include=FALSE}
-test2 <- targets_in_degs(conv_genes, dsq2_39, fda_approved_39_targets, 1.1)
-
-#test3 <- test2 %>% dplyr::group_by(t_gn_sym) %>% stringr::str_flatten(pert, collapse = ", ")
-#test3 <- stringr::str_flatten(test2$pert, collapse = ", ")
-
-vp <- target_deg_plot(test2, 1.1, "P70 Pre-Cystic Drug Targets Found in P70 \nPre-Cystic DEGs")
-vp
-
-```
-
 
 ### DEA p21 cystic GSE69556
 
@@ -561,8 +263,9 @@ cts_56 <- readRDS(here("data", "GSE69556_salmonmerged_gene_counts.rds"))
 meta_56 <- read.csv(here("data", "GSE69556_metadata.txt"), row.names = 1)
 ```
 
-#### Run DDS
+#### DDS
 ```{r}
+cts_56 <- cts_56@assays@data@listData[["counts"]]
 dds_56 <- salmon2dds(cts_56, meta_56, dataset = "dataset56")
 
 ```
@@ -724,64 +427,7 @@ ggsave(heatmap_p21, filename = here("res/deseq2_outputs", "heatmap_p21_signature
 
 ```
 
-#### Volcano plots
 
-##### p21 DEGs to p70 Targets
-
-convert from mouse ensembl to human symbol
-```{r eval=FALSE, include=FALSE}
-#dsq2_56 <- read.csv(here("res", "deseq2_outputs", "deseq2_fullres_56.csv"), row.names = 1)
-ens_mouse2human_56 <- tibble:::rownames_to_column(dsq2_56, var = "Mouse.gene.stable.ID")
-#convert from mouse to human with  with conversion table
-ens_mouse2human_56 <- merge(ens_mouse2human_56, ens_annot, by = "Mouse.gene.stable.ID")
-#biomart to conver human ens to human entrez
-human_56 <- useEnsembl("ensembl", dataset = "hsapiens_gene_ensembl", mirror = "useast")
-convgenes_56 <- getBM(filters = "ensembl_gene_id", attributes = c("ensembl_gene_id","entrezgene_id", "hgnc_symbol"), values = ens_mouse2human_56$Gene.stable.ID, mart = human)
-  
-conv_tbl_56 <- merge(convgenes_56, ens_mouse2human_56, by.x = "ensembl_gene_id", by.y = "Gene.stable.ID")
-
-conv_tbl_56 <- tidyr::drop_na(conv_tbl_56)
-#remove duplicates due to multiple homolog mapping
-conv_tbl_56 <- conv_tbl_56 %>% dplyr::arrange(order_by = desc(abs(log2FoldChange))) %>% dplyr::distinct(hgnc_symbol, .keep_all = TRUE)
-```
-
-Convert gene ID's of rlog normalized count data to human symbols
-```{r eval=FALSE, include=FALSE}
-volc_56 <- merge(conv_cts_all, conv_tbl_56, by.x = "ensembl_gene_id", by.y = "Mouse.gene.stable.ID")
-
-```
-
-targets in 2 LFC
-```{r eval=FALSE, include=FALSE}
-targets_in56 <- merge(fda_approved_39_targets, volc_56, by.x = "t_gn_sym", by.y = "hgnc_symbol")
-targets_in56 <- dplyr::filter(targets_in56, log2FoldChange >  2.0 )#| log2FoldChange < -2.0)
-#how many total drug targets are upregulated > 2.0 LFC?
-length(unique(targets_in56$t_gn_sym))
-#drugs matching to these
-unique(targets_in56$pert)
-```
-
-Plot volcano plot
-```{r eval=FALSE, include=FALSE}
-volcano_56 <- EnhancedVolcano(volc_56, lab = volc_56$hgnc_symbol, x = 'log2FoldChange', y = 'padj', selectLab = unique(targets_in56$t_gn_sym), pCutoff = 0.05, FCcutoff = 2.0, pointSize = 3.0, labSize = 5.0, col = c("#440154", "#21918c", "#fde725", "#5ec962"), title = "P70 Pre-Cystic Drug Targets Found in P21 \nCystic DEGs", labFace = 'bold', boxedLabels = TRUE,drawConnectors = TRUE,widthConnectors = 0.5,colConnectors = 'black', max.overlaps = 70)
-
-volcano_56
-```
-
-```{r eval=FALSE, include=FALSE}
-targets_56 <- targets_in_degs(conv_genes, dsq2_56, fda_approved_39_targets)
-
-#test3 <- test2 %>% dplyr::group_by(t_gn_sym) %>% stringr::str_flatten(pert, collapse = ", ")
-#test3 <- stringr::str_flatten(test2$pert, collapse = ", ")
-
-volcplot_56 <- target_deg_plot(targets_56, 2)
-volcplot_56
-
-```
-
-```{r eval=FALSE, include=FALSE}
-ggsave(volcano_56, filename =  here("res", "deseq2_outputs", "volcano_drugtargets_p21degs.pdf"))
-```
 
 ### DEA p28 cystic GSE134719
 
@@ -972,86 +618,6 @@ ggsave(heatmap_p28, filename = here("res/deseq2_outputs", "heatmap_p28_signature
 
 ```
 
-#### Volcano plots
-#####p28 DEGs to p70 Targets
-
-convert from mouse ensembl to human symbol
-```{r eval=FALSE, include=FALSE}
-#dsq2_19 <- read.csv(here("res", "deseq2_outputs", "deseq2_fullres_19.csv"), row.names = 1)
-ens_mouse2human_19 <- tibble:::rownames_to_column(dsq2_19, var = "Mouse.gene.stable.ID")
-  #conversion table
-ens_mouse2human_19 <- merge(ens_mouse2human_19, ens_annot, by = "Mouse.gene.stable.ID")
-#biomart to conver human ens to human entrez
-human_19 <- useEnsembl("ensembl", dataset = "hsapiens_gene_ensembl", mirror = "useast")
-convgenes_19 <- getBM(filters = "ensembl_gene_id", attributes = c("ensembl_gene_id","entrezgene_id", "hgnc_symbol"), values = ens_mouse2human_19$Gene.stable.ID, mart = human)
-  
-conv_tbl_19 <- merge(convgenes_19, ens_mouse2human_19, by.x = "ensembl_gene_id", by.y = "Gene.stable.ID")
-
-conv_tbl_19 <- tidyr::drop_na(conv_tbl_19)
-
-#remove duplicates due to multiple homolog mapping
-conv_tbl_19 <- conv_tbl_19 %>% dplyr::arrange(order_by = desc(abs(log2FoldChange))) %>% dplyr::distinct(hgnc_symbol, .keep_all = TRUE)
-```
-
-Convert gene ID's of rlog normalized count data to human symbols
-```{r eval=FALSE, include=FALSE}
-volc_19 <- merge(conv_cts_all, conv_tbl_19, by.x = "ensembl_gene_id", by.y = "Mouse.gene.stable.ID")
-
-```
-
-targets in > 2 LFC
-```{r eval=FALSE, include=FALSE}
-targets_in19 <- merge(fda_approved_39_targets, conv_tbl_19, by.x = "t_gn_sym", by.y = "hgnc_symbol")
-targets_in19 <- dplyr::filter(targets_in19, log2FoldChange > 2.0)# | log2FoldChange < -2.0)
-#how many total drug targets are upregulated > 2.0 LFC?
-length(unique(targets_in19$t_gn_sym))
-#drugs matching to these
-unique(targets_in19$pert)
-```
-
-
-```{r eval=FALSE, include=FALSE}
-volcano_19 <-  EnhancedVolcano(volc_19, lab = volc_19$hgnc_symbol, x = 'log2FoldChange', y = 'padj', selectLab = unique(targets_in19$t_gn_sym), pCutoff = 0.05, FCcutoff = 2.0, pointSize = 3.0, labSize = 5.0, col = c("#440154", "#21918c", "#fde725", "#5ec962"), title = "P70 Pre-Cystic Drug Targets Found in P28 \nCystic DEGs", labFace = 'bold', boxedLabels = TRUE,drawConnectors = TRUE,widthConnectors = 0.5,colConnectors = 'black', max.overlaps = 70) 
-#EnhancedVolcano(conv_tbl_19, lab = conv_tbl_19$hgnc_symbol, x = 'log2FoldChange', y = 'padj', selectLab = unique(targets_in19$t_gn_sym), pCutoff = 0.05, FCcutoff = 0.5, pointSize = 3.0, labSize = 4.0, col = c("#440154", "#21918c", "#5ec962", "#fde725"), title = "P70 Pre-Cystic Drug Targets Found in P28 \nCystic DEGs", labFace = 'bold', boxedLabels = TRUE,drawConnectors = TRUE,widthConnectors = 0.5,colConnectors = 'black', max.overlaps = 25) 
-
-volcano_19
-```
-```{r eval=FALSE, include=FALSE}
-targets_19 <- targets_in_degs(conv_genes, dsq2_19, fda_approved_39_targets)
-
-#test3 <- test2 %>% dplyr::group_by(t_gn_sym) %>% stringr::str_flatten(pert, collapse = ", ")
-#test3 <- stringr::str_flatten(test2$pert, collapse = ", ")
-
-volcplot_19 <- target_deg_plot(targets_19, 2)
-volcplot_19
-
-```
-
-
-```{r eval=FALSE, include=FALSE}
-ggsave(volcano_19, filename =  here("res/sigsearch_outputs", "volcano_drugtargets_p28degs.pdf"))
-ggsave(volcplot_19, filename =  here("res/sigsearch_outputs", "volcano_drugtargets_p28degs_2.pdf"))
-```
-
-Targets upregulated in both cystic data sets
-```{r eval=FALSE, include=FALSE}
-cystic_targets <- merge(targets_in19, targets_in56, by = "pert")
-
-#unique overlapping drugs
-length(unique(cystic_targets$pert))
-#unique overlapping targets
-length(unique(cystic_targets$t_gn_sym.x))
-```
-
-Data wrangling - remove completely redundant columns and rows 
-```{r eval=FALSE, include=FALSE}
-cystic_targets <- cbind(Drug = cystic_targets$pert, Drug_Targets = cystic_targets$t_gn_sym.x, MOA = cystic_targets$MOA.x, Original_Indication = cystic_targets$Indication.x) %>% as.data.frame()
-
-cystic_targets <- dplyr::distinct(cystic_targets)
-
-write.csv(cystic_targets, file = here("res/sigsearch_outputs", "drug_targets_oe_cysticdegs.csv"))
-
-```
 
 
 ```{r}

@@ -5,13 +5,8 @@
 
 #Salmon merged gene counts to dds results
 salmon2dds <- function(counts, metadata, dataset = "regular") {
-  #count matrix in the sumarized experiment object
-  cts <- counts@assays@data@listData[["counts"]]
   #round, salmon outputs have decimals
   cts <- round(cts)
-  if (dataset == "dataset56"){
-    colnames(cts) <- str_sub(colnames(cts), 1, -2) ##ALTERATION just for GSE69556
-  }
 
   #remove version numbers from transcript id's
   rownames(cts) <- gsub("\\..*", "", rownames(cts))
@@ -19,13 +14,8 @@ salmon2dds <- function(counts, metadata, dataset = "regular") {
   #remove all non-alphanumeric characters from Genotype
   metadata$Genotype <- str_replace_all(metadata$Genotype, "[^[:alnum:]]", "")
 
-  #remove IFT88 for dataset39
-  #if (dataset == "dataset39"){
-  #metadata <- dplyr::filter(metadata, Genotype != "Ift88flflPkd2flflPax8rtTATetOcre")
-
-  #select only non-IFT88 samples from counts
-  #cts <- dplyr::select(cts, c(rownames(metadata)))
-  #}
+  #select only counts that match metadata
+  cts <- dplyr::select(cts, c(rownames(metadata)))
 
   #contrasts need to be factor levels
   metadata$Genotype <- as.factor(metadata$Genotype)
