@@ -363,3 +363,18 @@ venn3 <- function(set1, set2, set3, categories, filename){
                cat.fontfamily = "sans",
                rotation = 1 )
 }
+
+
+go_bp_sim <- function(fea_obj, orgdb, threshold){
+  go_up <- dplyr::filter(fea_obj$upregulated, source == "GO:BP")
+  go_down <- dplyr::filter(fea_obj$downregulated, source == "GO:BP")
+  go_comb <- rbind(go_up, go_down)
+
+  simMatrix <- calculateSimMatrix(go_comb$term_id, orgdb = orgdb, ont = "BP", method = "Wang")
+
+  scores <- setNames(-log10(go_comb$p_value), go_comb$term_id)
+  reducedTerms <- reduceSimMatrix(simMatrix, scores, threshold= threshold, orgdb=orgdb)
+
+  sim_obj <- list(simMatrix = simMatrix, reducedTerms = reducedTerms)
+  return(sim_obj)
+}
