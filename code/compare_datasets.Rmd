@@ -77,14 +77,8 @@ venn3(set39, set56, set19, categories = c("Precystic P70" , "Cystic P21" , "Cyst
 fea_39 <- enrich(as.character(hom_39_UP$entrezgene_id), as.character(hom_39_DOWN$entrezgene_id), 11) 
 ```
 
-Barplot of overall top enrichment terms
-```{r}
-bp_39 <- barplot(fea_39$topcompared)
-bp_39
-```
 Bubbleplot
 ```{r}
-
 bubbleplot(fea_39$topcompared)
 ```
 
@@ -108,11 +102,6 @@ ggsave(bp_39, filename = here("res", "fea", "bubbleplot_signature_p70.png"), hei
 fea_56 <- enrich(as.character(hom_56_UP$entrezgene_id), as.character(hom_56_DOWN$entrezgene_id), 9)
 ```
 
-Barplot of overall top enrichment terms
-```{r}
-bp_56 <- barplot(fea_56$topcompared)
-bp_56
-```
 
 ```{r}
 fea_56$topcompared$term_name <- stringr::str_wrap(fea_56$topcompared$term_name, width = 60)
@@ -132,11 +121,6 @@ ggsave(bp_56, filename = here("res", "fea", "bubbleplot_signature_p21.png"), hei
 fea_19 <- enrich(as.character(hom_19_UP$entrezgene_id), as.character(hom_19_DOWN$entrezgene_id), 11)
 ```
 
-Barplot of overall top enrichment terms
-```{r}
-bar19 <- barplot(fea_19$topcompared)
-bar19
-```
 
 ```{r}
 
@@ -716,40 +700,18 @@ Using ALL mouse DEGs (0.05 alpha and -2 and 2 LFC cutoff) before mapping to huma
 
 '39 
 ```{r}
-#pseudogenes and ribo genes removed, still mouse
-#all_39 <- read.csv(here("res/deseq2_outputs", "deseq2_p70_fullannotatedres.csv"))
-
-#using same LFC as for signature for '39
-#musdegs_39_UP <- dplyr::filter(all_39, log2FoldChange > 1.1 & padj < 0.05)
-#musdegs_39_DOWN <- dplyr::filter(all_39, log2FoldChange < -1.1 & padj < 0.05)
-
-#significant DEGs from deseq2, padj < 0.05 and |LFC| > 1.1
 musdegs_39_UP <- read.csv(here("res/deseq2_outputs", "deseq2_upgenes_res_39.csv"), row.names = 1)
 musdegs_39_DOWN <- read.csv(here("res/deseq2_outputs", "deseq2_downgenes_res_39.csv"), row.names = 1)
 ```
 
 '19
 ```{r}
-#pseudogenes and ribo genes removed, still mouse
-#all_19 <- read.csv(here("res/deseq2_outputs", "deseq2_p28_fullannotatedres.csv"))
-
-#musdegs_19_UP <- dplyr::filter(all_19, log2FoldChange > 2 & padj < 0.05)
-#musdegs_19_DOWN <- dplyr::filter(all_19, log2FoldChange < -2 & padj < 0.05)
-
-#significant DEGs from deseq2, padj < 0.05 and |LFC| > 1.1
 musdegs_19_UP <- read.csv(here("res/deseq2_outputs", "deseq2_upgenes_res_19.csv"), row.names = 1)
 musdegs_19_DOWN <- read.csv(here("res/deseq2_outputs", "deseq2_downgenes_res_19.csv"), row.names = 1)
 ```
 
 '56
 ```{r}
-#pseudogenes and ribo genes removed, still mouse
-#all_56 <- read.csv(here("res/deseq2_outputs", "deseq2_p21_fullannotatedres.csv"))
-
-#musdegs_56_UP <- dplyr::filter(all_56, log2FoldChange > 2 & padj < 0.05)
-#musdegs_56_DOWN <- dplyr::filter(all_56, log2FoldChange < -2 & padj < 0.05)
-
-#significant DEGs from deseq2, padj < 0.05 and |LFC| > 1.1
 musdegs_56_UP <- read.csv(here("res/deseq2_outputs", "deseq2_upgenes_res_56.csv"), row.names = 1)
 musdegs_56_DOWN <- read.csv(here("res/deseq2_outputs", "deseq2_downgenes_res_56.csv"), row.names = 1)
 ```
@@ -772,8 +734,6 @@ all_19 <- dplyr::filter(all_19, log2FoldChange > 0.15 | log2FoldChange < -0.15 &
 
 combined_fc <- merge(all_56, all_19, by = "X")
 combined_fc <- merge(all_39, combined_fc, by = "X")
-#combined_fc <- dplyr::union(all_56, all_19)
-#combined_fc <- dplyr::union(all_39, combined_fc)
 
 lfc_aki_up <- combined_fc %>% dplyr::filter( X %in% aki_upgenes) %>% dplyr::mutate(direction = "aki_up") %>% dplyr::select(Genes = X, PrecysticP70 = log2FoldChange, CysticP21 = log2FoldChange.x, CysticP28 = log2FoldChange.y, Direction = direction)#152
 
@@ -818,8 +778,6 @@ degset56 <- c(musdegs_56_UP$Mouse.gene.stable.ID, musdegs_56_DOWN$Mouse.gene.sta
 degset19 <- c(musdegs_19_UP$Mouse.gene.stable.ID, musdegs_19_DOWN$Mouse.gene.stable.ID)
   
 venn3(degset39, degset56, degset19, categories = c("Precystic P70" , "Cystic P21" , "Cystic P28"), filename = here("res/deseq2_outputs", "degs_venndiagram.png"))
-
-
 ```
 
 ### FEA p70 precystic '39 Mouse
@@ -850,9 +808,6 @@ ggsave(bubbleplot_p70, filename = here("res", "fea", "p70_fea_bubbleplot.pdf"), 
 ```{r}
 fea_mouse_56 <- mouseenrich(musdegs_56_UP$Mouse.gene.stable.ID, musdegs_56_DOWN$Mouse.gene.stable.ID, 30)
 
-#bp_mouse_56_overall <- barplot(dplyr::filter(fea_mouse_56$topcompared, intersection_size > 10))
-bp_mouse_56_overall <- barplot(fea_mouse_56$topcompared)
-bp_mouse_56_overall
 ```
 
 bubbleplot
@@ -878,9 +833,6 @@ ggsave(filename = here("res", "fea", "mouse_56_overall.pdf"), bp_mouse_56_overal
 ### FEA p28 cystic '19 Mouse
 ```{r}
 fea_mouse_19 <- mouseenrich(musdegs_19_UP$Mouse.gene.stable.ID, musdegs_19_DOWN$Mouse.gene.stable.ID, 30)
-
-bp_mouse_19 <- barplot(fea_mouse_19$topcompared)
-bp_mouse_19
 ```
 
 bubbleplot
@@ -987,20 +939,6 @@ ggsave(precyst_unique_bubbleplot, filename = here("res", "fea", "precystic_geneu
 ```
 
 #### Cystic Overlap ('19 and '56)  
-read in
-```{r}
-#fea_mouse_56_upterms <- read.csv(here("res", "fea", "fea_mouse_56_upterms.csv"))
-
-#fea_mouse_56_downterms <- read.csv(here("res", "fea", "fea_mouse_56_downterms.csv"))
-
-#fea_mouse_19_upterms <- read.csv(here("res", "fea", "fea_mouse_19_upterms.csv"))
-
-#fea_mouse_19_downterms <- read.csv(here("res", "fea", "fea_mouse_19_downterms.csv"))
-
-#fea_mouse_39_upterms <- read.csv(here("res", "fea", "fea_mouse_39_upterms.csv"))
-
-#fea_mouse_39_downterms <- read.csv(here("res", "fea", "fea_mouse_39_downterms.csv"))
-```
 
 merge for overlap
 ```{r}
