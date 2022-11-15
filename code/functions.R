@@ -326,3 +326,40 @@ go_term_heatmap<- function(fea1, fea2, fea3, direction, threshold = 0.95){
 #          clustering_method_rows = "complete" ,
 #          clustering_method_columns="complete")
 }
+
+#venn diagram for 3 data sets/signatures/etc
+venn3 <- function(set1, set2, set3, categories, filename){
+  myCol <- c("FDE725FF", "287D8EFF", "481567FF")
+
+  venn.diagram(x = list(set1, set2, set3),
+               category.names = categories,
+               filename = filename, # imagetype = "png",
+               output=TRUE,
+
+               # Output features
+               imagetype="png" ,
+               height = 480 ,
+               width = 570 ,
+               resolution = 300,
+               compression = "lzw",
+
+               # Circles
+               lwd = 2,
+               col=c("#440154ff", '#21908dff', '#fde725ff'),
+               #lty = 'blank',
+               fill = c(alpha("#440154ff",0.3), alpha('#21908dff',0.3), alpha('#fde725ff',0.3)),
+
+               # Numbers
+               cex = .6,
+               fontface = "bold",
+               fontfamily = "sans",
+
+               # Set names
+               cat.cex = 0.55,
+               cat.fontface = "bold",
+               cat.default.pos = "outer",
+               cat.pos = c(-27, 27, 135),
+               cat.dist = c(0.055, 0.055, 0.085),
+               cat.fontfamily = "sans",
+               rotation = 1 )
+}
