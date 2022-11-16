@@ -92,6 +92,23 @@ convertMouseGeneList_2 <- function(mousegenes){
   return(conv_tbl)
 }
 
+##converting gene IDs for normalized (rlog) gene counts
+rlog_wrangle <- function(rlog, geneconv){
+  #retrieve counts data and ENMUSG #
+  cts_df <- as.data.frame(assays((rlog)))
+  #gene_id into a column
+  cts_df <- tibble:::rownames_to_column(cts_df, var = "ensembl_gene_id")
+  #Merge gene symbols into counts and gene ID
+  conv_df <- merge(cts_df, geneconv, by = "ensembl_gene_id")
+  #Filter out repeating data
+  conv_df <- dplyr::distinct(conv_df, mgi_symbol, .keep_all = TRUE)
+  #Convert back to rownames but with gene symbols
+  conv_df <- tibble:::column_to_rownames(conv_df, "mgi_symbol")
+  #Remove unnecessary data
+  conv_df <- conv_df[,!(colnames(conv_df) %in% c("ensembl_gene_id", "group", "group_name", "entrezgene_id", "description"))]
+  return(conv_df)
+}
+
 #Conversion table from mouse ensembl to human symbol and find targets that are expressed above a LFC cutoff
 targets_in_degs <- function(conv_tbl, degs, targets, cutoff){
   #convert degs gene id's
@@ -156,6 +173,23 @@ lincsGenes <- function(lfc, direction){
   return(top100)
 }
 
+
+##converting gene IDs for normalized (rlog) gene counts
+rlog_wrangle <- function(rlog){
+  #retrieve counts data and ENMUSG #
+  cts_df <- as.data.frame(assays((rlog)))
+  #gene_id into a column
+  cts_df <- tibble:::rownames_to_column(cts_df, var = "ensembl_gene_id")
+  #Merge gene symbols into counts and gene ID
+  conv_df <- merge(cts_df, gene_desc, by = "ensembl_gene_id")
+  #Filter out repeating data
+  conv_df <- dplyr::distinct(conv_df, mgi_symbol, .keep_all = TRUE)
+  #Convert back to rownames but with gene symbols
+  conv_df <- tibble:::column_to_rownames(conv_df, "mgi_symbol")
+  #Remove unnecessary data
+  conv_df <- conv_df[,!(colnames(conv_df) %in% c("ensembl_gene_id", "group", "group_name", "entrezgene_id", "description"))]
+  return(conv_df)
+}
 
 
 ## Custom functions for FEA
@@ -252,80 +286,6 @@ barplot <- function(combined_fea){
 }
 
 
-## Combined rrvgo enrichment heatmap
-#Adapted from Jen's code
-
-#run first
-mmGO <- godata('org.Mm.eg.db', ont="BP")
-
-getterms <- function(fea, direction){
-  goterms <- fea$term_id[ fea$source == "GO:BP" & fea$direction == direction]
-
-return(goterms)
-}
-
-plotheatmap <- function(terms1, terms2, terms3, go_groupings, groupings_colors, simmatrix){
-  row_ha = HeatmapAnnotation(CysticP28=terms1,CysticP21= terms2, PrecysticP70= terms3,GO_BP_Group= go_groupings , col = list(CysticP28 = c("TRUE" = "#fde725", "FALSE" = "#440154"),CysticP21 = c("TRUE" = "#fde725", "FALSE" = "#440154"),PrecysticP70 = c("TRUE" = "#fde725", "FALSE" = "#440154"), GO_BP_Group= groupings_colors ))
-  col_fun = circlize:::colorRamp2(c(0, 0.5, 1), c( "black", "blue", "white"))
-
-  Heatmap(simmatrix, nam= "Term Similarity", col = col_fun, show_column_names = FALSE,  show_row_names = FALSE, top_annotation = row_ha,
-          clustering_distance_rows= "euclidean",
-          clustering_distance_columns=  "euclidean",
-          clustering_method_rows = "complete" ,
-          clustering_method_columns="complete")
-}
-
-go_term_heatmap<- function(fea1, fea2, fea3, direction, threshold = 0.95){
-
-  #get terms
-  set1 <- getterms(fea1, direction)
-  set2 <- getterms(fea2, direction)
-  set3 <- getterms(fea3, direction)
- # limma_bp<- fea1$term_id[ fea1$source == "GO:BP" & fea1$direction == direction]
-  #deseq2_bp <- fea2$term_id[ fea2$source == "GO:BP" & fea2$direction == direction]
-  #TFL_bp <- fea3$term_id[ fea3$source == "GO:BP" & fea3$direction == direction]
-
-  #run the go term semantic similarity
-  go1 <-  unique(c(set1, set2, set3))
-  go_gbm_up_sim <- mgoSim(go1, go1, semData=mmGO, measure="Wang", combine=NULL)
-  str(go_gbm_up_sim)
-
-  #get the parent terms from rrvgo for the pathways
-  res <- reduceSimMatrix(go_gbm_up_sim, threshold = threshold, orgdb = "org.Mm.eg.db")
-  print(unique(res$parentTerm))
-  res_v2<- res[match(colnames(go_gbm_up_sim), res$go),]
-  #str(res_v2)
-  #print(res_v2$parentTerms)
-
-  #determine which pathway is enriched in the different methods for the heatmap annotation
-  res1 <- grepl(paste(set1,collapse="|"), colnames(go_gbm_up_sim))
-  res2<- grepl(paste(set2,collapse="|"), colnames(go_gbm_up_sim))
-  res3 <- grepl(paste(set3,collapse="|"), colnames(go_gbm_up_sim))
-
-  #handing the case where there are no pathways enriched
-  if(length(set2) ==0){ res2 <- rep(FALSE,ncol(go_gbm_up_sim) )}
-  if(length(set1) ==0){ res1 <- rep(FALSE,ncol(go_gbm_up_sim) )}
-  if(length(set3) ==0){ res3 <- rep(FALSE,ncol(go_gbm_up_sim) )}
-
-  #pick the number of colors note limit is about 9
-  #mycolors <- colorRampPalette(brewer.pal(8, "Set2"))(nb.cols)
-  #bp_color <- brewer.pal(n = length(unique(res$parentTerm)), name = "Paired")
-  bp_color <- colorRampPalette(brewer.pal(12, name = "Paired"))(length(unique(res_v2$parentTerm)))
-  #str(bp_color)
-  #print(bp_color)
-  names(bp_color)<- unique(res_v2$parentTerm)
-
-  #create heatmap
-  plotheatmap(res1, res2, res3, res_v2$parentTerm, bp_color, go_gbm_up_sim)
-#  row_ha = HeatmapAnnotation(CysticP28=res1,CysticP21= res2, PrecysticP70= res3,GO_BP_Group= res_v2$parentTerm , col = list(CysticP28 = c("TRUE" = "#fde725", "FALSE" = "#440154"),CysticP21 = c("TRUE" = "#fde725", "FALSE" = "#440154"),PrecysticP70 = c("TRUE" = "#fde725", "FALSE" = "#440154"), GO_BP_Group= bp_color ))
-#  col_fun = circlize:::colorRamp2(c(0, 0.5, 1), c( "black", "blue", "white"))
-
-#  Heatmap(go_gbm_up_sim, nam= "Term Similarity", col = col_fun, show_column_names = FALSE,  show_row_names = FALSE, top_annotation = row_ha,
-#          clustering_distance_rows= "euclidean",
-#          clustering_distance_columns=  "euclidean",
-#          clustering_method_rows = "complete" ,
-#          clustering_method_columns="complete")
-}
 
 #venn diagram for 3 data sets/signatures/etc
 venn3 <- function(set1, set2, set3, categories, filename){
