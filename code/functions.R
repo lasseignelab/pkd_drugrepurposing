@@ -80,7 +80,7 @@ convertMouseGeneList <- function(lfc){
 }
 
 convertMouseGeneList_2 <- function(mousegenes){
-  #read in mose to human ens annotation
+  #read in mouse to human ens annotation
   ens_annot <- read.csv(here("data", "annot_ens_humanmouse.csv"))
   #conversion table
   ens_mouse2human <- dplyr::filter(ens_annot, Mouse.gene.stable.ID %in% mousegenes)

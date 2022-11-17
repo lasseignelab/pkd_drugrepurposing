@@ -8,7 +8,7 @@ date: "11/11/2022"
       toc_float: true
 ---
 
-### Purpose  signaturesSearch analyses from pre-cystic kidney data P70 (GSE149739) compared to cystic kidney data P21 () and deseq2_GSE69556.Rmd. DEGs from these markdowns are used as input for signatureSearch. Results are annotated with Drug Repurposing Hub and onSides data.  
+### Purpose  drug target analyses from pre-cystic kidney data P70 (GSE149739) compared to cystic kidney data P21 (GSE69556) and P28 (GSE134719) from __deseq2_analyses.Rmd__ and __sigsearch_analyses.Rmd__.  
 __Data Sets__
 - '39 / Pre-Cystic P70: [GSE149739](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE149739)  
 - '56 / Cystic P21: [GSE69556](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE69556)  
@@ -27,7 +27,7 @@ library(dplyr)
 source(here("code", "functions.R"))
 ```
 
-### Targets of Candidate Drugs
+### Targets of Candidate Drugs  
 Targets of all FDA-approved drugs
 ```{r}
 fda_approved_39 <- readRDS(here("res", "sigsearch_outputs", "p70_fdaapproved_drugs.rds"))
@@ -46,8 +46,7 @@ Save
 ```
 
 
-
-### Drug Targets in Cystic DEGs
+### Drug Targets in Cystic DEGs  
 Read in DEGs from all 3 data sets (from markdown: deseq2_analyses)
 ```{r}
 dsq2_p70 <- readRDS(file = here("res", "deseq2_outputs", "deseq2_fullres_39.rds"))
@@ -124,15 +123,12 @@ length(unique(cystic_targets$pert))
 length(unique(cystic_targets$t_gn_sym.x))
 ```
 
-
-
 Alluvial plot of drugs-targets with just FDA approved drugs
 ```{r}
 cystic_targets <- read.csv(file = here("res/sigsearch_outputs", "drug_targets_oe_cysticdegs.csv"), row.names = 1)
 #target_alluvial <- tidyr::separate_rows(cystic_overlap_drugs, t_gn_sym, sep = "; ")
 #target_tbl <- cbind(pert = cystic_targets$pert, Upregulated_Target = cystic_targets$t_gn_sym.x) %>% as.data.frame()
 ```
-
 
 plot
 ```{r}
@@ -159,7 +155,6 @@ target_alluvial
 
 ```{r}
 #ggsave(here("res/sigsearch_outputs", "targets_cysticupregulated_alluvial.pdf"), target_alluvial, width = 8, height = 22)
-
 ```
 
 
@@ -171,42 +166,9 @@ cystic_overlap_drugs <- cbind(Drug = cystic_overlap_drugs$pert, Drug_Targets = c
 ```
 
 ```{r}
-#write.csv(cystic_overlap_drugs, file = here("res/sigsearch_outputs", "drug_summaries_oe_cystic.csv"))
+write.csv(cystic_overlap_drugs, file = here("res/sigsearch_outputs", "drug_summaries_oe_cystic.csv"))
 ```
 
-
-Side effect data for drugs
-```{r}
-onsides_res <- dplyr::left_join(cystic_overlap_drugs, labels, by = c("Drug" = "ingredients"))
-
-onsides_res <- dplyr::left_join(onsides_res, reactions, by = c("latest_xml_id" = "xml_id"))
-
-liver_ade <- grep("liver", onsides_res$concept_name, ignore.case = TRUE)
-liver_ade <- onsides_res[liver_ade,]
-
-hepat_ade <- grep("hepat", onsides_res$concept_name, ignore.case = TRUE)
-hepat_ade <- onsides_res[hepat_ade,]
-
-renal_ade <- grep("renal", onsides_res$concept_name, ignore.case = TRUE)
-renal_ade <- onsides_res[renal_ade,]
-
-renal_liver_ade <- rbind(liver_ade, renal_ade)
-
-prioritized_drugs <- dplyr::setdiff(cystic_overlap_drugs$Drug, renal_liver_ade$pert)
-prioritized_drugs <- dplyr::filter(cystic_overlap_drugs, Drug %in% prioritized_drugs)
-```
-
-```{r}
-#simple_tbl <- cbind(Drug = cystic_overlap_drugs$pert, Drug_Targets = cystic_overlap_drugs$t_gn_sym, MOA = cystic_overlap_drugs$MOA, Original_Indication = cystic_overlap_drugs$Indication)
-
-#write.csv(prioritized_drugs, file = here("res/sigsearch_outputs", "drugtarget_cysticoverlap_simpletbl.csv"))
-```
-
-
-```{r}
-#write.csv(onsides_res, file = here("res", "sigsearch_outputs", "adr_onsides_precystic_drugcandidates"))
- 
-```
 
 ##### Enrichment of prioritized targets, DSEA of prioritized drugs
 ```{r}
@@ -226,48 +188,28 @@ dsea_prioritzeddrugs <- dsea_hyperG(
 
 ```{r}
 dsea_prioritzeddrugs <- dsea_prioritzeddrugs@result
-#write.csv(dsea_prioritzeddrugs, here("res/sigsearch_outputs", "dsea_cystictargetdrugs_pathways.csv"))
+write.csv(dsea_prioritzeddrugs, here("res/sigsearch_outputs", "dsea_cystictargetdrugs_pathways.csv"))
 ```
 
-DSEA barplot function
+barplot of top target enrichment
 ```{r}
-dsea_barplot <- function(dsea, titlelabel){
-  dsea$Description <- stringr::str_trunc(dsea$Description, width = 75)
-
-dseaplot <- ggplot(dplyr::slice_min(dsea, order_by = p.adjust, n = 20), aes(x=Count, y=Description, fill = p.adjust)) +
-  geom_bar( stat = "identity") + 
-  scale_fill_viridis_c(begin = 0.35, end = 0.95) + 
-  labs(x = "Drugs Enriched for Term", y = "Functional Enrichment Terms", title = titlelabel) + 
-  theme(text = element_text(size = 12), plot.title = element_text(size = 18)) + 
-  theme_minimal(base_size = 14)
-return(dseaplot)
-}
-
-
-```
-
-
-
-```{r}
-dsea_prioritzeddrugs$Description <- stringr::str_trunc(dsea_prioritzeddrugs$Description, width = 65)
+dsea_prioritzeddrugs$Description <- stringr::str_trunc(dsea_prioritzeddrugs$Description, width = 75)
+dsea_prioritzeddrugs$Description <- stringr::str_wrap(dsea_prioritzeddrugs$Description, width = 45)
 dsea_prioritzeddrugs$Count <- as.numeric(dsea_prioritzeddrugs$Count)
 dsea_plot <- dsea_prioritzeddrugs %>% dplyr::slice_min(order_by = p.adjust, n = 20) %>% dplyr::mutate(Description = forcats::fct_reorder(Description, (Count))) %>% ggplot( aes(x=Count, y=Description, fill = p.adjust)) +
   geom_bar( stat = "identity") + 
   scale_fill_viridis_c(begin = 0.35, end = 0.95) + 
   labs(x = "Drugs Enriched for Term", y = "Functional Enrichment Terms") + 
-  theme(axis.text.x = element_text(size = 12.5, face = "bold"), axis.text.y = element_text(size = 12.5, face = "bold"), axis.title.x = element_text(size = 14, face = "bold"),  axis.title.y = element_text(size = 14, face = "bold"),plot.title = element_text(size = 16, face = "bold", hjust = 0.5)) + ggtitle(label = "Drug Target Enrichment Analysis") 
-#  theme(text = element_text(size = 14, face = "bold"), plot.title = element_text(size = 18)) + 
-#  theme_minimal(base_size = 16)
+  theme(axis.text.x = element_text(size = 16, face = "bold"), axis.text.y = element_text(size = 16, face = "bold"), axis.title.x = element_text(size = 16, face = "bold"),  axis.title.y = element_text(size = 16, face = "bold"),plot.title = element_text(size = 18, face = "bold", hjust = 0.5)) + ggtitle(label = "Drug Target Enrichment Analysis") +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank(), axis.line = element_line(colour = "black")) 
 
 dsea_plot
 
 ```
 
 
-
 ```{r}
-
-#ggsave(here("res/sigsearch_outputs", "dsea_cystictargetdrugs.png"), dsea_plot, width = 10, height = 8)
+ggsave(here("res/sigsearch_outputs", "dsea_cystictargetdrugs.png"), dsea_plot, width = 8.5, height = 12)
 
 ```
 
@@ -286,7 +228,6 @@ dtnetplot(drugs = unique(cystic_targets$Drug), set = "GO:1901338", ont = "MF",
 
 ```
 
-
 ```{r}
 #dtnetplot(drugs = drugs(dsea_prioritzeddrugs), set = "GO:0099589", ont = "MF", desc="serotonin receptor activity")
 
@@ -298,42 +239,16 @@ dtnetplot(drugs = unique(cystic_targets$Drug), set = "GO:1901338", ont = "MF",
 
 ```
 
-
 histamine receptor activity
 ```{r}
-#dtnetplot(drugs = unique(cystic_targets$Drug), set = "GO:0004969", ont = "MF", desc="histamine receptor activity")
+dtnetplot(drugs = unique(cystic_targets$Drug), set = "GO:0004969", ont = "MF", desc="histamine receptor activity")
 
 ```
-
-histamine receptor activity
-```{r}
-#dtnetplot(drugs = unique(cystic_targets$Drug), set = "GO:0050998", ont = "MF", desc="nitric-oxide synthase binding")
-
-```
-
 
 calcium-dependent protein binding
 ```{r}
+dtnetplot(drugs = unique(cystic_targets$Drug), set = "GO:0048306", ont = "MF", desc="calcium-dependent protein binding")
 
-#dtnetplot(drugs = unique(cystic_targets$Drug), set = "GO:0048306", ont = "MF", desc="calcium-dependent protein binding")
-
-```
-
-
-Top 16 w/ onsides
-Looking at reactions for 'launched' drugs from P70/'39 results
-```{r}
-#onsides_top16 <- dplyr::left_join(cystic_targets, labels, by = c("Drug" = "ingredients"))
-onsides_top16 <- dplyr::filter(labels, ingredients %in% unique(cystic_targets$Drug))
-
-onsides_top16 <- dplyr::left_join(onsides_top16, reactions, by = c("latest_xml_id" = "xml_id"))
-
-```
-
-
-```{r}
-#write.csv(onsides_top16, file = here("res", "sigsearch_outputs", "onsides_top16_ade.csv"))
- 
 ```
 
 epocrates drug prices
