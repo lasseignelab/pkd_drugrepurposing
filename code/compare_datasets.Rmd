@@ -152,24 +152,18 @@ Save
 ``` {r}
 ##fea_39
 fea_39_upterms <- apply(fea_39$upregulated, 2, as.character)
-write.csv(fea_39_upterms, file = here("res", "fea", "fea_39_upterms.csv"))
-
 fea_39_downterms <- apply(fea_39$downregulated, 2, as.character)
-write.csv(fea_39_downterms, file = here("res", "fea", "fea_39_downterms.csv"))
+write.csv(rbind(fea_39_upterms, fea_39_downterms), file = here("res", "fea", "fea_p70sig.csv"))
 
 ##fea_56
 fea_56_upterms <- apply(fea_56$upregulated, 2, as.character)
-write.csv(fea_56_upterms, file = here("res", "fea", "fea_56_upterms.csv"))
-
 fea_56_downterms <- apply(fea_56$downregulated, 2, as.character)
-write.csv(fea_56_downterms, file = here("res", "fea", "fea_56_downterms.csv"))
+write.csv(rbind(fea_56_upterms, fea_56_downterms), file = here("res", "fea", "fea_p21sig.csv"))
 
 ##fea_19
 fea_19_upterms <- apply(fea_19$upregulated, 2, as.character)
-write.csv(fea_19_upterms, file = here("res", "fea", "fea_19_upterms.csv"))
-
 fea_19_downterms <- apply(fea_19$downregulated, 2, as.character)
-write.csv(fea_19_downterms, file = here("res", "fea", "fea_19_downterms.csv"))
+write.csv(rbind(fea_19_upterms, fea_19_downterms), file = here("res", "fea", "fea_p28sig.csv"))
 
 ```
 
@@ -402,26 +396,20 @@ ggsave(bubbleplot_p28, filename = here("res", "fea", "p28_fea_bubbleplot.pdf"), 
 
 Save gprofiler results
 ``` {r}
-##fea_mouse_39
+#fea_mouse_39
 fea_mouse_39_upterms <- apply(fea_mouse_39$upregulated, 2, as.character)
-write.csv(fea_mouse_39_upterms, file = here("res", "fea", "fea_mouse_39_upterms.csv"))
-
 fea_mouse_39_downterms <- apply(fea_mouse_39$downregulated, 2, as.character)
-write.csv(fea_mouse_39_downterms, file = here("res", "fea", "fea_mouse_39_downterms.csv"))
+write.csv(rbind(fea_mouse_39_upterms, fea_mouse_39_downterms), file = here("res", "fea", "fea_p70degs.csv"))
 
 #feamouse_56
 fea_mouse_56_upterms <- apply(fea_mouse_56$upregulated, 2, as.character)
-write.csv(fea_mouse_56_upterms, file = here("res", "fea", "fea_mouse_56_upterms.csv"))
-
 fea_mouse_56_downterms <- apply(fea_mouse_56$downregulated, 2, as.character)
-write.csv(fea_mouse_56_downterms, file = here("res", "fea", "fea_mouse_56_downterms.csv"))
+write.csv(rbind(fea_mouse_56_upterms, fea_mouse_56_downterms), file = here("res", "fea", "fea_p21degs.csv"))
 
-##fea_mouse_19
+#fea_mouse_19
 fea_mouse_19_upterms <- apply(fea_mouse_19$upregulated, 2, as.character)
-write.csv(fea_mouse_19_upterms, file = here("res", "fea", "fea_mouse_19_upterms.csv"))
-
 fea_mouse_19_downterms <- apply(fea_mouse_19$downregulated, 2, as.character)
-write.csv(fea_mouse_19_downterms, file = here("res", "fea", "fea_mouse_19_downterms.csv"))
+write.csv(rbind(fea_mouse_19_upterms, fea_mouse_19_downterms), file = here("res", "fea", "fea_p28degs.csv"))
 ```
 
 ### Gene overlaps
@@ -438,9 +426,7 @@ degs_all_overlap_down <- merge(degs_19_56_overlap_down, musdegs_39_DOWN, by = "M
 alldegs_overlap <- rbind(degs_all_overlap_up, degs_all_overlap_down)
 alldegs_lfc <- cbind(CysticP28 = alldegs_overlap$log2FoldChange.x, CysticP21 = alldegs_overlap$log2FoldChange.y, PrecysticP70 = alldegs_overlap$log2FoldChange)
 row.names(alldegs_lfc) <- alldegs_overlap$X.x
-#t <- merge(alldegs_overlap, coding_genes, by.x = "Mouse.gene.stable.ID", by.y = "Mouse.gene.stable.ID")
-#t2 <- merge(rbind(degs_19_56_overlap_up, degs_19_56_overlap_down), coding_genes, by.x = "Mouse.gene.stable.ID", by.y = "Mouse.gene.stable.ID")
-#annot39 <- merge(rbind(musdegs_39_UP, musdegs_39_DOWN), coding_genes, by.x = "Mouse.gene.stable.ID", by.y = "Mouse.gene.stable.ID")
+
 ```
 
 ###### Precyst Unique and Cystic Overlap

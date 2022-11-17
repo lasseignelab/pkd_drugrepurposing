@@ -740,7 +740,7 @@ treemap2 <- function (dtf, index, vSize, vColor = NULL, stdErr = NULL, type = "i
   invisible(tmSave)
 }
 
-
+#rrvgo altered treemap function for label background transparancy and viridis palette
 treemapPlot2 <- function (reducedTerms, size = "score", title = "", ...)
 {
   if (!all(sapply(c("treemap"), requireNamespace, quietly = TRUE))) {
@@ -755,6 +755,7 @@ treemapPlot2 <- function (reducedTerms, size = "score", title = "", ...)
           border.col = "#00000080", ...)
 }
 
+#rrvgo altered scatterplot function for max overlaps
 scatterPlot2 <- function (simMatrix, reducedTerms, size = "score", addLabel = TRUE,
                           labelSize = 3)
 {
@@ -784,3 +785,37 @@ scatterPlot2 <- function (simMatrix, reducedTerms, size = "score", addLabel = TR
     p
   }
 }
+
+
+#__ssRun__: Wrapper for qsiq(), signature query, using up and down genes, and gess_lincs(), the 'lincs' signatureSearch method for gene expression signature search, sorting the results by WTCS and calculating Tau values, and then filtering for inversely related signatures and for kidney cell lines (HA1E and NKDBA) only
+ssRun <- function(upgenes, downgenes, cells){
+  q <- qSig(query = list(upset=as.character(upgenes), downset=as.character(downgenes)), gess_method="LINCS", refdb= lincs)
+  gess <- gess_lincs(q, sortby="WTCS", tau=TRUE, workers=1)
+  gess_res <- result(gess)
+  gess_res <- dplyr::filter(gess_res, WTCS < 0) #filter for drugs with only inverse signatures
+  if(cells == "kidney"){
+    gess_kidney <- gess_res %>% dplyr::filter(cell == "HA1E" | cell == "NKDBA")
+    return(gess_kidney)
+  }
+  else{
+    return(gess_res)
+  }
+}
+
+#adaptation of Jen's function for checking FDA approval
+#This function is check the FDA-approval of candidates. The approved list comes from Drugs@FDA
+FDA_APPROVAL_CHECK<- function(drug_list, fda_approved){
+  return_list <- c()
+  for (i in 1:length(drug_list)){
+    test <- agrep( drug_list[i], fda_approved$ActiveIngredient, ignore.case= TRUE, max.distance = 0.1)
+    if (length(test)>0 ){
+      return_list[i] <- TRUE
+    }else{
+      return_list[i] <- FALSE
+    }
+
+  }
+  names(return_list)<- drug_list
+  return(return_list)
+}
+
