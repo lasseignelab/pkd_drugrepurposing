@@ -12,16 +12,16 @@ output:
 
 
 ### Purpose  
-This markdown uses nf-core for RNAseq alignment, STAR salmon counts. All data from publicly available mouse kidney RNAseq data comparing PKD2-KO and WT.  
-__p70__: AKA 39/GSE149739/precystic/p70, induced-KO model, samples collected at p70 when tubules were dilated with no overt cyst formation. Total n = 6 samples, 3 Pkd2fl/fl;Pax8rtTA;TetO-Cre and 3 WT  
+This markdown uses STAR salmon counts from nf-core for RNAseq alignment. All data from publicly available mouse kidney RNAseq data comparing PKD2-KO and WT.  
+__P70__: AKA 39/GSE149739/precystic/p70, induced-KO model, samples collected at p70 when tubules were dilated with no overt cyst formation. Total n = 6 samples, 3 Pkd2fl/fl;Pax8rtTA;TetO-Cre and 3 WT  
 Dataset: [GSE149739](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE149739)  
 Processed data filepath: /data/project/lasseigne_lab/Lizzy/PKD_drugrepurposing_220324/  
 
-__p21__: AKA 56/GSE69556/cystic/p21, kidney-specific KO model, samples collected at p21 from full-blown cystic kidneys. Total n = 7, 3 Pkhd1-Cre; Pkd2fl/fl and 4 WT   
+__P21__: AKA 56/GSE69556/cystic/p21, kidney-specific KO model, samples collected at p21 from full-blown cystic kidneys. Total n = 7, 3 Pkhd1-Cre; Pkd2fl/fl and 4 WT   
 Dataset: [GSE69556](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE69556)  
 Processed data filepath: /data/project/lasseigne_lab/Lizzy/PKD_drugrepurposing_220324/  
 
-__p28__: AKA 19/GSE134719/cystic/p28, kidney-specific KO model, samples collected at p28 from full-blown cystic kidneys. Total n = 23, 11 Pkhd1-Cre; Pkd2fl/fl and 12 WT     
+__P28__: AKA 19/GSE134719/cystic/p28, kidney-specific KO model, samples collected at p28 from full-blown cystic kidneys. Total n = 23, 11 Pkhd1-Cre; Pkd2fl/fl and 12 WT     
 Dataset: [GSE134719](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE134719)  
 Processed data filepath: /data/project/lasseigne_lab/Lizzy/PKD_drugrepurposing_220324/  
 
@@ -43,133 +43,6 @@ library(EnhancedVolcano)
 source(here("code", "functions.R"))
 ```
 
-#### Custom functions  
-
-__salmon2dds__: Salmon merged gene counts from nf-core RNAseq pipeline (results/star_salmon/salmon.merged.gene_counts.rds) and SRA metadata as inputs, function data wrangles and runs DESeq2, resulting in a dds object with design by genotype. Just for dataset  GSE69556 (aka 56, p21), set argument data = not "regular", for extra characters in counts rownames just in that dataset  
-
-```{r}
-#Salmon merged gene counts to dds results
-salmon2dds <- function(counts, metadata, dataset = "regular") {
-  #count matrix in the sumarized experiment object
-  cts <- counts@assays@data@listData[["counts"]]
-  #round, salmon outputs have decimals
-  cts <- round(cts)
-  if (dataset == "dataset56"){
-    colnames(cts) <- str_sub(colnames(cts), 1, -2) ##ALTERATION just for GSE69556  
-  }
-  
-  #remove version numbers from transcript id's
-  rownames(cts) <- gsub("\\..*", "", rownames(cts))
-  
-  #remove all non-alphanumeric characters from Genotype
-  metadata$Genotype <- str_replace_all(metadata$Genotype, "[^[:alnum:]]", "")
-  
-  #remove IFT88 for dataset39
-  #if (dataset == "dataset39"){
-  #metadata <- dplyr::filter(metadata, Genotype != "Ift88flflPkd2flflPax8rtTATetOcre")
-
-  #select only non-IFT88 samples from counts
-  #cts <- dplyr::select(cts, c(rownames(metadata)))
-  #}
-  
-  #contrasts need to be factor levels
-  metadata$Genotype <- as.factor(metadata$Genotype)
-
-  #check ordering matches
-  print("Checking order of count column names to metadata rownames... If false, fix and rerun!")
-  print(colnames((cts)) == rownames(metadata))
-  dds <- DESeqDataSetFromMatrix(cts, metadata, design = ~ Genotype)
-
-return(dds)
-}
-
-
-```
-
-
-__uplfc__ & __downlfc__: Formats deseq2 res() output to select for upregulated and downregulated genes by log2 fold change threshold > 2 and < -2 and p-adjusted < 0.05.  
-
-```{r}
-uplfc <- function(res, lfcutoff){
-  #NAs removed first
-  res <- res[!is.na(res$padj),]
-  #p-adjusted value cutoff 0.05 and log2fc greater than 2.0 and less than -2.0 
-  upfc <- res[res$log2FoldChange > lfcutoff & res$padj < 0.05,]
-
-  #pull just logfold change values from DESeqResults object and name the values by associated gene
-  #up <- upfc$log2FoldChange
-  #names(up) <- rownames(upfc)
-  #up <- cbind(Mouse.gene.stable.ID = rownames(upfc), LFC = upfc$log2FoldChange, padj = upfc$padj)
-#  up <- upfc %>% as.data.frame() %>% dplyr::select(LFC = log2FoldChange, padj = upfc$padj) %>% tibble::rownames_to_column(var = "Mouse.gene.stable.ID")
-    up <- upfc %>% tibble::rownames_to_column(var = "Mouse.gene.stable.ID")
-
-return(up)
-}
-
-downlfc <- function(res, lfcutoff){
-  #NAs removed first
-  res <- res[!is.na(res$padj),]
-  #p-adjusted value cutoff 0.05 and log2fc greater than 2.0 and less than -2.0
-  downfc <- res[res$log2FoldChange < lfcutoff & res$padj < 0.05,]
-
-  #pull just logfold change values from DESeqResults object and name the values by associated gene
-  #down <- downfc$log2FoldChange
-  #names(down) <- rownames(downfc)
-  #down <- cbind(Mouse.gene.stable.ID = rownames(downfc), LFC = down)
- down <- downfc %>% tibble::rownames_to_column(var = "Mouse.gene.stable.ID")
- 
-  return(down)
-}
-```
-
-__convertMouseGeneList__: Uses Ensembl human GRCh38.p13 and Ensembl mouse C57BL_6NJ_v1 genes and to find human orthologous genes (more details [here](https://docs.google.com/document/d/1jU3EOVaZXJMzxwH9SsssHoArz8pMdcfW8MSr8hbeE4Q/edit) ), and biomart to convert to human entrez  
-
-```{r}
-convertMouseGeneList <- function(lfc){
-  #read in mose to human ens annotation
-  ens_annot <- read.csv(here("data", "annot_ens_humanmouse.csv"))
-  #conversion table
-  ens_mouse2human <- merge(lfc, ens_annot, by = "Mouse.gene.stable.ID")
-  #biomart to conver human ens to human entrez
-  human <- useEnsembl("ensembl", dataset = "hsapiens_gene_ensembl", mirror = "useast")
-  genes <- getBM(filters = "ensembl_gene_id", attributes = c("ensembl_gene_id","entrezgene_id",  "hgnc_symbol", "description"), values = ens_mouse2human$Gene.stable.ID, mart = human)
-  
-  #names(ens_mouse2human) <- c("mouse_ensembl_gene_id", "log2FoldChange", "ensembl_gene_id")
-  conv_tbl <- merge(genes, ens_mouse2human, by.x = "ensembl_gene_id", by.y = "Gene.stable.ID")
-return(conv_tbl)
-}
-```
-
-__toplincs__: Uses uplfc and downlfc outputs to then find top 100 genes that are available in LINCS (best input for signature reversion)  
-```{r message=FALSE}
-eh <- ExperimentHub()
-lincs <- eh[["EH3226"]]; lincs_expr <- eh[["EH3227"]]
-
-lincs_genes <- rhdf5:::h5read(lincs, "rownames", drop=TRUE)
-
-toplincs <- function(conv_tbl, direction){
-  lincs_genes <- cbind(entrezgene_id = lincs_genes)
-  conv_tbl <- merge(conv_tbl, lincs_genes, by = "entrezgene_id")
-  #conv_tbl$log2FoldChange <- as.numeric(conv_tbl$log2FoldChange)
-  if(direction == "up"){
-  top100 <- slice_max(conv_tbl, n = 100, order_by = log2FoldChange)
-  }
-  else{
-    top100 <- slice_min(conv_tbl, n = 100, order_by = log2FoldChange)
-  }
-return(top100)
-}
-```
-
-__lincsGenes__: Wraps convertMouseGeneList to map orthologs, and toplincs to filter for LINCS-available genes  
-```{r}
-lincsGenes <- function(lfc, direction){
-  conv_tbl <- convertMouseGeneList(lfc)
-  top100 <- toplincs(conv_tbl, direction = direction)
-  return(top100)
-}
-```
-
 ### DEA p70 precystic GSE149739
 
 #### Read in data  
@@ -184,52 +57,16 @@ meta_39 <- read.csv(here("data", "GSE149739_metadata.txt"), row.names = 1)
 
 Remove IFT88
 ```{r}
-cts_39_2 <- cts_39@assays@data@listData[["counts"]]
-  #round, salmon outputs have decimals
-cts_39_2 <- round(cts_39_2)
-  #remove version numbers from transcript id's
-rownames(cts_39_2) <- gsub("\\..*", "", rownames(cts_39_2))
-  
-  
-meta_39_2 <- meta_39
-  #remove all non-alphanumeric characters from Genotype
-meta_39_2$Genotype <- str_replace_all(meta_39_2$Genotype, "[^[:alnum:]]", "")
-
-#remove IFT88
-meta_39_2 <- dplyr::filter(meta_39_2, Genotype != "Ift88flflPkd2flflPax8rtTATetOcre")
-  #contrasts need to be factor levels
-  meta_39_2$Genotype <- as.factor(meta_39_2$Genotype)
-
-  
-cts_39_2 <- dplyr::select(cts_39_2, c(rownames(meta_39_2)))
-
-#check ordering matches
-colnames((cts_39_2)) == rownames(meta_39_2) #TRUE, good to proceed to DESeq2!
-  
-dds_39 <- DESeqDataSetFromMatrix(cts_39_2, meta_39_2, design = ~ Genotype)
-
-#dds$Genotype <- relevel(dds$Genotype, ref = "Wildtype")
-
-#run DESeq: estimates size factors, estimates dispersion, fits negative binomial GLM's and performs Wald stats
-#dds <- DESeq(dds) 
-
-#res <- results(dds, alpha = 0.05, contrast = c("Genotype", "Pkd2flflPax8rtTATetOcre", "Wildtype"))
-
-#resultsNames(res)
-
-#test <- c(cts_39, meta_39, dataset = "dataset39")
-#test <- DESeq(test)
-#test <- results(test, alpha = 0.05, contrast = c("Genotype", "Pkd2flflPax8rtTATetOcre", "Wildtype"))
-
-#test_up <- uplfc(res)
-#head(test_up)
-#test_down <- downlfc(res)
-#head(test_down)
+ift88 <- grep("Ift88", meta_39$Genotype, ignore.case = TRUE, value = TRUE)
+nonift88 <- meta_39$Genotype[!(meta_39$Genotype %in% ift88)]
+meta_39 <- dplyr::filter(meta_39, Genotype %in% nonift88)
 ```
 
 #### DDS
 ```{r}
-#dds_39 <- salmon2dds(cts_39, meta_39)
+cts_39 <- cts_39@assays@data@listData[["counts"]]
+dds_39 <- salmon2dds(cts_39, meta_39)
+
 ```
 
 
@@ -239,8 +76,7 @@ dds_39 <- DESeqDataSetFromMatrix(cts_39_2, meta_39_2, design = ~ Genotype)
 dds_39$Genotype <- relevel(dds_39$Genotype, ref = "Wildtype")
 
 #run DESeq: estimates size factors, estimates dispersion, fits negative binomial GLM's and performs Wald stats
-dds_39 <- DESeq(dds_39) #can also look at setting replaceOutliers lower for dealing with outliers flagged by extreme Cook's distances
-#save(ds, file = here("res", "deseq2_outputs", "GSE149739_dds_kasi2021alignment.rds")
+dds_39 <- DESeq(dds_39) 
 ```
 
 #### Results  
@@ -262,8 +98,8 @@ dsq2_39 <- as.data.frame(res_nf)
 
 Save full deseq results
 ```{r}
-#write.csv(dsq2_39, file = here("res", "deseq2_outputs", "deseq2_fullres_39.csv"))
-
+write.csv(dsq2_39, file = here("res", "deseq2_outputs", "deseq2_fullres_39.csv"))
+saveRDS(dsq2_39, file = here("res", "deseq2_outputs", "deseq2_fullres_39.rds"))
 ```
 
 #### LFC cutoffs
@@ -288,16 +124,15 @@ write.csv(musdegs_39_DOWN, file = here("res", "deseq2_outputs", "deseq2_downgene
 ```
 
 
-Variance stabilized transformation  
-vst() uses a parametric fit for the dispersion. In this case, the closed-form expression for the variance stabilizing transformation is used by the vst function. If a local fit is used (option fitType="locfit" to estimateDispersions) a numerical integration is used instead. The transformed data should be approximated variance stabilized and also includes correction for size factors or normalization factors. The transformed data is on the log2 scale for large counts.  
-  
-rlog() is better to use for this dataset -- better for high count variance by sample (in this case, one sample has over 2x the reads compared to the others) and for smaller datasets "if you have many samples (e.g. 100s), the rlog function might take too long, and so the vst function will be a faster choice. The rlog and VST have similar properties, but the rlog requires fitting a shrinkage term for each sample and each gene which takes time. See the DESeq2 paper for more discussion on the differences (Love, Huber, and Anders 2014)."  
+Regularized log transformation  
+rlog() is better to use for these datasets -- better for high count variance by sample (in this case, one sample has over 2x the reads compared to the others in one data set) and for smaller datasets "if you have many samples (e.g. 100s), the rlog function might take too long, and so the vst function will be a faster choice. The rlog and VST have similar properties, but the rlog requires fitting a shrinkage term for each sample and each gene which takes time. See the DESeq2 paper for more discussion on the differences (Love, Huber, and Anders 2014)."  
 ```{r}
 #vsd_nf <- vst(dds_39, blind = FALSE) #if blind, could minimize large count differences due to anticipated experimental variation
 
 rld_nf <- rlog(dds_39, blind = FALSE) 
 ```
 
+#### Visualizations
 PCA
 ```{r}
 plotPCA(rld_nf, intgroup=c("Genotype")) + geom_label_repel(aes(label = rld_nf@colData@rownames), box.padding   = 0.15, label.padding = 0.15, point.padding = 0.3, segment.color = 'grey50') + scale_colour_viridis_d() + theme(axis.title.x = element_text(size = 20)) + theme_minimal()
@@ -311,8 +146,8 @@ hom_degs_UP <- lincsGenes(musdegs_39_UP, "up")
 hom_degs_DOWN <-  lincsGenes(musdegs_39_DOWN, "down")
 
 #should be 100 or less
-dim(hom_degs_UP) #84 at lfc > 1.3
-dim(hom_degs_DOWN) #24 at lfc <-1.3
+length(unique(hom_degs_UP$entrezgene_id)) #99
+length(unique(hom_degs_DOWN$entrezgene_id)) #31
 ```
 
 
@@ -352,11 +187,12 @@ conv_cts_all <- dplyr::distinct(conv_cts_all, mgi_symbol, .keep_all = TRUE)
 #Convert back to rownames but with gene symbols
 conv_cts <- tibble:::column_to_rownames(conv_cts_all, "mgi_symbol")
 
-#remove ift88
 conv_cts <- subset(conv_cts, select = c("SRR11680775", "SRR11680776", "SRR11680777", "SRR11680778", "SRR11680779", "SRR11680780"))
-colnames(conv_cts) <- c("WT", "WT", "WT", "PKD2", "PKD2", "PKD2")
-```
 
+#Remove extra columns
+conv_cts <- conv_cts[,!(colnames(conv_cts) %in% c("ensembl_gene_id", "group", "group_name", "entrezgene_id", "description"))]
+colnames(conv_cts) <- c("WT", "WT", "WT", "Pkd2KO", "Pkd2KO", "Pkd2KO")
+```
 
 greatest LFC, wrangling
 ```{r}
@@ -381,9 +217,9 @@ heatmap_p70 <- pheatmap::pheatmap(conv_cts[rownames(top20lfc), ], cluster_rows =
 ```
 
 ```{r}
-#write.csv(genes, file = here("res/deseq2_outputs", "deseq2_p70_fullannotatedres.csv"))
+write.csv(genes, file = here("res/deseq2_outputs", "deseq2_p70_fullannotatedres.csv"))
 
-#ggsave(heatmap_p70, filename = here("res", "fea", "heatmap_p70.pdf"), height = 7, width = 14)
+ggsave(heatmap_p70, filename = here("res", "fea", "heatmap_p70.pdf"), height = 7, width = 14)
 
 ```
 
@@ -395,158 +231,22 @@ sig_39 <- merge(sig_39, conv_cts_all, by.x = "Mouse.gene.stable.ID", by.y = "ens
 sig_39 <- dplyr::distinct(sig_39, hgnc_symbol, .keep_all = TRUE)
 sig_39_cts <- tibble::column_to_rownames(sig_39, "hgnc_symbol")
 
-sig_39_cts <- subset(sig_39_cts, select = c("SRR11680775", "SRR11680776", "SRR11680777", "SRR11680778", "SRR11680779", "SRR11680780"))
-colnames(sig_39_cts) <- c("WT", "WT", "WT", "PKD2", "PKD2", "PKD2")
+sig_39_cts <- dplyr::select(sig_39_cts, starts_with("SRR"))
+colnames(sig_39_cts) <- c("WT", "WT", "WT", "Pkd2KO", "Pkd2KO", "Pkd2KO")
 
 
-heatmap_p70 <- pheatmap::pheatmap(sig_39_cts[row.names(sig_39_cts), ], cluster_rows = TRUE, cluster_cols = TRUE, show_rownames = TRUE, fontsize_row = 3, color = viridis(n= 10000, alpha = 1, begin = 0, end = 1, option = "viridis"), border_color = "NA", main = "Gene Signature for Pre-Cyst P70", angle_col = "45")
+heatmap_p70 <- pheatmap::pheatmap(sig_39_cts[row.names(sig_39_cts), ], cluster_rows = TRUE, cluster_cols = TRUE, show_rownames = FALSE, fontsize_row = 3, color = viridis(n= 10000, alpha = 1, begin = 0, end = 1, option = "viridis"), border_color = "NA", main = "Gene Signature for Pre-Cyst P70", angle_col = "45")
 
 #heatmap_p70 <- pheatmap(sig_39_cts, cluster_rows = TRUE, cluster_cols = TRUE, show_rownames = FALSE, color = viridis(n= 10000, alpha = 1, begin = 0, end = 1, option = "viridis"), border_color = "NA", main = "Gene Signature for Pre-Cyst P70", annotation_col = colnames(sig_39_cts))
 
 ```
 
 ```{r}
-#write.csv(sig_39, here("res/deseq2_outputs", "signature_annotation_p70.csv"))
+write.csv(sig_39, here("res/deseq2_outputs", "signature_annotation_p70.csv"))
 
-#ggsave(heatmap_p70, filename = here("res/deseq2_outputs", "heatmap_p70_signature.pdf"))
-
-```
-
-#### Volcano plots
-
-#####p70 DEGs to p70 targets
-Conversion table from mouse ensembl to human symbol
-```{r}
-ens_annot <- read.csv(here("data", "annot_ens_humanmouse.csv"))
-ens_mouse2human <- tibble:::rownames_to_column(dsq2_39, var = "Mouse.gene.stable.ID")
-  #conversion table
-ens_mouse2human <- merge(ens_mouse2human, ens_annot, by = "Mouse.gene.stable.ID")
-#biomart to convert human ens to human entrez
-human <- useEnsembl("ensembl", dataset = "hsapiens_gene_ensembl", mirror = "useast")
-convgenes <- getBM(filters = "ensembl_gene_id", attributes = c("ensembl_gene_id","entrezgene_id",  "hgnc_symbol", "description"), values = ens_mouse2human$Gene.stable.ID, mart = human)
-  
-conv_tbl <- merge(convgenes, ens_mouse2human, by.x = "ensembl_gene_id", by.y = "Gene.stable.ID")
-conv_tbl <- tidyr::drop_na(conv_tbl)
-#remove duplicates due to multiple homolog mapping
-conv_tbl <- conv_tbl %>% dplyr::arrange(order_by = desc(abs(log2FoldChange))) %>% dplyr::distinct(hgnc_symbol, .keep_all = TRUE)
+ggsave(heatmap_p70, filename = here("res/deseq2_outputs", "heatmap_p70_signature.png"))
 
 ```
-
-Convert gene ID's of rlog normalized count data to human symbols
-```{r}
-volc_39 <- merge(conv_cts_all, conv_tbl, by.x = "ensembl_gene_id", by.y = "Mouse.gene.stable.ID")
-
-```
-
-Read in drug targets from FDA approved candidates from signature reversion of p70 (from markdown: sigsearch_analyses)
-```{r}
-fda_approved_39_targets <- read.csv(here("res", "sigsearch_outputs", "fda_drug_targets_39.csv"), row.names = 1)
-#targets_39 <- tidyr::separate_rows(targets_39, "t_gn_sym", sep = "; ")
-
-#fda_approved_39_targets
-```
-
-
-targets in > 1.5 LFC
-```{r}
-targets_in39 <- merge(fda_approved_39_targets, volc_39, by.x = "t_gn_sym", by.y = "hgnc_symbol")
-
-#only targets that are upregulated > 1.5 LFC
-targets_in39 <- dplyr::filter(targets_in39, log2FoldChange >  1.3)
-#how many total drug targets are upregulated >  LFC?
-length(unique(targets_in39$t_gn_sym))
-#drugs matching to these
-unique(targets_in39$pert)
-```
-
-
-```{r}
-volcano_39 <- EnhancedVolcano(volc_39, lab = volc_39$hgnc_symbol, x = 'log2FoldChange', y = 'padj', selectLab = unique(targets_in39$t_gn_sym), pCutoff = 0.05, FCcutoff = 1.3, pointSize = 3.0, labSize = 4.0, col = c("#440154", "#21918c", "#fde725", "#5ec962"), title = "P70 Pre-Cystic Drug Targets Found in P70 \nPre-Cystic DEGs", labFace = 'bold', boxedLabels = TRUE,drawConnectors = TRUE,widthConnectors = 0.5,colConnectors = 'black', max.overlaps = 25)
-
-volcano_39
-```
-
-```{r}
-#ggsave(volcano_39, filename =  here("res/sigsearch_outputs", "volcano_drugtargets_p70degs.pdf"))
-```
-
-
-##ALT attempt
-```{r}
-
-convertMouseGeneList_2 <- function(mousegenes){
-  #read in mose to human ens annotation
-  ens_annot <- read.csv(here("data", "annot_ens_humanmouse.csv"))
-  #conversion table
-  ens_mouse2human <- dplyr::filter(ens_annot, Mouse.gene.stable.ID %in% mousegenes)
-  #biomart to conver human ens to human entrez
-  human <- useEnsembl("ensembl", dataset = "hsapiens_gene_ensembl", mirror = "useast")
-  genes <- getBM(filters = "ensembl_gene_id", attributes = c("ensembl_gene_id", "entrezgene_id",  "hgnc_symbol", "description"), values = ens_mouse2human$Gene.stable.ID, mart = human)
-  
-  conv_tbl <- merge(genes, ens_mouse2human, by.x = "ensembl_gene_id", by.y = "Gene.stable.ID")
-return(conv_tbl)
-}
-
-
-```
-
-testing new functions
-```{r}
-test <- convertMouseGeneList_2(row.names(dsq2_39))
-
-```
-
-
-Read in drug targets from FDA approved candidates from signature reversion of p70 (from markdown: sigsearch_analyses)
-```{r}
-fda_approved_39_targets <- read.csv(here("res", "sigsearch_outputs", "fda_drug_targets_39.csv"), row.names = 1)
-```
-
-Functions for data wrangling for target-deg volcano plot
-```{r}
-targets_in_degs <- function(conv_tbl, degs, targets){
-  #convert degs gene id's
-  degs <- tibble:::rownames_to_column(degs, var = "Mouse.gene.stable.ID")
-  conv_tbl <- merge(conv_tbl, degs, by = "Mouse.gene.stable.ID")
-  print(str(conv_tbl))
-  
-    #remove duplicates due to multiple homolog mapping
-  conv_tbl <- conv_tbl %>% dplyr::arrange(order_by = desc(abs(log2FoldChange))) %>% dplyr::distinct(hgnc_symbol, .keep_all = TRUE)
-  
-  #combine degs with drug target data
-  targets_in_degs <- merge(targets, conv_tbl, by.x = "t_gn_sym", by.y = "hgnc_symbol")
-  targets_in_degs <- tidyr::drop_na(targets_in_degs)
-
-return(targets_in_degs)
-}
-
-
-target_deg_plot <- function(targetdegs, cutoff){
-  target_labels <- dplyr::filter(targetdegs, log2FoldChange > cutoff)
-  print(unique(target_labels$t_gn_sym))
-  print(unique(target_labels))
-  print(unique(target_labels$pert))
-  targetdegs <- dplyr::distinct(targetdegs, t_gn_sym, .keep_all = TRUE)
-
-  volcanoplot <- EnhancedVolcano(targetdegs, lab = targetdegs$t_gn_sym, x = 'log2FoldChange', y = 'padj', selectLab = unique(target_labels$t_gn_sym), pCutoff = 0.05, FCcutoff = cutoff, pointSize = 3.0, labSize = 4.0, col = c("#440154", "#21918c", "#fde725", "#5ec962"), title = "P70 Pre-Cystic Drug Targets Found in P70 \nPre-Cystic DEGs", labFace = 'bold', boxedLabels = TRUE,drawConnectors = TRUE,widthConnectors = 0.5,colConnectors = 'black', max.overlaps = 25)
-return(volcanoplot)
-}
-
-```
-
-testing new functions
-```{r}
-test2 <- targets_in_degs(test, dsq2_39, fda_approved_39_targets)
-
-#test3 <- test2 %>% dplyr::group_by(t_gn_sym) %>% stringr::str_flatten(pert, collapse = ", ")
-#test3 <- stringr::str_flatten(test2$pert, collapse = ", ")
-
-vp <- target_deg_plot(test2, 1.1)
-vp
-
-```
-
-
 
 
 ### DEA p21 cystic GSE69556
@@ -557,15 +257,16 @@ __Filepath to fastq's and metadata__: /data/project/lasseigne_lab/DATASET_dir/pk
 __Filepath to counts data__: /data/project/lasseigne_lab/Lizzy/PKD_drugrepurposing_220324/GSE69556_nfcore/results/star_salmon/salmon.merged.gene_counts.rds  
 ```{r}
 cts_56 <- readRDS(here("data", "GSE69556_salmonmerged_gene_counts.rds"))
-#cts_56 <- GSE69556_salmonmerged_gene_counts
-#colnames(cts_56) <- str_sub(colnames(cts_56), 1, -2)
+cts_56 <- cts_56@assays@data@listData[["counts"]]
+colnames(cts_56) <- str_sub(colnames(cts_56), 1, -2) #remove random period at the end of the sample names
 
 meta_56 <- read.csv(here("data", "GSE69556_metadata.txt"), row.names = 1)
 ```
 
-#### Run DDS
+
+#### DDS
 ```{r}
-dds_56 <- salmon2dds(cts_56, meta_56, dataset = "dataset56")
+dds_56 <- salmon2dds(cts_56, meta_56)
 
 ```
 
@@ -584,7 +285,7 @@ dds_56 <- DESeq(dds_56) #can also look at setting replaceOutliers lower for deal
 #extract results table with log2 fold changes, p values and adjusted p values for desired coefficients
 #res_56 <- results(dds_56, alpha = 0.05, contrast = c("Genotype", "Pkhd1CrePkd2FF", "wildtype"))
 res_56 <- lfcShrink(dds_56, coef = c("Genotype_Pkhd1CrePkd2FF_vs_wildtype"), type="apeglm")
-res_nf
+res_56
 ```
 
 DESeq2 results as df and by LFC threshold
@@ -596,11 +297,11 @@ dsq2_56 <- as.data.frame(res_56)
 
 ```{r}
 write.csv(dsq2_56, file = here("res/deseq2_outputs", "deseq2_fullres_56.csv"))
-
+saveRDS(dsq2_56, file = here("res", "deseq2_outputs", "deseq2_fullres_56.rds"))
 ```
 
 
-LFC cutoffs
+#### LFC cutoffs
 ```{r}
 #NAs removed  p-adjusted value cutoff 0.05 and log2fc greater than 2.0 and less than -2.0
 musdegs_56_UP <- uplfc(dsq2_56, 2.0)
@@ -610,8 +311,8 @@ musdegs_56_DOWN <- downlfc(dsq2_56, -2.0)
 
 Total genes above threshold before mapping from mouse ensembl to human symbol/entrez
 ```{r}
-dim(musdegs_56_UP)
-dim(musdegs_56_DOWN)
+dim(musdegs_56_UP) #364
+dim(musdegs_56_DOWN) #57
 ```
 
 Map to human entrez and filter by LINCS genes
@@ -620,8 +321,8 @@ hom_56_UP <- lincsGenes(musdegs_56_UP, "up")
 
 hom_56_DOWN <-  lincsGenes(musdegs_56_DOWN, "down")
 #should be 100 or less
-dim(hom_56_UP)
-dim(hom_56_DOWN)
+length(unique(hom_56_UP$entrezgene_id)) #98
+length(unique(hom_56_DOWN$entrezgene_id)) #28
 ```
 
 
@@ -635,8 +336,8 @@ write.csv(hom_56_DOWN, file = here("res", "deseq2_outputs", "p21_signature_DOWN.
 ```
 
 
-Variance stabilized transformation  
-
+Regularized log transformation  
+rlog() is better to use for these datasets -- better for high count variance by sample (in this case, one sample has over 2x the reads compared to the others in one data set) and for smaller datasets "if you have many samples (e.g. 100s), the rlog function might take too long, and so the vst function will be a faster choice. The rlog and VST have similar properties, but the rlog requires fitting a shrinkage term for each sample and each gene which takes time. See the DESeq2 paper for more discussion on the differences (Love, Huber, and Anders 2014)."  
 ```{r}
 rld_56 <- rlog(dds_56, blind = FALSE) 
 ```
@@ -669,7 +370,7 @@ conv_cts_56 <- tibble:::column_to_rownames(conv_cts_56_all, "mgi_symbol")
 conv_cts_56 <- conv_cts_56[,!(colnames(conv_cts_56) %in% c("ensembl_gene_id", "group", "group_name", "entrezgene_id", "description"))]
 
 #Rename the count data to correspond with experimental group or control
-colnames(conv_cts_56) <- c("wildtype", "wildtype", "wildtype", "wildtype", "PKD2", "PKD2", "PKD2")
+colnames(conv_cts_56) <- c("WT", "WT", "WT", "WT", "Pkd2KO", "Pkd2KO", "Pkd2KO")
 ```
 
 
@@ -690,6 +391,7 @@ top20lfc_56 <- dplyr::slice_max(genes_56, abs(log2FoldChange), n = 20)
 ```
 
 
+
 ```{r}
 heatmap_21 <- pheatmap::pheatmap(conv_cts_56[rownames(top20lfc_56), ], cluster_rows = TRUE, cluster_cols = TRUE, show_rownames = TRUE, color = viridis(n= 10000, alpha = 1, begin = 0, end = 1, option = "viridis"), border_color = "NA", main = "Top 20 LFC Genes Cystic P21", angle_col = 45)
 
@@ -697,9 +399,9 @@ heatmap_21 <- pheatmap::pheatmap(conv_cts_56[rownames(top20lfc_56), ], cluster_r
 
 
 ```{r }
-#write.csv(genes_56, file = here("res/deseq2_outputs", "deseq2_p21_fullannotatedres.csv"))
+write.csv(genes_56, file = here("res/deseq2_outputs", "deseq2_p21_fullannotatedres.csv"))
 
-#ggsave(heatmap_21, filename = here("res", "fea", "heatmap_p21_top20.pdf"), height = 7, width = 14)
+ggsave(heatmap_21, filename = here("res", "fea", "heatmap_p21_top20.pdf"), height = 7, width = 14)
 ```
 
 gene signature
@@ -710,70 +412,22 @@ sig_56 <- merge(sig_56, conv_cts_56_all, by.x = "Mouse.gene.stable.ID", by.y = "
 #Filter out repeating data
 sig_56 <- dplyr::distinct(sig_56, hgnc_symbol, .keep_all = TRUE)
 sig_56_cts <- tibble::column_to_rownames(sig_56, "hgnc_symbol")
-sig_56_cts <- subset(sig_56_cts, select = c("SRR2050895", "SRR2050896", "SRR2050897", "SRR2050898", "SRR2050899", "SRR2050900", "SRR2050901"))
-colnames(sig_56_cts) <- c("WT", "WT", "WT", "WT", "PKD2", "PKD2", "PKD2")
+#sig_56_cts <- subset(sig_56_cts, select = c("SRR2050895", "SRR2050896", "SRR2050897", "SRR2050898", "SRR2050899", "SRR2050900", "SRR2050901"))
+sig_56_cts <- dplyr::select(sig_56_cts, starts_with("SRR"))
+colnames(sig_56_cts) <- c("WT", "WT", "WT", "WT", "Pkd2KO", "Pkd2KO", "Pkd2KO")
 
-
-
-heatmap_p21 <- pheatmap::pheatmap(sig_56_cts[row.names(sig_56_cts), ], cluster_rows = TRUE, cluster_cols = TRUE, show_rownames = TRUE, fontsize_row = 3, color = viridis(n= 10000, alpha = 1, begin = 0, end = 1, option = "viridis"), border_color = "NA", main = "Gene Signature for Cystic P21", angle_col = 45)
+heatmap_p21 <- pheatmap::pheatmap(sig_56_cts[row.names(sig_56_cts), ], cluster_rows = TRUE, cluster_cols = TRUE, show_rownames = FALSE, fontsize_row = 3, color = viridis(n= 10000, alpha = 1, begin = 0, end = 1, option = "viridis"), border_color = "NA", main = "Gene Signature for Cystic P21", angle_col = 45)
 
 ```
 
 
 ```{r}
-#write.csv(sig_56, here("res/deseq2_outputs", "signature_annotation_p21.csv"))
-#ggsave(heatmap_p21, filename = here("res/deseq2_outputs", "heatmap_p21_signature.pdf"))
+write.csv(sig_56, here("res/deseq2_outputs", "signature_annotation_p21.csv"))
+ggsave(heatmap_p21, filename = here("res/deseq2_outputs", "heatmap_p21_signature.png"))
 
 ```
 
-#### Volcano plots
 
-##### p21 DEGs to p70 Targets
-
-convert from mouse ensembl to human symbol
-```{r}
-#dsq2_56 <- read.csv(here("res", "deseq2_outputs", "deseq2_fullres_56.csv"), row.names = 1)
-ens_mouse2human_56 <- tibble:::rownames_to_column(dsq2_56, var = "Mouse.gene.stable.ID")
-#convert from mouse to human with  with conversion table
-ens_mouse2human_56 <- merge(ens_mouse2human_56, ens_annot, by = "Mouse.gene.stable.ID")
-#biomart to conver human ens to human entrez
-human_56 <- useEnsembl("ensembl", dataset = "hsapiens_gene_ensembl", mirror = "useast")
-convgenes_56 <- getBM(filters = "ensembl_gene_id", attributes = c("ensembl_gene_id","entrezgene_id", "hgnc_symbol"), values = ens_mouse2human_56$Gene.stable.ID, mart = human)
-  
-conv_tbl_56 <- merge(convgenes_56, ens_mouse2human_56, by.x = "ensembl_gene_id", by.y = "Gene.stable.ID")
-
-conv_tbl_56 <- tidyr::drop_na(conv_tbl_56)
-#remove duplicates due to multiple homolog mapping
-conv_tbl_56 <- conv_tbl_56 %>% dplyr::arrange(order_by = desc(abs(log2FoldChange))) %>% dplyr::distinct(hgnc_symbol, .keep_all = TRUE)
-```
-
-Convert gene ID's of rlog normalized count data to human symbols
-```{r}
-volc_56 <- merge(conv_cts_all, conv_tbl_56, by.x = "ensembl_gene_id", by.y = "Mouse.gene.stable.ID")
-
-```
-
-targets in > 1.5 LFC
-```{r}
-targets_in56 <- merge(fda_approved_39_targets, volc_56, by.x = "t_gn_sym", by.y = "hgnc_symbol")
-targets_in56 <- dplyr::filter(targets_in56, log2FoldChange >  2.0 )#| log2FoldChange < -2.0)
-#how many total drug targets are upregulated > 2.0 LFC?
-length(unique(targets_in56$t_gn_sym))
-#drugs matching to these
-unique(targets_in56$pert)
-```
-
-Plot volcano plot
-```{r}
-volcano_56 <- EnhancedVolcano(volc_56, lab = volc_56$hgnc_symbol, x = 'log2FoldChange', y = 'padj', selectLab = unique(targets_in56$t_gn_sym), pCutoff = 0.05, FCcutoff = 2.0, pointSize = 3.0, labSize = 4.0, col = c("#440154", "#21918c", "#fde725", "#5ec962"), title = "P70 Pre-Cystic Drug Targets Found in P21 \nCystic DEGs", labFace = 'bold', boxedLabels = TRUE,drawConnectors = TRUE,widthConnectors = 0.5,colConnectors = 'black', max.overlaps = 70)
-
-volcano_56
-```
-
-
-```{r}
-#ggsave(volcano_56, filename =  here("res", "deseq2_outputs", "volcano_drugtargets_p21degs.pdf"))
-```
 
 ### DEA p28 cystic GSE134719
 
@@ -789,6 +443,7 @@ meta_19 <- read.csv(here("data", "GSE134719_metadata.txt"), row.names = 1)
 
 #### DDS
 ```{r}
+cts_19 <- cts_19@assays@data@listData[["counts"]]
 dds_19 <- salmon2dds(cts_19, meta_19)
 str(dds_19)
 ```
@@ -820,8 +475,8 @@ dsq2_19 <- as.data.frame(res_19)
 
 Save full deseq2 results
 ```{r}
-#write.csv(res_19, file = here("res", "deseq2_outputs", "deseq2_fullres_19.csv"))
-
+write.csv(dsq2_19, file = here("res", "deseq2_outputs", "deseq2_fullres_19.csv"))
+saveRDS(dsq2_19, file = here("res", "deseq2_outputs", "deseq2_fullres_19.rds"))
 ```
 
 #### LFC cutoffs
@@ -833,13 +488,14 @@ musdegs_19_DOWN <- downlfc(dsq2_19, -2.0)
 
 Total genes above threshold before mapping from mouse ensembl to human symbol/entrez
 ```{r}
-dim(musdegs_19_UP)
-dim(musdegs_19_DOWN)
+dim(musdegs_19_UP) #1831
+dim(musdegs_19_DOWN) #1631
+
 ```
 
 
-Variance stabilized transformation  
-
+Regularized log transformation  
+rlog() is better to use for these datasets -- better for high count variance by sample (in this case, one sample has over 2x the reads compared to the others in one data set) and for smaller datasets "if you have many samples (e.g. 100s), the rlog function might take too long, and so the vst function will be a faster choice. The rlog and VST have similar properties, but the rlog requires fitting a shrinkage term for each sample and each gene which takes time. See the DESeq2 paper for more discussion on the differences (Love, Huber, and Anders 2014)."  
 ```{r}
 rld_19 <- rlog(dds_19, blind = FALSE) 
 ```
@@ -863,8 +519,8 @@ hom_19_UP <- lincsGenes(musdegs_19_UP, "up")
 
 hom_19_DOWN <-  lincsGenes(musdegs_19_DOWN, "down")
 #should be 100 or less
-dim(hom_19_UP)
-dim(hom_19_DOWN)
+length(unique(hom_19_UP$entrezgene_id)) #97
+length(unique(hom_19_DOWN$entrezgene_id)) #89
 ```
 
 
@@ -896,7 +552,7 @@ conv_cts_19 <- tibble:::column_to_rownames(conv_cts_19_all, "mgi_symbol")
 conv_cts_19 <- conv_cts_19[,!(colnames(conv_cts_19) %in% c("ensembl_gene_id", "group", "group_name", "entrezgene_id", "description"))]
 
 #Rename the count data to correspond with experimental group or control
-colnames(conv_cts_19) <- c("Pkd2KO", "Pkd2KO", "Pkd2KO", "wildtype", "wildtype", "wildtype", "wildtype", "Pkd2KO", "Pkd2KO", "Pkd2KO", "Pkd2KO", "wildtype", "wildtype", "wildtype", "wildtype", "Pkd2KO", "Pkkd2KO", "Pkd2KO", "Pkd2KO", "wildtype", "wildtype", "wildtype", "wildtype")
+colnames(conv_cts_19) <- c("Pkd2KO", "Pkd2KO", "Pkd2KO", "WT", "WT", "WT", "WT", "Pkd2KO", "Pkd2KO", "Pkd2KO", "Pkd2KO", "WT", "WT", "WT", "WT", "Pkd2KO", "Pkkd2KO", "Pkd2KO", "Pkd2KO", "WT", "WT", "WT", "WT")
 
 ```
 
@@ -924,113 +580,32 @@ heatmap_p28 <- pheatmap::pheatmap(conv_cts_19[rownames(top20lfc_19), ], cluster_
 
 
 ```{r}
-#write.csv(genes_19, file = here("res/deseq2_outputs", "deseq2_p28_fullannotatedres.csv"))
+write.csv(genes_19, file = here("res/deseq2_outputs", "deseq2_p28_fullannotatedres.csv"))
 
-#ggsave(heatmap_p28, filename = here("res", "fea", "heatmap_p28.pdf"), height = 7, width = 14)
+ggsave(heatmap_p28, filename = here("res", "fea", "heatmap_p28.pdf"), height = 7, width = 14)
 ```
 
 gene signature
 ```{r}
-sig_wrangling <- function(lincsup, lincsdown, countconversion){
-  sig <- rbind(lincsup, lincsdown)
-  sig <- merge(sig, countconversion, by.x = "Mouse.gene.stable.ID", by.y = "ensembl_gene_id")
-
-  #Filter out repeating data
-  sig <- dplyr::distinct(sig_19, hgnc_symbol, .keep_all = TRUE)
-  sig_cts <- tibble::column_to_rownames(sig_19, "hgnc_symbol")
-  #find all sample counts
-  srr_19 <- str_subset(colnames(sig_19_cts), "SRR")
-  
-}
-
 sig_19 <- rbind(hom_19_UP, hom_19_DOWN)
 sig_19 <- merge(sig_19, conv_cts_19_all, by.x = "Mouse.gene.stable.ID", by.y = "ensembl_gene_id")
 #sig_19 <- tidyr::drop_na(sig_19)
 #Filter out repeating data
 sig_19 <- dplyr::distinct(sig_19, hgnc_symbol, .keep_all = TRUE)
 sig_19_cts <- tibble::column_to_rownames(sig_19, "hgnc_symbol")
-srr_19 <- str_subset(colnames(sig_19_cts), "SRR")
-sig_19_cts <- subset(sig_19_cts, select = c(srr_19))
-colnames(sig_19_cts) <- c("Pkd2KO", "Pkd2KO", "Pkd2KO", "wildtype", "wildtype", "wildtype", "wildtype", "Pkd2KO", "Pkd2KO", "Pkd2KO", "Pkd2KO", "wildtype", "wildtype", "wildtype", "wildtype", "Pkd2KO", "Pkkd2KO", "Pkd2KO", "Pkd2KO", "wildtype", "wildtype", "wildtype", "wildtype")
+#srr_19 <- str_subset(colnames(sig_19_cts), "SRR")
+#sig_19_cts <- subset(sig_19_cts, select = c(srr_19))
+sig_19_cts <- dplyr::select(sig_19_cts, starts_with("SRR"))
+colnames(sig_19_cts) <- c("Pkd2KO", "Pkd2KO", "Pkd2KO", "WT", "WT", "WT", "WT", "Pkd2KO", "Pkd2KO", "Pkd2KO", "Pkd2KO", "WT", "WT", "WT", "WT", "Pkd2KO", "Pkd2KO", "Pkd2KO", "Pkd2KO", "WT", "WT", "WT", "WT")
 
-heatmap_p28 <- pheatmap::pheatmap(sig_19_cts[row.names(sig_19_cts), ], cluster_rows = TRUE, cluster_cols = TRUE, show_rownames = TRUE, fontsize_row = 2.5, color = viridis(n= 10000, alpha = 1, begin = 0, end = 1, option = "viridis"), border_color = "NA", main = "Gene Signature for Cystic P28", angle_col = 45)
+heatmap_p28 <- pheatmap::pheatmap(sig_19_cts[row.names(sig_19_cts), ], cluster_rows = TRUE, cluster_cols = TRUE, show_rownames = FALSE, fontsize_row = 2.5, color = viridis(n= 10000, alpha = 1, begin = 0, end = 1, option = "viridis"), border_color = "NA", main = "Gene Signature for Cystic P28", angle_col = 45)
 
 ```
 
 ```{r}
-#write.csv(sig_19, here("res/deseq2_outputs", "signature_annotation_p28.csv"))
+write.csv(sig_19, here("res/deseq2_outputs", "signature_annotation_p28.csv"))
 
-#ggsave(heatmap_p28, filename = here("res/deseq2_outputs", "heatmap_p28_signature.pdf"))
-
-```
-
-#### Volcano plots
-#####p28 DEGs to p70 Targets
-
-convert from mouse ensembl to human symbol
-```{r}
-#dsq2_19 <- read.csv(here("res", "deseq2_outputs", "deseq2_fullres_19.csv"), row.names = 1)
-ens_mouse2human_19 <- tibble:::rownames_to_column(dsq2_19, var = "Mouse.gene.stable.ID")
-  #conversion table
-ens_mouse2human_19 <- merge(ens_mouse2human_19, ens_annot, by = "Mouse.gene.stable.ID")
-#biomart to conver human ens to human entrez
-human_19 <- useEnsembl("ensembl", dataset = "hsapiens_gene_ensembl", mirror = "useast")
-convgenes_19 <- getBM(filters = "ensembl_gene_id", attributes = c("ensembl_gene_id","entrezgene_id", "hgnc_symbol"), values = ens_mouse2human_19$Gene.stable.ID, mart = human)
-  
-conv_tbl_19 <- merge(convgenes_19, ens_mouse2human_19, by.x = "ensembl_gene_id", by.y = "Gene.stable.ID")
-
-conv_tbl_19 <- tidyr::drop_na(conv_tbl_19)
-
-#remove duplicates due to multiple homolog mapping
-conv_tbl_19 <- conv_tbl_19 %>% dplyr::arrange(order_by = desc(abs(log2FoldChange))) %>% dplyr::distinct(hgnc_symbol, .keep_all = TRUE)
-```
-
-Convert gene ID's of rlog normalized count data to human symbols
-```{r}
-volc_19 <- merge(conv_cts_all, conv_tbl_19, by.x = "ensembl_gene_id", by.y = "Mouse.gene.stable.ID")
-
-```
-
-targets in > 2 LFC
-```{r}
-targets_in19 <- merge(fda_approved_39_targets, conv_tbl_19, by.x = "t_gn_sym", by.y = "hgnc_symbol")
-targets_in19 <- dplyr::filter(targets_in19, log2FoldChange > 2.0)# | log2FoldChange < -2.0)
-#how many total drug targets are upregulated > 2.0 LFC?
-length(unique(targets_in19$t_gn_sym))
-#drugs matching to these
-unique(targets_in19$pert)
-```
-
-
-```{r}
-volcano_19 <-  EnhancedVolcano(volc_19, lab = volc_19$hgnc_symbol, x = 'log2FoldChange', y = 'padj', selectLab = unique(targets_in19$t_gn_sym), pCutoff = 0.05, FCcutoff = 2.0, pointSize = 3.0, labSize = 4.0, col = c("#440154", "#21918c", "#fde725", "#5ec962"), title = "P70 Pre-Cystic Drug Targets Found in P28 \nCystic DEGs", labFace = 'bold', boxedLabels = TRUE,drawConnectors = TRUE,widthConnectors = 0.5,colConnectors = 'black', max.overlaps = 70) 
-#EnhancedVolcano(conv_tbl_19, lab = conv_tbl_19$hgnc_symbol, x = 'log2FoldChange', y = 'padj', selectLab = unique(targets_in19$t_gn_sym), pCutoff = 0.05, FCcutoff = 0.5, pointSize = 3.0, labSize = 4.0, col = c("#440154", "#21918c", "#5ec962", "#fde725"), title = "P70 Pre-Cystic Drug Targets Found in P28 \nCystic DEGs", labFace = 'bold', boxedLabels = TRUE,drawConnectors = TRUE,widthConnectors = 0.5,colConnectors = 'black', max.overlaps = 25) 
-
-volcano_19
-```
-
-
-```{r}
-#ggsave(volcano_19, filename =  here("res/sigsearch_outputs", "volcano_drugtargets_p28degs.pdf"))
-```
-
-Targets upregulated in both cystic data sets
-```{r}
-cystic_targets <- merge(targets_in19, targets_in56, by = "pert")
-
-#unique overlapping drugs
-length(unique(cystic_targets$pert))
-#unique overlapping targets
-length(unique(cystic_targets$t_gn_sym.x))
-```
-
-Data wrangling - remove completely redundant columns and rows 
-```{r}
-cystic_targets <- cbind(Drug = cystic_targets$pert, Drug_Targets = cystic_targets$t_gn_sym.x, MOA = cystic_targets$MOA.x, Original_Indication = cystic_targets$Indication.x) %>% as.data.frame()
-
-cystic_targets <- dplyr::distinct(cystic_targets)
-
-write.csv(cystic_targets, file = here("res/sigsearch_outputs", "drug_targets_oe_cysticdegs.csv"))
+ggsave(heatmap_p28, filename = here("res/deseq2_outputs", "heatmap_p28_signature.png"))
 
 ```
 

@@ -1,0 +1,268 @@
+---
+title: "drugtarget_analyses"
+author: "Lizzy Ramsey"
+date: "11/11/2022"
+    html_document:
+      toc: true
+      toc_depth: 4
+      toc_float: true
+---
+
+### Purpose  drug target analyses from pre-cystic kidney data P70 (GSE149739) compared to cystic kidney data P21 (GSE69556) and P28 (GSE134719) from __deseq2_analyses.Rmd__ and __sigsearch_analyses.Rmd__.  
+__Data Sets__
+- '39 / Pre-Cystic P70: [GSE149739](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE149739)  
+- '56 / Cystic P21: [GSE69556](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE69556)  
+- '19 / Cystic P28: [GSE134719](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE134719)  
+
+Load libraries  
+```{r message=FALSE, warning = FALSE}
+library(signatureSearch)
+library(ggplot2)
+library(ggalluvial)
+#library(readr)
+library(signatureSearch)
+library(ExperimentHub); library(rhdf5)
+library(here)
+library(dplyr)
+source(here("code", "functions.R"))
+```
+
+### Targets of Candidate Drugs  
+Targets of all FDA-approved drugs
+```{r}
+fda_approved_39 <- readRDS(here("res", "sigsearch_outputs", "p70_fdaapproved_drugs.rds"))
+fda_approved_39_targets <- tidyr::separate_rows(fda_approved_39, t_gn_sym, sep = "; ")
+#remove drugs with empty 'target' field
+fda_approved_39_targets <- dplyr::filter(fda_approved_39_targets, t_gn_sym != "")
+
+```
+
+Save
+```{r }
+#target-separated, rhub-annotated drug results for 39
+write.csv(fda_approved_39_targets, file = here("res", "sigsearch_outputs", "fda_drug_targets_39.csv"))
+```
+
+
+### Drug Targets in Cystic DEGs  
+Read in DEGs from all 3 data sets (from markdown: deseq2_analyses)
+```{r}
+dsq2_p70 <- readRDS(file = here("res", "deseq2_outputs", "deseq2_fullres_39.rds"))
+dsq2_p21 <- readRDS(file = here("res", "deseq2_outputs", "deseq2_fullres_56.rds"))
+dsq2_p28 <- readRDS(file = here("res", "deseq2_outputs", "deseq2_fullres_19.rds"))
+```
+
+Read in drug targets from FDA approved candidates from signature reversion of p70 (from markdown: sigsearch_analyses)
+```{r}
+fda_approved_39_targets <- read.csv(here("res", "sigsearch_outputs", "fda_drug_targets_39.csv"), row.names = 1)
+```
+
+Gene conversion
+```{r}
+conv_genes <- convertMouseGeneList_2(row.names(dsq2_p70))
+
+```
+
+####P70 DEGs to P70 targets
+targets expressed in pre-cystic P70 / 39 degs
+```{r}
+targetdegs_p70 <- targets_in_degs(conv_genes, dsq2_p70, fda_approved_39_targets, 1.1)
+
+volcano_p70 <- target_deg_plot(targetdegs_p70, 1.1, "P70 Pre-Cystic Drug Targets Found in P70 \nPre-Cystic DEGs")
+volcano_p70
+
+```
+
+save
+```{r}
+ggsave(volcano_p70, filename =  here("res/sigsearch_outputs", "volcano_drugtargets_p70degs.pdf"))
+```
+
+####P21 DEGs to P70 targets
+targets expressed in cystic P21 / 56 degs
+```{r}
+targetdegs_p21 <- targets_in_degs(conv_genes, dsq2_p21, fda_approved_39_targets, 2)
+
+volcano_p21 <- target_deg_plot(targetdegs_p21, 2, "P70 Pre-Cystic Drug Targets Found in P21 \nCystic DEGs")
+volcano_p21
+
+```
+
+save
+```{r}
+ggsave(volcano_p21, filename =  here("res/sigsearch_outputs", "volcano_drugtargets_p21degs.pdf"))
+```
+
+
+####P28 DEGs to P70 targets
+targets expressed in cystic P28 / 19 degs
+```{r}
+targetdegs_p28 <- targets_in_degs(conv_genes, dsq2_p28, fda_approved_39_targets, 2)
+
+volcano_p28 <- target_deg_plot(targetdegs_p28, 2, "P70 Pre-Cystic Drug Targets Found in P28 \nCystic DEGs")
+volcano_p28
+
+```
+
+save
+```{r}
+ggsave(volcano_p28, filename =  here("res/sigsearch_outputs", "volcano_drugtargets_p28degs.pdf"))
+```
+
+#### Targets in Both Cystic DEG Data Sets
+
+Targets upregulated in both cystic data sets
+```{r}
+cystic_targets <- merge(targetdegs_p21$targetdegs, targetdegs_p28$targetdegs, by = "pert")
+
+#unique overlapping drugs
+length(unique(cystic_targets$pert))
+#unique overlapping targets
+length(unique(cystic_targets$t_gn_sym.x))
+```
+
+Alluvial plot of drugs-targets with just FDA approved drugs
+```{r}
+cystic_targets <- read.csv(file = here("res/sigsearch_outputs", "drug_targets_oe_cysticdegs.csv"), row.names = 1)
+#target_alluvial <- tidyr::separate_rows(cystic_overlap_drugs, t_gn_sym, sep = "; ")
+#target_tbl <- cbind(pert = cystic_targets$pert, Upregulated_Target = cystic_targets$t_gn_sym.x) %>% as.data.frame()
+```
+
+plot
+```{r}
+#number of targets per drug
+t <- table(cystic_targets$Drug_Targets) %>% as.data.frame()
+t$Var1 <- as.character(t$Var1)
+
+#cystic_targets$Drug <- as.factor(cystic_targets$Drug)
+cystic_targets <- dplyr::full_join(cystic_targets, t, by= c("Drug_Targets" = "Var1"))
+
+target_alluvial <- cystic_targets %>% mutate(Drug_Targets = forcats::fct_reorder(Drug_Targets, desc(Freq))) %>%  ggplot(aes(axis1 = Drug, axis2 = Drug_Targets)) +
+  geom_alluvium(color = "black", aes(fill = Drug_Targets), show.legend=FALSE) + # , colour = trend)) + 
+  geom_stratum(width = 3/12, color = "black") + #the border of the stratum
+  scale_fill_viridis_d(aesthetics = c("colour", "fill")) +
+  geom_text(stat = "stratum", size = 5, fontface = "bold", aes(label = after_stat(stratum))) +
+  theme(axis.title.x = element_blank(), plot.title = element_text(size = 24, face = "bold", hjust = 0.5), axis.text.x = element_blank(), axis.text.y = element_blank(), axis.ticks = element_blank()) + ggtitle(label = "Drug Targets in P21 and P28 Cystic DEGs") + 
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+panel.background = element_blank() )
+
+
+target_alluvial
+```
+
+
+```{r}
+#ggsave(here("res/sigsearch_outputs", "targets_cysticupregulated_alluvial.pdf"), target_alluvial, width = 8, height = 22)
+```
+
+
+Drug data for drugs whose targets are upregulated in both cystic data sets, pull repurposing hub data again, for manuscript
+```{r}
+cystic_overlap_drugs <- dplyr::filter(fda_approved_39, pert %in% unique(cystic_targets$Drug))
+
+cystic_overlap_drugs <- cbind(Drug = cystic_overlap_drugs$pert, Drug_Targets = cystic_overlap_drugs$t_gn_sym, MOA = cystic_overlap_drugs$MOA, Original_Indication = cystic_overlap_drugs$Indication) %>% as.data.frame()
+```
+
+```{r}
+write.csv(cystic_overlap_drugs, file = here("res/sigsearch_outputs", "drug_summaries_oe_cystic.csv"))
+```
+
+
+### DSEA  
+Enrichment of prioritized targets, drug set enrichment analysis (DSEA) for prioritized drugs
+```{r}
+dsea_prioritzeddrugs <- dsea_hyperG(
+  drugs = unique(cystic_targets$Drug),
+  type = "GO",
+  ont = "MF",
+  pvalueCutoff = 0.05,
+  pAdjustMethod = "BH",
+  qvalueCutoff = 0.2,
+  minGSSize = 10,
+  maxGSSize = 500
+)
+
+```
+
+
+```{r}
+dsea_prioritzeddrugs <- dsea_prioritzeddrugs@result
+write.csv(dsea_prioritzeddrugs, here("res/sigsearch_outputs", "dsea_cystictargetdrugs_pathways.csv"))
+```
+
+barplot of top target enrichment
+```{r}
+dsea_prioritzeddrugs$Description <- stringr::str_trunc(dsea_prioritzeddrugs$Description, width = 75)
+dsea_prioritzeddrugs$Description <- stringr::str_wrap(dsea_prioritzeddrugs$Description, width = 45)
+dsea_prioritzeddrugs$Count <- as.numeric(dsea_prioritzeddrugs$Count)
+dsea_plot <- dsea_prioritzeddrugs %>% dplyr::slice_min(order_by = p.adjust, n = 20) %>% dplyr::mutate(Description = forcats::fct_reorder(Description, (Count))) %>% ggplot( aes(x=Count, y=Description, fill = p.adjust)) +
+  geom_bar( stat = "identity") + 
+  scale_fill_viridis_c(begin = 0.35, end = 0.95) + 
+  labs(x = "Drugs Enriched for Term", y = "Functional Enrichment Terms") + 
+  theme(axis.text.x = element_text(size = 16, face = "bold"), axis.text.y = element_text(size = 16, face = "bold"), axis.title.x = element_text(size = 16, face = "bold"),  axis.title.y = element_text(size = 16, face = "bold"),plot.title = element_text(size = 18, face = "bold", hjust = 0.5)) + ggtitle(label = "Drug Target Enrichment Analysis") +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank(), axis.line = element_line(colour = "black")) 
+
+dsea_plot
+
+```
+
+
+```{r}
+ggsave(here("res/sigsearch_outputs", "dsea_cystictargetdrugs.png"), dsea_plot, width = 8.5, height = 12)
+
+```
+
+##### Networks: drug-target for the terms with most drugs
+oxidoreductase activity, acting on CH or CH2 groups
+```{r}
+dtnetplot(drugs = unique(cystic_targets$Drug), set = "GO:0033695", ont = "MF", 
+          desc="oxidoreductase activity, acting on CH or CH2 groups...")
+
+```
+
+
+```{r}
+dtnetplot(drugs = unique(cystic_targets$Drug), set = "GO:1901338", ont = "MF", 
+          desc="catecholamine binding")
+
+```
+
+```{r}
+#dtnetplot(drugs = drugs(dsea_prioritzeddrugs), set = "GO:0099589", ont = "MF", desc="serotonin receptor activity")
+
+```
+
+
+```{r}
+#dtnetplot(drugs = drugs(dsea_prioritzeddrugs), set = "GO:0004993", ont = "MF", desc="G protein-coupled serotonin receptor activity")
+
+```
+
+histamine receptor activity
+```{r}
+dtnetplot(drugs = unique(cystic_targets$Drug), set = "GO:0004969", ont = "MF", desc="histamine receptor activity")
+
+```
+
+calcium-dependent protein binding
+```{r}
+dtnetplot(drugs = unique(cystic_targets$Drug), set = "GO:0048306", ont = "MF", desc="calcium-dependent protein binding")
+
+```
+
+epocrates drug prices
+```{r}
+avg_prices <- c(16, 14, 65, 17000, 44, 29, 28, 73, 50, 82, 19, 32, 27, 24)
+#rm outlier
+avg_prices <- c(16, 14, 65, 44, 29, 28, 73, 50, 82, 19, 32, 27, 24)
+summary(avg_prices)
+```
+
+#### Versions  
+```{r}
+R.Version()
+```
+
+```{r}
+installed.packages()[names(sessionInfo()$otherPkgs), "Version"]
+```
