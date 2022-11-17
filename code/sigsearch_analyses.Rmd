@@ -12,7 +12,7 @@ output:
 
 
 ### Purpose  
-This markdown follows differential expression analyses from deseq2_GSE134719.Rmd, deseq2_GSE149739.Rmd, and deseq2_GSE69556.Rmd. DEGs from these markdowns are used as input for signatureSearch. Results are annotated with Drug Repurposing Hub and onSides data.  
+This markdown follows differential expression analyses from __deseq2_analyses.Rmd__. DEGs from P70 (39) pre-cystic data are used as input for signatureSearch. Results are annotated with Drug Repurposing Hub and onSides data.  
 __Data Sets__
 - '39 / Pre-Cystic P70: [GSE149739](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE149739)  
 - '19 / Cystic P21: [GSE134719](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE134719)  

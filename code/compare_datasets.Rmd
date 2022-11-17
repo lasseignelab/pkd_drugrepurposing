@@ -8,6 +8,14 @@ output:
 ---
 
 
+### Purpose  
+This markdown follows differential expression analyses from __deseq2_analyses.Rmd__. DEGs and signatures from pre-cystic P70 ('39') data and cystic P21 ('56') and P28 ('19') data are compared to each other and used for functional enirichment analysis   
+__Data Sets__
+- '39 / Pre-Cystic P70: [GSE149739](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE149739)  
+- '19 / Cystic P21: [GSE134719](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE134719)  
+- '56 / Cystic P28: [GSE69556](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE69556)  
+
+
 ```{r message=FALSE, warning = FALSE}
 library(gprofiler2)
 library(viridis)

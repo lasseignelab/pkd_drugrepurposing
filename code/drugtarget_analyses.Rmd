@@ -40,9 +40,7 @@ fda_approved_39_targets <- dplyr::filter(fda_approved_39_targets, t_gn_sym != ""
 Save
 ```{r }
 #target-separated, rhub-annotated drug results for 39
-#gene_drug_targets <- rhub_launched_39_top_septarget
-
-#write.csv(fda_approved_39_targets, file = here("res", "sigsearch_outputs", "fda_drug_targets_39.csv"))
+write.csv(fda_approved_39_targets, file = here("res", "sigsearch_outputs", "fda_drug_targets_39.csv"))
 ```
 
 
@@ -170,7 +168,8 @@ write.csv(cystic_overlap_drugs, file = here("res/sigsearch_outputs", "drug_summa
 ```
 
 
-##### Enrichment of prioritized targets, DSEA of prioritized drugs
+### DSEA  
+Enrichment of prioritized targets, drug set enrichment analysis (DSEA) for prioritized drugs
 ```{r}
 dsea_prioritzeddrugs <- dsea_hyperG(
   drugs = unique(cystic_targets$Drug),
