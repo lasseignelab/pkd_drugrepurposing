@@ -41,26 +41,6 @@ db_path <- system.file("extdata", "sample_db.h5", package = "signatureSearch")
 
 ```
 
-#### Custom functions  
-__ssRun__: Wrapper for qsiq(), signature query, using up and down genes, and gess_lincs(), the 'lincs' signatureSearch method for gene expression signature search, sorting the results by WTCS and calculating Tau values, and then filtering for inversely related signatures and for kidney cell lines (HA1E and NKDBA) only  
-```{r}
-ssRun <- function(upgenes, downgenes, cells){
-  q <- qSig(query = list(upset=as.character(upgenes), downset=as.character(downgenes)), gess_method="LINCS", refdb= lincs)
-  gess <- gess_lincs(q, sortby="WTCS", tau=TRUE, workers=1)
-  gess_res <- result(gess)
-  gess_res <- dplyr::filter(gess_res, WTCS < 0) #filter for drugs with only inverse signatures
-  if(cells == "kidney"){
-    gess_kidney <- gess_res %>% dplyr::filter(cell == "HA1E" | cell == "NKDBA")
-    return(gess_kidney)
-  }
-  else{
-return(gess_res)
-  }
-}
-
-```
-
-
 ### Pre-cystic (P70) Signature Reversion
 
 Load in top up and down DEGs  
@@ -257,25 +237,6 @@ fda_approved <- dplyr::distinct(fda_approved, ActiveIngredient, .keep_all = TRUE
 write.csv(fda_approved, file = here("data", "FDA_approved_unique_ingredients.csv"))
 ```
 
-Jen's function for checking FDA approval
-```{r}
-#This function is check the FDA-approval of candidates. The approved list comes from Drugs@FDA
-FDA_APPROVAL_CHECK<- function(drug_list, fda_approved){
-  return_list <- c()
-  for (i in 1:length(drug_list)){
-    test <- agrep( drug_list[i], fda_approved$ActiveIngredient, ignore.case= TRUE, max.distance = 0.1)
-    if (length(test)>0 ){
-      return_list[i] <- TRUE
-    }else{
-      return_list[i] <- FALSE
-    }
-
-  }
-  names(return_list)<- drug_list
-  return(return_list)
-}
-```
-
 Repurposing hub 'launched' drugs
 ```{r}
 rhub_launched_39 <- read.csv(here("res", "sigsearch_outputs", "rhub_launcheddrugs_39.csv"), row.names = 1)
@@ -296,11 +257,6 @@ save FDA-approved drug candidates
 saveRDS(fda_approved_39, file = here("res", "sigsearch_outputs", "p70_fdaapproved_drugs.rds"))
 ```
 
-Compare false pos to using agrep
-```{r}
-#test <- fda_approved_39 #101 drugs for grep, 144 agrep
-#onlyinagrep <- dplyr::setdiff(fda_approved_39, test)
-```
 
 MOA's separated, string wrap labels
 ```{r}
