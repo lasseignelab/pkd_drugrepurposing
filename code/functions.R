@@ -338,3 +338,449 @@ go_bp_sim <- function(fea_obj, orgdb, threshold){
   sim_obj <- list(simMatrix = simMatrix, reducedTerms = reducedTerms)
   return(sim_obj)
 }
+
+treemap2 <- function (dtf, index, vSize, vColor = NULL, stdErr = NULL, type = "index",
+                      fun.aggregate = "sum", title = NA, title.legend = NA, algorithm = "pivotSize",
+                      sortID = "-size", mirror.x = FALSE, mirror.y = FALSE, palette = NA,
+                      palette.HCL.options = NULL, range = NA, mapping = NA, n = 7,
+                      na.rm = TRUE, na.color = "#DDDDDD", na.text = "Missing",
+                      fontsize.title = 14, fontsize.labels = 11, fontsize.legend = 12,
+                      fontcolor.labels = NULL, fontface.labels = c("bold", rep("plain",
+                                                                               length(index) - 1)), fontfamily.title = "sans", fontfamily.labels = "sans",
+                      fontfamily.legend = "sans", border.col = "black", border.lwds = c(length(index) +
+                                                                                          1, (length(index) - 1):1), lowerbound.cex.labels = 0.4,
+                      inflate.labels = TRUE, bg.labels = NULL, force.print.labels = FALSE,
+                      overlap.labels = 0.5, align.labels = c("center", "center"),
+                      xmod.labels = 0, ymod.labels = 0, eval.labels = FALSE, position.legend = NULL,
+                      reverse.legend = FALSE, format.legend = NULL, drop.unused.levels = TRUE,
+                      aspRatio = NA, vp = NULL, draw = TRUE, ...)
+{
+  s <- NULL
+  vColor.temp <- i <- w <- h <- NULL
+  if (!exists("dtf"))
+    stop("Dataframe <dtf> not defined")
+  if (!exists("index"))
+    stop("Attribute <index> not defined")
+  if (!exists("vSize"))
+    stop("Attribute <vSize> not defined")
+  if (!inherits(dtf, "data.frame"))
+    stop("Object <dtf> is not a data.frame")
+  if (nrow(dtf) == 0)
+    stop("data.frame doesn't have any rows")
+  if (any(!index %in% names(dtf)))
+    stop("<index> contains invalid column names")
+  depth <- length(index)
+  if (length(vSize) != 1)
+    stop("vSize should be one column name")
+  if (!vSize %in% names(dtf))
+    stop("vSize is invalid column name")
+  if (!is.numeric(dtf[[vSize]]))
+    stop(paste("Column(s) in vSize not numeric", sep = ""))
+  if (!is.null(stdErr)) {
+    if (length(stdErr) != 1)
+      stop("stdErr should be one column name")
+    if (!stdErr %in% names(dtf))
+      stop("stdErr is invalid column name")
+    if (!is.numeric(dtf[[stdErr]]))
+      stop(paste("Column(s) in stdErr not numeric", sep = ""))
+  }
+  else {
+    stdErr <- vSize
+  }
+  vColorMplySplit <- function(vColor) {
+    divided <- 0
+    vColorMply <- unlist(strsplit(vColor, split = "*", fixed = TRUE))
+    if (length(vColorMply) == 1) {
+      vColorMply <- unlist(strsplit(vColor, split = "/",
+                                    fixed = TRUE))
+      if (length(vColorMply) == 1) {
+        vColorMply <- c(vColorMply, 1)
+      }
+      else {
+        vColorMply[2] <- (1/as.numeric(vColorMply[2]))
+        divided <- 1
+      }
+    }
+    return(c(vColorMply, divided))
+  }
+  if (type %in% c("index", "depth"))
+    vColor <- NULL
+  if (!is.null(vColor)) {
+    if (length(vColor) != 1)
+      stop("length of vColor should be one")
+    vColor2 <- vColorMplySplit(vColor)
+    vColorX <- as.numeric(vColor2[2])
+    if (is.na(vColorX))
+      stop("vColor: invalid scale factor")
+    vColor <- vColor2[1]
+    if (!(vColor %in% names(dtf)))
+      stop("Invalid column name in vColor.")
+    vColorDiv <- as.logical(as.numeric(vColor2[3]))
+  }
+  if (!type %in% c("value", "categorical", "comp", "dens",
+                   "index", "depth", "color", "manual"))
+    stop("Invalid type")
+  if (!is.function(match.fun(fun.aggregate)))
+    stop("fun.aggregate is not a function")
+  if (type == "dens")
+    fun.aggregate <- "weighted.mean"
+  if (!is.na(title[1]) && length(title) != 1) {
+    warning("Length of title should be 1")
+    title <- NA
+  }
+  if (is.na(title[1])) {
+    title <- vSize
+  }
+  if (!is.na(title.legend[1]) && length(title.legend) != 1) {
+    warning("Length of title.legend should be 1")
+    title.legend <- NA
+  }
+  formatColorTitle <- function(var, varX = NA, var2 = NA, var2X = NA,
+                               div) {
+    if (!is.na(var2)) {
+      if (var2X != 1) {
+        if (div)
+          var2 <- paste(1/var2X, var2, sep = "*")
+        else var <- paste(var2X, var, sep = "*")
+      }
+      var <- paste(var, "per", var2, sep = " ")
+    }
+    else {
+      if (varX != 1) {
+        if (div)
+          var <- paste(var, 1/varX, sep = "/")
+        else var <- paste(varX, var, sep = "*")
+      }
+    }
+    var
+  }
+  if (is.na(title.legend[1])) {
+    suppressWarnings({
+      if (!is.null(vColor)) {
+        if (type == "dens")
+          title.legend <- formatColorTitle(var = vColor,
+                                           var2 = vSize, var2X = vColorX, div = vColorDiv)
+        else title.legend <- formatColorTitle(var = vColor,
+                                              varX = vColorX, div = vColorDiv)
+      }
+      else title.legend <- ""
+    })
+  }
+  if (!algorithm %in% c("pivotSize", "squarified"))
+    stop("Invalid algorithm")
+  if (length(sortID) != 1)
+    stop("sortID should be of length one")
+  ascending <- substr(sortID, 1, 1) != "-"
+  if (!ascending)
+    sortID <- substr(sortID, 2, nchar(sortID))
+  if (sortID == "size")
+    sortID <- vSize
+  if (sortID == "color")
+    sortID <- vColor
+  if (sortID == "se")
+    sortID <- stdErr
+  if (!(sortID %in% names(dtf)))
+    stop("Incorrect sortID")
+  if (is.na(palette[1])) {
+    if (type == "comp") {
+      palette <- brewer.pal(11, "RdYlGn")
+    }
+    else if (type == "dens") {
+      palette <- brewer.pal(9, "OrRd")
+    }
+    else if (type == "depth") {
+      palette <- brewer.pal(8, "Set2")
+    }
+    else if (type == "index") {
+      palette <- "HCL"
+    }
+    else if (type == "value") {
+      palette <- brewer.pal(11, "RdYlGn")
+    }
+    else if (type == "categorical") {
+      palette <- "HCL"
+    }
+    else if (type == "manual") {
+      stop("For \"manual\" treemaps, a palette should be provided.")
+    }
+  }
+  else {
+    reverse <- (substr(palette[1], 1, 1) == "-")
+    if (reverse)
+      palette[1] <- substr(palette[1], 2, nchar(palette[1]))
+    if ((length(palette) == 1) && (palette[1] %in% row.names(brewer.pal.info))) {
+      palette <- brewer.pal(brewer.pal.info[palette, "maxcolors"],
+                            palette)
+      if (reverse)
+        palette <- rev(palette)
+    }
+    else {
+      if (palette[1] == "HCL" && !(type %in% c("depth",
+                                               "index", "categorical"))) {
+        stop("HCL palette only applicable for treemap types \"depth\", \"index\" and \"categorical\".")
+      }
+      if (palette[1] != "HCL" & inherits(try(col2rgb(palette),
+                                             silent = TRUE), "try-error")) {
+        stop("color palette is not correct")
+      }
+    }
+  }
+  palette.HCL.options <- treemap:::tmSetHCLoptions(palette.HCL.options)
+  if (!all(is.na(range))) {
+    if (length(range) != 2)
+      stop("length range should be 2")
+    if (!is.numeric(range))
+      stop("range is not numeric")
+  }
+  else range <- c(NA, NA)
+  if (!all(is.na(mapping))) {
+    if (!length(mapping) %in% c(2, 3))
+      stop("length range should be 2 or 3")
+    if (!is.numeric(mapping))
+      stop("range is not numeric")
+    if (length(mapping) == 2) {
+      mapping <- c(mapping[1], mean(mapping), mapping[2])
+    }
+  }
+  else mapping <- c(NA, NA, NA)
+  if (length(fontsize.title) != 1 || !is.numeric(fontsize.title))
+    stop("Invalid fontsize.title")
+  if (title == "")
+    fontsize.title <- 0
+  if (!is.numeric(fontsize.labels))
+    stop("Invalid fontsize.labels")
+  fontsize.labels <- rep(fontsize.labels, length.out = depth)
+  cex_indices <- fontsize.labels/12
+  if (length(fontsize.legend) != 1 || !is.numeric(fontsize.legend))
+    stop("Invalid fontsize.legend")
+  if (!missing(fontcolor.labels))
+    if (length(fontcolor.labels) != depth)
+      fontcolor.labels <- rep(fontcolor.labels, length.out = depth)
+  if (length(fontface.labels) != depth)
+    fontface.labels <- rep(fontface.labels, length.out = depth)
+  if (length(border.col) != depth)
+    border.col <- rep(border.col, length.out = depth)
+  if (length(border.lwds) != depth)
+    border.lwds <- rep(border.lwds, length.out = depth)
+  if (length(lowerbound.cex.labels) != 1 || !is.numeric(lowerbound.cex.labels))
+    stop("Invalid lowerbound.cex.labels")
+  if (lowerbound.cex.labels < 0 || lowerbound.cex.labels >
+      1)
+    stop("lowerbound.cex.labels not between 0 and 1")
+  if (length(inflate.labels) != 1 || class(inflate.labels) !=
+      "logical")
+    stop("Invalid inflate.labels")
+  if (missing(bg.labels)) {
+    bg.labels <- ifelse(type %in% c("value", "categorical"),
+                        "#CCCCCCDC", 220)
+  }
+  else {
+    if (length(bg.labels) != 1)
+      stop("Invalid bg.labels")
+    if (!is.numeric(bg.labels)) {
+      if (class(try(col2rgb(bg.labels), silent = TRUE)) ==
+          "try-error")
+        stop("Invalid bg.labels")
+    }
+    else {
+      if (bg.labels < 0 || bg.labels > 255)
+        stop("bg.labels should be between 0 and 255")
+    }
+  }
+  if (length(force.print.labels) != 1 || class(force.print.labels) !=
+      "logical")
+    stop("Invalid force.print.labels")
+  if (length(overlap.labels) != 1 || !is.numeric(overlap.labels))
+    stop("Invalid overlap.labels")
+  if (overlap.labels < 0 || overlap.labels > 1)
+    stop("overlap.labels should be between 0 and 1")
+  if (!is.list(align.labels))
+    align.labels <- list(align.labels)
+  if (length(align.labels) != depth)
+    align.labels <- rep(align.labels, length.out = depth)
+  lapply(align.labels, function(al) if (!(al[1] %in% c("left",
+                                                       "center", "centre", "right") && al[2] %in% c("top", "center",
+                                                                                                    "centre", "bottom")))
+    stop("incorrect align.labels"))
+  if (is.list(xmod.labels))
+    xmod.labels <- as.list(xmod.labels)
+  if (is.list(ymod.labels))
+    ymod.labels <- as.list(ymod.labels)
+  if (length(xmod.labels) != depth)
+    xmod.labels <- rep(xmod.labels, length.out = depth)
+  if (length(ymod.labels) != depth)
+    ymod.labels <- rep(ymod.labels, length.out = depth)
+  if (missing(position.legend)) {
+    position.legend <- switch(type, categorical = "right",
+                              depth = "right", index = "none", color = "none",
+                              "bottom")
+  }
+  else {
+    if (!position.legend %in% c("right", "bottom", "none"))
+      stop("Invalid position.legend")
+  }
+  if (length(drop.unused.levels) != 1 || class(drop.unused.levels) !=
+      "logical")
+    stop("Invalid drop.unused.levels")
+  if (length(aspRatio) != 1 || (!is.na(aspRatio[1]) && !is.numeric(aspRatio)))
+    stop("Invalid aspRatio")
+  args <- list(...)
+  args$na.rm <- na.rm
+  if (inherits(dtf, c("tbl_df"))) {
+    dtfDT <- data.table::as.data.table(data.frame(dtf[, c(index, vSize,
+                                                          vColor, sortID, stdErr)]))
+  }
+  else if (data.table::is.data.table(dtf)) {
+    dtfDT <- copy(dtf[, c(index, vSize, vColor, sortID, stdErr),
+                      with = FALSE])
+  }
+  else {
+    dtfDT <- data.table::as.data.table(dtf[, c(index, vSize, vColor,
+                                               sortID, stdErr)])
+  }
+  if (is.null(vColor)) {
+    vColor <- "vColor.temp"
+    vColorX <- 1
+    dtfDT[, `:=`(vColor.temp, 1)]
+    data.table::setcolorder(dtfDT, c(1:(ncol(dtfDT) - 3), ncol(dtfDT),
+                                     ncol(dtfDT) - 2, ncol(dtfDT) - 1))
+  }
+  indexList <- paste0("index", 1:depth)
+  setnames(dtfDT, old = 1:ncol(dtfDT), new = c(indexList, "s",
+                                               "c", "i", "se"))
+  if (vColorX != 1)
+    dtfDT[, `:=`(c, c/vColorX)]
+  if (fun.aggregate == "weighted.mean") {
+    if ("w" %in% names(args)) {
+      if (is.character(args$w)) {
+        dtfDT[, `:=`(w, eval(parse(text = args$w)))]
+      }
+      else {
+        dtfDT[, `:=`(w, args$w)]
+      }
+    }
+    else {
+      dtfDT[, `:=`(w, s)]
+    }
+  }
+  else {
+    dtfDT[, `:=`(w, 1)]
+  }
+  for (d in 1:depth) {
+    if (is.numeric(dtfDT[[d]])) {
+      fact <- factor(dtfDT[[d]], levels = sort(unique(dtfDT[[d]])))
+      dtfDT[, `:=`((d), fact)]
+    }
+    else if (!is.factor(dtfDT[[d]])) {
+      fact <- factor(dtfDT[[d]])
+      dtfDT[, `:=`((d), fact)]
+    }
+  }
+  if (is.character(dtfDT[["c"]])) {
+    dtfDT[, `:=`(c, factor(c))]
+  }
+  if (!is.numeric(dtfDT[["i"]])) {
+    warning("sortID must be a numeric variable")
+    dtfDT[, `:=`(i, integer(nrow(dtfDT)))]
+  }
+  if (!is.null(stdErr) && !is.numeric(dtfDT[["se"]])) {
+    warning("stdErr must be a numeric variable")
+    dtfDT[, `:=`("se", integer(dtfDT[["se"]]))]
+  }
+  setkeyv(dtfDT, indexList)
+  datlist <- treemap:::tmAggregate(dtfDT, indexList, type, ascending,
+                                   drop.unused.levels, fun.aggregate, args)
+  catLabels <- switch(type, categorical = levels(datlist$c),
+                      index = levels(datlist$index1), depth = index, standErr = datlist$se,
+                      NA)
+  if (!draw)
+    position.legend <- "none"
+  vps <- treemap:::tmGetViewports(vp, fontsize.title, fontsize.labels,
+                                  fontsize.legend, position.legend, type, aspRatio, title.legend,
+                                  catLabels)
+  if (draw)
+    treemap:::tmPrintTitles(vps, title, title.legend, position.legend,
+                            fontfamily.title, fontfamily.legend)
+  if (type == "color") {
+    datlist$color <- as.character(datlist$c)
+    datlist$colorvalue <- NA
+  }
+  else {
+    attr(datlist, "range") <- 1:2
+    datlist <- treemap:::tmColorsLegend(datlist, vps, position.legend,
+                                        type, palette, range, mapping, indexNames = index,
+                                        palette.HCL.options = palette.HCL.options, border.col,
+                                        fontfamily.legend, n, na.color, na.text, format.legend,
+                                        reverse.legend)
+  }
+  datlist <- treemap:::tmGenerateRect(datlist, vps, indexList, algorithm)
+  if (mirror.x)
+    datlist <- within(datlist, x0 <- 1 - x0 - w)
+  if (mirror.y)
+    datlist <- within(datlist, y0 <- 1 - y0 - h)
+  if (draw) {
+    treemap:::tmDrawRect(datlist, vps, indexList, lowerbound.cex.labels,
+                         inflate.labels, bg.labels, force.print.labels, cex_indices,
+                         overlap.labels, border.col, border.lwds, fontcolor.labels,
+                         fontface.labels, fontfamily.labels, align.labels,
+                         xmod.labels, ymod.labels, eval.labels)
+  }
+  upViewport(0 + !is.null(vp))
+  tm <- datlist[, c(indexList, "s", "c", "se", "colorvalue",
+                    "l", "x0", "y0", "w", "h", "color"), with = FALSE]
+  if (type == "dens")
+    tm[, `:=`(c, c * s)]
+  data.table::setnames(tm, c(index, "vSize", "vColor", "stdErr", "vColorValue",
+                             "level", "x0", "y0", "w", "h", "color"))
+  tmSave <- list(tm = as.data.frame(tm), type = type, vSize = vSize,
+                 vColor = ifelse(vColor == "vColor.temp", NA, vColor),
+                 stdErr = stdErr, algorithm = algorithm, vpCoorX = vps$vpCoorX,
+                 vpCoorY = vps$vpCoorY, aspRatio = vps$aspRatio, range = range,
+                 mapping = mapping, draw = draw)
+  invisible(tmSave)
+}
+
+
+treemapPlot2 <- function (reducedTerms, size = "score", title = "", ...)
+{
+  if (!all(sapply(c("treemap"), requireNamespace, quietly = TRUE))) {
+    stop("Package treemap and/or its dependencies not available. ",
+         "Consider installing it before using this function.",
+         call. = FALSE)
+  }
+  treemap(reducedTerms, index = c("parentTerm", "term"),
+          vSize = size, type = "index", title = title, palette = #metafolio::gg_color_hue(length(unique(reducedTerms$parent))),
+            viridis(n = length(unique(reducedTerms$parent)), end = 0.9),
+          fontcolor.labels = c("#FFFFFFDD", "#00000080"), bg.labels = 200,
+          border.col = "#00000080", ...)
+}
+
+scatterPlot2 <- function (simMatrix, reducedTerms, size = "score", addLabel = TRUE,
+                          labelSize = 3)
+{
+  if (!all(sapply(c("ggplot2", "ggrepel"), requireNamespace,
+                  quietly = TRUE))) {
+    stop("Packages ggplot2, ggrepel and/or its dependencies not available. ",
+         "Consider installing them before using this function.",
+         call. = FALSE)
+  }
+  x <- cmdscale(as.matrix(as.dist(1 - simMatrix)), eig = TRUE,
+                k = 2)
+  df <- cbind(as.data.frame(x$points), reducedTerms[match(rownames(x$points),
+                                                          reducedTerms$go), c("term", "parent", "parentTerm", "size")])
+  p <- ggplot2::ggplot(df, ggplot2::aes(x = V1, y = V2, color = parentTerm)) +
+    ggplot2::geom_point(ggplot2::aes(size = size), alpha = 0.5) +
+    ggplot2::scale_color_discrete(guide = "none") + ggplot2::scale_size_continuous(guide = "none",
+                                                                                   range = c(0, 25)) + ggplot2::scale_x_continuous(name = "") +
+    ggplot2::scale_y_continuous(name = "") + ggplot2::theme_minimal() +
+    ggplot2::theme(axis.text.x = ggplot2::element_blank(),
+                   axis.text.y = ggplot2::element_blank())
+  if (addLabel) {
+    p + ggrepel::geom_label_repel(aes(label = parentTerm),
+                                  data = subset(df, parent == rownames(df)), box.padding = grid::unit(0.5,
+                                                                                                      "lines"), size = labelSize, max.overlaps = 20)
+  }
+  else {
+    p
+  }
+}
