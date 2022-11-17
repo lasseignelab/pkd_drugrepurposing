@@ -51,7 +51,6 @@ Metadata: https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE149739
 
 ```{r}
 cts_39 <- readRDS(here("data", "GSE149739_salmonmerged_gene_counts.rds"))
-
 meta_39 <- read.csv(here("data", "GSE149739_metadata.txt"), row.names = 1)
 ```
 
@@ -66,7 +65,6 @@ meta_39 <- dplyr::filter(meta_39, Genotype %in% nonift88)
 ```{r}
 cts_39 <- cts_39@assays@data@listData[["counts"]]
 dds_39 <- salmon2dds(cts_39, meta_39)
-
 ```
 
 
@@ -74,7 +72,6 @@ dds_39 <- salmon2dds(cts_39, meta_39)
 ```{r}
 #relevel to make wildtype the reference instead of first alphabetical factor
 dds_39$Genotype <- relevel(dds_39$Genotype, ref = "Wildtype")
-
 #run DESeq: estimates size factors, estimates dispersion, fits negative binomial GLM's and performs Wald stats
 dds_39 <- DESeq(dds_39) 
 ```
@@ -85,7 +82,6 @@ dds_39 <- DESeq(dds_39)
 #extract results table with log2 fold changes, p values and adjusted p values for desired coefficients
 #alpha 0.05 cutoff
 #res_nf <- results(dds_39, alpha = 0.05, contrast = c("Genotype", "Pkd2flflPax8rtTATetOcre", "Wildtype"))
-
 res_nf <- lfcShrink(dds_39, coef = c("Genotype_Pkd2flflPax8rtTATetOcre_vs_Wildtype"), type="apeglm")
 res_nf
 ```
@@ -93,7 +89,6 @@ res_nf
 DESeq2 results
 ```{r}
 dsq2_39 <- as.data.frame(res_nf)
-
 ```
 
 Save full deseq results
@@ -107,7 +102,6 @@ Using < -2 and > 2 LFC threshold for up and downregulated genes
 ```{r}
 musdegs_39_UP <- uplfc(dsq2_39, lfcutoff = 1.1)
 musdegs_39_DOWN <- downlfc(dsq2_39, lfcutoff = -1.1)
-
 ```
 
 Total genes above threshold before mapping from mouse ensembl to human symbol/entrez
@@ -118,9 +112,7 @@ dim(musdegs_39_DOWN) #43 at lfc < -1.3  , 63 at lfc <   63
 
 ```{r }
 write.csv(musdegs_39_UP, file = here("res", "deseq2_outputs", "deseq2_upgenes_res_39.csv"))
-
 write.csv(musdegs_39_DOWN, file = here("res", "deseq2_outputs", "deseq2_downgenes_res_39.csv"))
-
 ```
 
 
@@ -128,7 +120,6 @@ Regularized log transformation
 rlog() is better to use for these datasets -- better for high count variance by sample (in this case, one sample has over 2x the reads compared to the others in one data set) and for smaller datasets "if you have many samples (e.g. 100s), the rlog function might take too long, and so the vst function will be a faster choice. The rlog and VST have similar properties, but the rlog requires fitting a shrinkage term for each sample and each gene which takes time. See the DESeq2 paper for more discussion on the differences (Love, Huber, and Anders 2014)."  
 ```{r}
 #vsd_nf <- vst(dds_39, blind = FALSE) #if blind, could minimize large count differences due to anticipated experimental variation
-
 rld_nf <- rlog(dds_39, blind = FALSE) 
 ```
 
@@ -144,7 +135,6 @@ Map to human entrez and filter by LINCS genes
 hom_degs_UP <- lincsGenes(musdegs_39_UP, "up")
  
 hom_degs_DOWN <-  lincsGenes(musdegs_39_DOWN, "down")
-
 #should be 100 or less
 length(unique(hom_degs_UP$entrezgene_id)) #99
 length(unique(hom_degs_DOWN$entrezgene_id)) #31
@@ -165,11 +155,9 @@ Map measured mouse ensembl genes to mouse MGI symbol genes and then filter for c
 cts_df <- as.data.frame(assays((rld_nf))) 
 #gene_id into a column
 cts_df <- tibble:::rownames_to_column(cts_df, var = "ensembl_gene_id")
-
 #biomart to pull gene symbls and descriptions
 mouse <- useEnsembl("ensembl", dataset = "mmusculus_gene_ensembl", mirror = "useast")
 gene_desc <- getBM(filters = "ensembl_gene_id", attributes = c("ensembl_gene_id","entrezgene_id", "mgi_symbol", "description"), values = cts_df$ensembl_gene_id, mart = mouse)
-
 ps <- grep("pseudogene", gene_desc$description, value = TRUE)
 rp <- grep("ribosom", gene_desc$description, value = TRUE)
 pred <- grep("predicted", gene_desc$description, value = TRUE)
@@ -180,15 +168,11 @@ converting gene IDs for normalized (rlog) gene counts
 ```{r}
 #Merge gene symbols into counts and gene ID
 conv_cts_all <- merge(cts_df, coding_genes, by = "ensembl_gene_id")
-
 #Filter out repeating data
 conv_cts_all <- dplyr::distinct(conv_cts_all, mgi_symbol, .keep_all = TRUE)
-
 #Convert back to rownames but with gene symbols
 conv_cts <- tibble:::column_to_rownames(conv_cts_all, "mgi_symbol")
-
 conv_cts <- subset(conv_cts, select = c("SRR11680775", "SRR11680776", "SRR11680777", "SRR11680778", "SRR11680779", "SRR11680780"))
-
 #Remove extra columns
 conv_cts <- conv_cts[,!(colnames(conv_cts) %in% c("ensembl_gene_id", "group", "group_name", "entrezgene_id", "description"))]
 colnames(conv_cts) <- c("WT", "WT", "WT", "Pkd2KO", "Pkd2KO", "Pkd2KO")
@@ -199,13 +183,10 @@ greatest LFC, wrangling
 genes <-  tibble:::rownames_to_column(dsq2_39, var = "ensembl_gene_id")
 #Merge gene symbols into counts and gene ID
 genes <- merge(genes, coding_genes, by = "ensembl_gene_id")
-
 #Filter out repeating data
 genes <- dplyr::distinct(genes, mgi_symbol, .keep_all = TRUE)
-
 #Convert back to rownames but with gene symbols
 genes <-  tibble:::column_to_rownames(genes, "mgi_symbol")
-
 #top 20
 top20lfc <- dplyr::slice_max(genes, abs(log2FoldChange), n = 20)
 ```
@@ -213,14 +194,11 @@ top20lfc <- dplyr::slice_max(genes, abs(log2FoldChange), n = 20)
 
 ```{r}
 heatmap_p70 <- pheatmap::pheatmap(conv_cts[rownames(top20lfc), ], cluster_rows = TRUE, cluster_cols = TRUE, show_rownames = TRUE, color = viridis(n= 10000, alpha = 1, begin = 0, end = 1, option = "viridis"), border_color = "NA", main = "Top 20 LFC Genes Pre-Cyst P70", angle_col = "45")
-
 ```
 
 ```{r}
 write.csv(genes, file = here("res/deseq2_outputs", "deseq2_p70_fullannotatedres.csv"))
-
 ggsave(heatmap_p70, filename = here("res", "fea", "heatmap_p70.pdf"), height = 7, width = 14)
-
 ```
 
 gene signature
@@ -230,22 +208,15 @@ sig_39 <- merge(sig_39, conv_cts_all, by.x = "Mouse.gene.stable.ID", by.y = "ens
 #Filter out repeating data
 sig_39 <- dplyr::distinct(sig_39, hgnc_symbol, .keep_all = TRUE)
 sig_39_cts <- tibble::column_to_rownames(sig_39, "hgnc_symbol")
-
 sig_39_cts <- dplyr::select(sig_39_cts, starts_with("SRR"))
 colnames(sig_39_cts) <- c("WT", "WT", "WT", "Pkd2KO", "Pkd2KO", "Pkd2KO")
-
-
 heatmap_p70 <- pheatmap::pheatmap(sig_39_cts[row.names(sig_39_cts), ], cluster_rows = TRUE, cluster_cols = TRUE, show_rownames = FALSE, fontsize_row = 3, color = viridis(n= 10000, alpha = 1, begin = 0, end = 1, option = "viridis"), border_color = "NA", main = "Gene Signature for Pre-Cyst P70", angle_col = "45")
-
 #heatmap_p70 <- pheatmap(sig_39_cts, cluster_rows = TRUE, cluster_cols = TRUE, show_rownames = FALSE, color = viridis(n= 10000, alpha = 1, begin = 0, end = 1, option = "viridis"), border_color = "NA", main = "Gene Signature for Pre-Cyst P70", annotation_col = colnames(sig_39_cts))
-
 ```
 
 ```{r}
 write.csv(sig_39, here("res/deseq2_outputs", "signature_annotation_p70.csv"))
-
 ggsave(heatmap_p70, filename = here("res/deseq2_outputs", "heatmap_p70_signature.png"))
-
 ```
 
 
@@ -259,7 +230,6 @@ __Filepath to counts data__: /data/project/lasseigne_lab/Lizzy/PKD_drugrepurposi
 cts_56 <- readRDS(here("data", "GSE69556_salmonmerged_gene_counts.rds"))
 cts_56 <- cts_56@assays@data@listData[["counts"]]
 colnames(cts_56) <- str_sub(colnames(cts_56), 1, -2) #remove random period at the end of the sample names
-
 meta_56 <- read.csv(here("data", "GSE69556_metadata.txt"), row.names = 1)
 ```
 
@@ -267,14 +237,12 @@ meta_56 <- read.csv(here("data", "GSE69556_metadata.txt"), row.names = 1)
 #### DDS
 ```{r}
 dds_56 <- salmon2dds(cts_56, meta_56)
-
 ```
 
 #### Run DESeq2
 ```{r}
 #relevel to make wildtype the reference instead of first alphabetical factor
 dds_56$Genotype <- relevel(dds_56$Genotype, ref = "wildtype")
-
 #run DESeq: estimates size factors, estimates dispersion, fits negative binomial GLM's and performs Wald stats
 dds_56 <- DESeq(dds_56) #can also look at setting replaceOutliers lower for dealing with outliers 
 ```
@@ -291,7 +259,6 @@ res_56
 DESeq2 results as df and by LFC threshold
 ```{r}
 dsq2_56 <- as.data.frame(res_56)
-
 ```
 
 
@@ -305,7 +272,6 @@ saveRDS(dsq2_56, file = here("res", "deseq2_outputs", "deseq2_fullres_56.rds"))
 ```{r}
 #NAs removed  p-adjusted value cutoff 0.05 and log2fc greater than 2.0 and less than -2.0
 musdegs_56_UP <- uplfc(dsq2_56, 2.0)
-
 musdegs_56_DOWN <- downlfc(dsq2_56, -2.0)
 ```
 
@@ -318,7 +284,6 @@ dim(musdegs_56_DOWN) #57
 Map to human entrez and filter by LINCS genes
 ```{r}
 hom_56_UP <- lincsGenes(musdegs_56_UP, "up")
-
 hom_56_DOWN <-  lincsGenes(musdegs_56_DOWN, "down")
 #should be 100 or less
 length(unique(hom_56_UP$entrezgene_id)) #98
@@ -329,10 +294,8 @@ length(unique(hom_56_DOWN$entrezgene_id)) #28
 ```{r}
 write.csv(musdegs_56_UP, file = here("res", "deseq2_outputs", "deseq2_upgenes_res_56.csv"))
 write.csv(musdegs_56_DOWN, file = here("res", "deseq2_outputs", "deseq2_downgenes_res_56.csv"))
-
 write.csv(hom_56_UP, file = here("res", "deseq2_outputs", "p21_signature_UP.csv"))
 write.csv(hom_56_DOWN, file = here("res", "deseq2_outputs", "p21_signature_DOWN.csv"))
-
 ```
 
 
@@ -368,7 +331,6 @@ conv_cts_56_all <- dplyr::distinct(conv_cts_56_all, mgi_symbol, .keep_all = TRUE
 conv_cts_56 <- tibble:::column_to_rownames(conv_cts_56_all, "mgi_symbol")
 #Remove unnecessary data
 conv_cts_56 <- conv_cts_56[,!(colnames(conv_cts_56) %in% c("ensembl_gene_id", "group", "group_name", "entrezgene_id", "description"))]
-
 #Rename the count data to correspond with experimental group or control
 colnames(conv_cts_56) <- c("WT", "WT", "WT", "WT", "Pkd2KO", "Pkd2KO", "Pkd2KO")
 ```
@@ -379,13 +341,10 @@ greatest LFC, wrangling
 genes_56 <-  tibble:::rownames_to_column(dsq2_56, var = "ensembl_gene_id")
 #Merge gene symbols into counts and gene ID
 genes_56 <- merge(genes_56, coding_genes, by = "ensembl_gene_id")
-
 #Filter out repeating data
 genes_56 <- dplyr::distinct(genes_56, mgi_symbol, .keep_all = TRUE)
-
 #Convert back to rownames but with gene symbols
 genes_56 <-  tibble:::column_to_rownames(genes_56, "mgi_symbol")
-
 #top 20
 top20lfc_56 <- dplyr::slice_max(genes_56, abs(log2FoldChange), n = 20)
 ```
@@ -394,13 +353,11 @@ top20lfc_56 <- dplyr::slice_max(genes_56, abs(log2FoldChange), n = 20)
 
 ```{r}
 heatmap_21 <- pheatmap::pheatmap(conv_cts_56[rownames(top20lfc_56), ], cluster_rows = TRUE, cluster_cols = TRUE, show_rownames = TRUE, color = viridis(n= 10000, alpha = 1, begin = 0, end = 1, option = "viridis"), border_color = "NA", main = "Top 20 LFC Genes Cystic P21", angle_col = 45)
-
 ```
 
 
 ```{r }
 write.csv(genes_56, file = here("res/deseq2_outputs", "deseq2_p21_fullannotatedres.csv"))
-
 ggsave(heatmap_21, filename = here("res", "fea", "heatmap_p21_top20.pdf"), height = 7, width = 14)
 ```
 
@@ -415,16 +372,13 @@ sig_56_cts <- tibble::column_to_rownames(sig_56, "hgnc_symbol")
 #sig_56_cts <- subset(sig_56_cts, select = c("SRR2050895", "SRR2050896", "SRR2050897", "SRR2050898", "SRR2050899", "SRR2050900", "SRR2050901"))
 sig_56_cts <- dplyr::select(sig_56_cts, starts_with("SRR"))
 colnames(sig_56_cts) <- c("WT", "WT", "WT", "WT", "Pkd2KO", "Pkd2KO", "Pkd2KO")
-
 heatmap_p21 <- pheatmap::pheatmap(sig_56_cts[row.names(sig_56_cts), ], cluster_rows = TRUE, cluster_cols = TRUE, show_rownames = FALSE, fontsize_row = 3, color = viridis(n= 10000, alpha = 1, begin = 0, end = 1, option = "viridis"), border_color = "NA", main = "Gene Signature for Cystic P21", angle_col = 45)
-
 ```
 
 
 ```{r}
 write.csv(sig_56, here("res/deseq2_outputs", "signature_annotation_p21.csv"))
 ggsave(heatmap_p21, filename = here("res/deseq2_outputs", "heatmap_p21_signature.png"))
-
 ```
 
 
@@ -437,7 +391,6 @@ __Filepath to fastq's and metadata__: /data/project/lasseigne_lab/DATASET_dir/pk
 __Filepath to counts data__: /data/project/lasseigne_lab/Lizzy/PKD_drugrepurposing_220324/GSE134719_nfcore/results/star_salmon/salmon.merged.gene_counts.rds  
 ```{r}
 cts_19 <- readRDS(here("data", "GSE134719_salmonmerged_gene_counts.rds"))
-
 meta_19 <- read.csv(here("data", "GSE134719_metadata.txt"), row.names = 1)
 ```
 
@@ -452,7 +405,6 @@ str(dds_19)
 ```{r}
 #relevel to make wildtype the reference instead of first alphabetical factor
 dds_19$Genotype <- relevel(dds_19$Genotype, ref = "wildtype")
-
 #run DESeq: estimates size factors, estimates dispersion, fits negative binomial GLM's and performs Wald stats
 dds_19 <- DESeq(dds_19) #can also look at setting replaceOutliers lower for dealing with outliers 
 ```
@@ -463,13 +415,11 @@ dds_19 <- DESeq(dds_19) #can also look at setting replaceOutliers lower for deal
 #extract results table with log2 fold changes, p values and adjusted p values for desired coefficients
 #res_19 <- results(dds_19, alpha = 0.05, contrast = c("Genotype", "Pdk2KO", "wildtype"))
 res_19 <- lfcShrink(dds_19, coef = c("Genotype_Pdk2KO_vs_wildtype"), type="apeglm")
-
 ```
 
 DESeq2 results as df and by LFC threshold
 ```{r}
 dsq2_19 <- as.data.frame(res_19)
-
 ```
 
 
@@ -482,7 +432,6 @@ saveRDS(dsq2_19, file = here("res", "deseq2_outputs", "deseq2_fullres_19.rds"))
 #### LFC cutoffs
 ```{r}
 musdegs_19_UP <- uplfc(dsq2_19, 2.0)
-
 musdegs_19_DOWN <- downlfc(dsq2_19, -2.0)
 ```
 
@@ -490,7 +439,6 @@ Total genes above threshold before mapping from mouse ensembl to human symbol/en
 ```{r}
 dim(musdegs_19_UP) #1831
 dim(musdegs_19_DOWN) #1631
-
 ```
 
 
@@ -516,7 +464,6 @@ plotPCA(rld_19, intgroup=c("Genotype")) + geom_label_repel(aes(label = rld_19@co
 Map to human entrez and filter by LINCS genes
 ```{r}
 hom_19_UP <- lincsGenes(musdegs_19_UP, "up")
-
 hom_19_DOWN <-  lincsGenes(musdegs_19_DOWN, "down")
 #should be 100 or less
 length(unique(hom_19_UP$entrezgene_id)) #97
@@ -530,7 +477,6 @@ write.csv(musdegs_19_DOWN, file = here("res", "deseq2_outputs", "deseq2_downgene
  
 write.csv(hom_19_UP, file = here("res", "deseq2_outputs", "p28_signature_UP.csv"))
 write.csv(hom_19_DOWN, file = here("res", "deseq2_outputs", "p28_signature_DOWN.csv"))
-
 ```
 
 
@@ -550,10 +496,8 @@ conv_cts_19_all <- dplyr::distinct(conv_cts_19_all, mgi_symbol, .keep_all = TRUE
 conv_cts_19 <- tibble:::column_to_rownames(conv_cts_19_all, "mgi_symbol")
 #Remove unnecessary data
 conv_cts_19 <- conv_cts_19[,!(colnames(conv_cts_19) %in% c("ensembl_gene_id", "group", "group_name", "entrezgene_id", "description"))]
-
 #Rename the count data to correspond with experimental group or control
 colnames(conv_cts_19) <- c("Pkd2KO", "Pkd2KO", "Pkd2KO", "WT", "WT", "WT", "WT", "Pkd2KO", "Pkd2KO", "Pkd2KO", "Pkd2KO", "WT", "WT", "WT", "WT", "Pkd2KO", "Pkkd2KO", "Pkd2KO", "Pkd2KO", "WT", "WT", "WT", "WT")
-
 ```
 
 
@@ -562,10 +506,8 @@ greatest LFC, wrangling
 genes_19 <-  tibble:::rownames_to_column(dsq2_19, var = "ensembl_gene_id")
 #Merge gene symbols into counts and gene ID
 genes_19 <- merge(genes_19, coding_genes, by = "ensembl_gene_id")
-
 #Filter out repeating data
 genes_19 <- dplyr::distinct(genes_19, mgi_symbol, .keep_all = TRUE)
-
 #Convert back to rownames but with gene symbols
 genes_19 <-  tibble:::column_to_rownames(genes_19, "mgi_symbol")
 #top 20
@@ -575,13 +517,11 @@ top20lfc_19 <- dplyr::slice_max(genes_19, abs(log2FoldChange), n = 20)
 
 ```{r}
 heatmap_p28 <- pheatmap::pheatmap(conv_cts_19[rownames(top20lfc_19), ], cluster_rows = TRUE, cluster_cols = TRUE, show_rownames = TRUE, color = viridis(n= 10000, alpha = 1, begin = 0, end = 1, option = "viridis"), border_color = "NA", main = "Top 20 LFC Genes Cystic P28", angle_col = 45)
-
 ```
 
 
 ```{r}
 write.csv(genes_19, file = here("res/deseq2_outputs", "deseq2_p28_fullannotatedres.csv"))
-
 ggsave(heatmap_p28, filename = here("res", "fea", "heatmap_p28.pdf"), height = 7, width = 14)
 ```
 
@@ -597,16 +537,12 @@ sig_19_cts <- tibble::column_to_rownames(sig_19, "hgnc_symbol")
 #sig_19_cts <- subset(sig_19_cts, select = c(srr_19))
 sig_19_cts <- dplyr::select(sig_19_cts, starts_with("SRR"))
 colnames(sig_19_cts) <- c("Pkd2KO", "Pkd2KO", "Pkd2KO", "WT", "WT", "WT", "WT", "Pkd2KO", "Pkd2KO", "Pkd2KO", "Pkd2KO", "WT", "WT", "WT", "WT", "Pkd2KO", "Pkd2KO", "Pkd2KO", "Pkd2KO", "WT", "WT", "WT", "WT")
-
 heatmap_p28 <- pheatmap::pheatmap(sig_19_cts[row.names(sig_19_cts), ], cluster_rows = TRUE, cluster_cols = TRUE, show_rownames = FALSE, fontsize_row = 2.5, color = viridis(n= 10000, alpha = 1, begin = 0, end = 1, option = "viridis"), border_color = "NA", main = "Gene Signature for Cystic P28", angle_col = 45)
-
 ```
 
 ```{r}
 write.csv(sig_19, here("res/deseq2_outputs", "signature_annotation_p28.csv"))
-
 ggsave(heatmap_p28, filename = here("res/deseq2_outputs", "heatmap_p28_signature.png"))
-
 ```
 
 
@@ -618,4 +554,3 @@ R.Version()
 ```{r}
 installed.packages()[names(sessionInfo()$otherPkgs), "Version"]
 ```
-  
