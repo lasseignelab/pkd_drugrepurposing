@@ -751,7 +751,7 @@ treemapPlot2 <- function (reducedTerms, size = "score", title = "", ...)
   treemap(reducedTerms, index = c("parentTerm", "term"),
           vSize = size, type = "index", title = title, palette = #metafolio::gg_color_hue(length(unique(reducedTerms$parent))),
             viridis(n = length(unique(reducedTerms$parent)), end = 0.9),
-          fontcolor.labels = c("#FFFFFFDD", "#00000080"), bg.labels = 200,
+          fontcolor.labels = c("#FFFFFFDD", "#000000FF"), bg.labels = 200,
           border.col = "#00000080", ...)
 }
 

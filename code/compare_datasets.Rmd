@@ -30,6 +30,7 @@ library(GOSemSim)
 library(VennDiagram)
 library(RColorBrewer)
 library(ComplexHeatmap)
+library(ExperimentHub)
 source(here("code", "functions.R"))
 ```
 
@@ -183,9 +184,9 @@ fea_overap_all_up <- merge(fea_39$upregulated, cystic_term_overlap_up, by = "ter
 fea_overap_all_down <- merge(fea_39$downregulated, cystic_term_overlap_down, by = "term_name")
 ```
 
-##### rrvgo
-
-use GO terms as input
+#### Pathway Similarity
+rrvgo, uses GO terms as input
+##### P70
 ```{r}
 sim_39 <-   go_bp_sim(fea_39, "org.Hs.eg.db", threshold = 0.80)
 
@@ -205,6 +206,7 @@ hm <- heatmapPlot(sim_39$simMatrix, sim_39$reducedTerms, annotateParent=TRUE, an
 
 ```
 
+##### P21
 ```{r}
 sim_56 <-   go_bp_sim(fea_56, "org.Hs.eg.db", threshold = 0.80)
 
@@ -223,7 +225,7 @@ ggsave(here("res/fea", "cysticp21_sig_enrichment_scatter.pdf"), sp_56, height =5
 
 ```
 
-
+##### P28
 ```{r}
 sim_19 <-   go_bp_sim(fea_19, "org.Hs.eg.db", threshold = 0.80)
 
@@ -503,15 +505,16 @@ ggplot(slice_min(fea_39_unique, order_by = recall, n = 20), aes(x=intersection_s
 ```
 
 
-##### rrvgo
+##### Pathway Similarity
+rrvgo package, uses GO terms for input
 ###### P70
 ```{r}
 sim_deg_39 <-   go_bp_sim(fea_mouse_39, "org.Mm.eg.db", threshold = 0.80)
 
 #options(ggrepel.max.overlaps = 50)
-sp_deg_39 <- scatterPlot2(sim_deg_39$simMatrix, sim_deg_39$reducedTerms, labelSize = 2.5) + labs(title = "Cystic P21 Signature Enrichment Overview")
+sp_deg_39 <- scatterPlot2(sim_deg_39$simMatrix, sim_deg_39$reducedTerms, labelSize = 2.5) + labs(title = "Pre-cystic P70 Signature Enrichment Overview")
 sp_deg_39
-tm_deg_39 <- treemapPlot2(sim_deg_39$reducedTerms, title = "Enrichment for Cystic P21 Signature")
+tm_deg_39 <- treemapPlot2(sim_deg_39$reducedTerms, title = "Enrichment for Pre-cystic P70 DEGs")
 hm_deg_39 <- heatmapPlot(sim_deg_39$simMatrix, sim_deg_39$reducedTerms, annotateParent=TRUE, annotationLabel="parentTerm", fontsize=6)
 
 ```
@@ -522,7 +525,7 @@ sim_deg_56 <-   go_bp_sim(fea_mouse_56, "org.Mm.eg.db", threshold = 0.80)
 
 sp_deg_56 <- scatterPlot(sim_deg_56$simMatrix, sim_deg_56$reducedTerms, labelSize = 2.5) + labs(title = "Cystic P21 Signature Enrichment Overview")
 sp_deg_56
-tm_deg_56 <- treemapPlot(sim_deg_56$reducedTerms, title = "Enrichment for Cystic P21 Signature")
+tm_deg_56 <- treemapPlot2(sim_deg_56$reducedTerms, title = "Enrichment for Cystic P21 DEGs")
 hm_deg_56 <- heatmapPlot(sim_deg_56$simMatrix, sim_deg_56$reducedTerms, annotateParent=TRUE, annotationLabel="parentTerm", fontsize=6)
 
 ```
@@ -531,9 +534,9 @@ hm_deg_56 <- heatmapPlot(sim_deg_56$simMatrix, sim_deg_56$reducedTerms, annotate
 ```{r}
 sim_deg_19 <-   go_bp_sim(fea_mouse_19, "org.Mm.eg.db", threshold = 0.80)
 
-sp_deg_19 <- scatterPlot2(sim_deg_19$simMatrix, sim_deg_19$reducedTerms, labelSize = 2.5) + labs(title = "Cystic P21 Signature Enrichment Overview")
+sp_deg_19 <- scatterPlot2(sim_deg_19$simMatrix, sim_deg_19$reducedTerms, labelSize = 2.5) + labs(title = "Cystic P21 DEGs Enrichment Overview")
 sp_deg_19
-tm_deg_19 <- treemapPlot2(sim_deg_19$reducedTerms, title = "Enrichment for Cystic P21 Signature")
+tm_deg_19 <- treemapPlot2(sim_deg_19$reducedTerms, title = "Enrichment for Cystic P28 DEGs")
 hm_deg_19 <- heatmapPlot(sim_deg_19$simMatrix, sim_deg_19$reducedTerms, annotateParent=TRUE, annotationLabel="parentTerm", fontsize=6)
 ```
 
