@@ -67,6 +67,17 @@ p70_unique_down <- dplyr::anti_join(p70_unique_down, hom_56_DOWN, by = "hgnc_sym
 
 ```
 
+```{r}
+up_19_56 <- intersect(hom_19_UP$hgnc_symbol, hom_56_UP$hgnc_symbol)
+
+down_19_56 <- intersect(hom_19_DOWN$hgnc_symbol, hom_56_DOWN$hgnc_symbol)
+
+up_all <- intersect(up_19_56, hom_39_UP$hgnc_symbol)
+
+down_all <- intersect(down_19_56, hom_39_DOWN$hgnc_symbol)
+
+
+```
 
 ### Venn diagram of signatures  
 ```{r}

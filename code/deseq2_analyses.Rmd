@@ -140,12 +140,10 @@ length(unique(hom_degs_UP$entrezgene_id)) #99
 length(unique(hom_degs_DOWN$entrezgene_id)) #31
 ```
 
-
 ```{r}
 write.csv(hom_degs_UP, file = here("res", "deseq2_outputs", "p70_signature_UP.csv"))
 write.csv(hom_degs_DOWN, file = here("res", "deseq2_outputs", "p70_signature_DOWN.csv"))
 ```
-
 
 #### Heatmap plotting
 
@@ -219,9 +217,7 @@ write.csv(sig_39, here("res/deseq2_outputs", "signature_annotation_p70.csv"))
 ggsave(heatmap_p70, filename = here("res/deseq2_outputs", "heatmap_p70_signature.png"))
 ```
 
-
 ### DEA p21 cystic GSE69556
-
 
 #### Read in data  
 __Filepath to fastq's and metadata__: /data/project/lasseigne_lab/DATASET_dir/pkdDrugRepurposing/pkd2/GSE69556/SraRunTable.txt  
@@ -335,7 +331,6 @@ conv_cts_56 <- conv_cts_56[,!(colnames(conv_cts_56) %in% c("ensembl_gene_id", "g
 colnames(conv_cts_56) <- c("WT", "WT", "WT", "WT", "Pkd2KO", "Pkd2KO", "Pkd2KO")
 ```
 
-
 greatest LFC, wrangling
 ```{r}
 genes_56 <-  tibble:::rownames_to_column(dsq2_56, var = "ensembl_gene_id")
@@ -348,8 +343,6 @@ genes_56 <-  tibble:::column_to_rownames(genes_56, "mgi_symbol")
 #top 20
 top20lfc_56 <- dplyr::slice_max(genes_56, abs(log2FoldChange), n = 20)
 ```
-
-
 
 ```{r}
 heatmap_21 <- pheatmap::pheatmap(conv_cts_56[rownames(top20lfc_56), ], cluster_rows = TRUE, cluster_cols = TRUE, show_rownames = TRUE, color = viridis(n= 10000, alpha = 1, begin = 0, end = 1, option = "viridis"), border_color = "NA", main = "Top 20 LFC Genes Cystic P21", angle_col = 45)
@@ -381,10 +374,7 @@ write.csv(sig_56, here("res/deseq2_outputs", "signature_annotation_p21.csv"))
 ggsave(heatmap_p21, filename = here("res/deseq2_outputs", "heatmap_p21_signature.png"))
 ```
 
-
-
 ### DEA p28 cystic GSE134719
-
 
 #### Read in data  
 __Filepath to fastq's and metadata__: /data/project/lasseigne_lab/DATASET_dir/pkdDrugRepurposing/pkd2/GSE134719/SraRunTable.txt  
