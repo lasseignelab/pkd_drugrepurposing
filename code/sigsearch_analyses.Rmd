@@ -1,5 +1,5 @@
 ---
-title: "sigsearch_GSE69556"
+title: "sigsearch_analyses"
 author: "Lizzy Ramsey"
 date: "4/7/2022"
 output:
@@ -28,6 +28,7 @@ library(signatureSearch)
 library(ExperimentHub); library(rhdf5)
 library(here)
 library(dplyr)
+library(stringr)
 source(here("code", "functions.R"))
 ```
 
@@ -45,29 +46,29 @@ db_path <- system.file("extdata", "sample_db.h5", package = "signatureSearch")
 
 Load in top up and down DEGs  
 ```{r}
-hom_39_UP <- read.csv(here("res", "deseq2_outputs", "p70_signature_UP.csv"))
-hom_39_DOWN <- read.csv(here("res", "deseq2_outputs", "p70_signature_DOWN.csv"))
+hom_p70_UP <- read.csv(here("res", "deseq2_outputs", "p70_signature_UP.csv"))
+hom_p70_DOWN <- read.csv(here("res", "deseq2_outputs", "p70_signature_DOWN.csv"))
 
 ```
 
 Run signatureSearch, filter for kidney cell lines  
 ```{r}
-gess_kidneycells_39 <- ssRun(upgenes = hom_39_UP$entrezgene_id, downgenes = hom_39_DOWN$entrezgene_id, cells = "kidney")
+gess_kidneycells_p70 <- ssRun(upgenes = hom_p70_UP$entrezgene_id, downgenes = hom_p70_DOWN$entrezgene_id, cells = "kidney")
 ```
 
 Total results (inversely related)
 ```{r}
-dim(gess_kidneycells_39)
+dim(gess_kidneycells_p70)
 ```
 
 #### Top 30 Results by NCS
 ```{r}
-head(gess_kidneycells_39, 30)
+head(gess_kidneycells_p70, 30)
 ```
 
 
 ```{r }
-write.csv(gess_kidneycells_39, file = here("res", "sigsearch_outputs", "gess_kidneycells_39_220819.csv"))
+write.csv(gess_kidneycells_p70, file = here("res", "sigsearch_outputs", "gess_kidneycells_p70_220819.csv"))
  
 ```
 
@@ -77,31 +78,31 @@ LINCS [Drug Repurposing Hub](https://www.nature.com/articles/nm.4306), contains 
 ```{r}
 repurpHub <- read.delim(here("data", "Repurposing_Hub_export.txt"))
 
-rHub_39 <- dplyr::inner_join(gess_kidneycells_39, repurpHub, by= c("pert" = "Name"))
+rHub_p70 <- dplyr::inner_join(gess_kidneycells_p70, repurpHub, by= c("pert" = "Name"))
 ```
 
 P70/'39 Already-Launched Drugs
 ```{r}
-rhub_launched_39 <- dplyr::filter(rHub_39, Phase == "Launched")
+rhub_launched_p70 <- dplyr::filter(rHub_p70, Phase == "Launched")
 
 ```
 
 ```{r}
-write.csv(rhub_launched_39, file = here("res", "sigsearch_outputs", "rhub_launcheddrugs_39.csv"))
+write.csv(rhub_launched_p70, file = here("res", "sigsearch_outputs", "rhub_launcheddrugs_p70.csv"))
 ```
 
 Alluvial plot of drugs-targets with just launched drugs
 ```{r}
-rhub_launched_39_top30 <- dplyr::slice_min(rhub_launched_39, order_by = Tau, n = 30)
+rhub_launched_p70_top30 <- dplyr::slice_min(rhub_launched_p70, order_by = Tau, n = 30)
 
-rhub_launched_39_top_septarget <- tidyr::separate_rows(rhub_launched_39_top30, Target, sep = ", ")
+rhub_launched_p70_top_septarget <- tidyr::separate_rows(rhub_launched_p70_top30, Target, sep = ", ")
 #remove drugs with empty 'target' field
-rhub_launched_39_top_septarget <- dplyr::filter(rhub_launched_39_top_septarget, Target != "")
+rhub_launched_p70_top_septarget <- dplyr::filter(rhub_launched_p70_top_septarget, Target != "")
 ```
 
 plot
 ```{r}
-target_alluvial <- ggplot(data = rhub_launched_39_top_septarget,
+target_alluvial <- ggplot(data = rhub_launched_p70_top_septarget,
        aes(axis1 = pert, axis2 = Target)) +
   geom_alluvium(color = "black", aes(fill = WTCS)) + # , colour = trend)) + 
   geom_stratum(width = 3/12, color = "black") + #the border of the stratum
@@ -119,16 +120,16 @@ target_alluvial
 
 MOA's separated, string wrap labels
 ```{r}
-rhub_launched_39_top_moasep <- tidyr::separate_rows(rhub_launched_39_top30, MOA, sep = ",")
+rhub_launched_p70_top_moasep <- tidyr::separate_rows(rhub_launched_p70_top30, MOA, sep = ",")
 
-rhub_launched_39_top_moasep$MOA <- stringr::str_wrap(rhub_launched_39_top_moasep$MOA, width = 20)
+rhub_launched_p70_top_moasep$MOA <- stringr::str_wrap(rhub_launched_p70_top_moasep$MOA, width = 20)
 
-rhub_launched_39_top_moasep$Disease.Area <- stringr::str_wrap(rhub_launched_39_top_moasep$Disease.Area, width = 30)
+rhub_launched_p70_top_moasep$Disease.Area <- stringr::str_wrap(rhub_launched_p70_top_moasep$Disease.Area, width = 30)
 ```
 
 plot
 ```{r}
-moa_alluvial <- ggplot(data = rhub_launched_39_top_moasep,
+moa_alluvial <- ggplot(data = rhub_launched_p70_top_moasep,
        aes(axis1 = pert, axis2 = MOA)) +
   geom_alluvium(color = "black", aes(fill = WTCS)) + # , colour = trend)) + 
   geom_stratum(width = 3/12, color = "black") + #the border of the stratum
@@ -152,45 +153,13 @@ ggsave(here("res", "sigsearch_outputs", "moa_alluvial_wtcs_220819.pdf"), moa_all
 
 P70/'39 Already-Launched Drugs
 ```{r}
-rhub_launched_39 <- dplyr::filter(rHub_39, Phase == "Launched")
+rhub_launched_p70 <- dplyr::filter(rHub_p70, Phase == "Launched")
 
 ```
-
-
 
 Save
 ```{r }
-write.csv(rHub_39, file = here("res", "sigsearch_outputs", "ssresults_rHub_39.csv"))
-
-```
-
-
-#### Side effects  
-Data from [onSides](https://github.com/tatonetti-lab/onsides)  
-__adverse_reactions_bylabel__ - All extracted adverse reactions from the ADVERSE REACTIONS section of all labels. Each drug will have multiple labels over its lifetime (revisions, generic alternatives, etc.). This table contains the results of extracting adverse reactions from every label available for download from DailyMed. 2,764,338 rows.  
-__label_map__ - Map between the xml_id (xml filename), zip_id (zip filename), and set_id (drug identifier). 45,989 rows.  
-
-```{r}
-reactions <- read.csv(here("data", "onsides_v01", "adverse_reactions.csv"))
-reactions_unique <- unique(reactions$concept_name)
-
-warnings <- read.csv(here("data", "onsides_v01", "boxed_warnings.csv"))
-
-labels <- read.csv(here("data", "onsides_v01", "latest_labels_bydrug.csv"))
-```
-
-Looking at reactions for 'launched' drugs from P70/'39 results
-```{r}
-onsides_39 <- dplyr::left_join(rhub_launched_39, labels, by = c("pert" = "ingredients"))
-
-onsides_39 <- dplyr::left_join(onsides_39, reactions, by = c("latest_xml_id" = "xml_id"))
-
-```
-
-
-```{r}
-write.csv(onsides_39, file = here("res", "sigsearch_outputs", "adr_onsides_precystic_drugcandidates"))
- 
+write.csv(rHub_p70, file = here("res", "sigsearch_outputs", "ssresults_rHub_p70.csv"))
 ```
 
 
@@ -239,38 +208,39 @@ write.csv(fda_approved, file = here("data", "FDA_approved_unique_ingredients.csv
 
 Repurposing hub 'launched' drugs
 ```{r}
-rhub_launched_39 <- read.csv(here("res", "sigsearch_outputs", "rhub_launcheddrugs_39.csv"), row.names = 1)
+rhub_launched_p70 <- read.csv(here("res", "sigsearch_outputs", "rhub_launcheddrugs_p70.csv"), row.names = 1)
 fda_approved <- read.csv(here("data", "FDA_approved_unique_ingredients.csv"), row.names = 1)
 ```
 
 Test for FDA approval
 ```{r}
-fda_approved_39 <- FDA_APPROVAL_CHECK(rhub_launched_39$pert, fda_approved)
-fda_approved_39 <- mutate(rhub_launched_39, fda_approval = fda_approved_39)
-fda_approved_39 <- dplyr::filter(fda_approved_39, fda_approval == TRUE)
+fda_approved_p70 <- FDA_APPROVAL_CHECK(rhub_launched_p70$pert, fda_approved)
+fda_approved_p70 <- mutate(rhub_launched_p70, fda_approval = fda_approved_p70)
+fda_approved_p70 <- dplyr::filter(fda_approved_p70, fda_approval == TRUE)
 #results for both kidney cell lines for some drugs
-fda_approved_39 <- dplyr::distinct(fda_approved_39, pert, .keep_all = TRUE)
+fda_approved_p70 <- dplyr::distinct(fda_approved_p70, pert, .keep_all = TRUE)
 ```
 
 save FDA-approved drug candidates
 ```{r}
-saveRDS(fda_approved_39, file = here("res", "sigsearch_outputs", "p70_fdaapproved_drugs.rds"))
+saveRDS(fda_approved_p70, file = here("res", "sigsearch_outputs", "p70_fdaapproved_drugs_copy.rds"))
+write.csv(fda_approved_p70, file = here("res", "sigsearch_outputs", "p70_fdaapproved_drugs_copy.csv"))
 ```
 
 
 MOA's separated, string wrap labels
 ```{r}
-fda_approved_39_moa <- tidyr::separate_rows(fda_approved_39, MOA, sep = ",")
+fda_approved_p70_moa <- tidyr::separate_rows(fda_approved_p70, MOA, sep = ",")
 
-fda_approved_39_moa_top <- fda_approved_39_moa %>% dplyr::slice_min(order_by = NCS, n = 42) %>% mutate(pert = forcats::fct_reorder(pert, NCS))
+fda_approved_p70_moa_top <- fda_approved_p70_moa %>% dplyr::slice_min(order_by = NCS, n = 42) %>% mutate(pert = forcats::fct_reorder(pert, NCS))
 
-fda_approved_39_moa_top$MOA <- stringr::str_trunc(fda_approved_39_moa_top$MOA, width = 38)
+fda_approved_p70_moa_top$MOA <- stringr::str_trunc(fda_approved_p70_moa_top$MOA, width = 38)
 ```
 
 
 #####MOA plot
 ```{r}
-moa_alluvial <- ggplot(fda_approved_39_moa_top,
+moa_alluvial <- ggplot(fda_approved_p70_moa_top,
        aes(axis1 = pert, axis2 = MOA)) +
   geom_alluvium(color = "black", aes(fill = NCS)) + # , colour = trend)) + 
   geom_stratum(width = 5/16, color = "black") + #the border of the stratum
@@ -293,7 +263,7 @@ ggsave(here("res", "sigsearch_outputs", "moa_fda_alluvial.png"), moa_alluvial, w
 
 Frequency of MOA's
 ```{r}
-moa_freq <- as.data.frame(table(fda_approved_39_moa$MOA))
+moa_freq <- as.data.frame(table(fda_approved_p70_moa$MOA))
 other <- moa_freq$Var1[moa_freq$Freq==1]
 #other <- cbind(Var1 = as.character(other), Freq = rep("other", length(other)))
 multi_moa <- dplyr::filter(moa_freq, Freq > 1)
@@ -335,7 +305,7 @@ ggsave(filename = here("res/sigsearch_outputs", "p70_fdaapproved_moa_freq.pdf"),
 
 Frequency of original disease area indications
 ```{r}
-indication_freq <- as.data.frame(table(fda_approved_39_moa$Disease.Area))
+indication_freq <- as.data.frame(table(fda_approved_p70_moa$Disease.Area))
 indication_freq <- dplyr::filter(indication_freq, Freq > 2)
 ```
 
