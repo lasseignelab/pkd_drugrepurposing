@@ -30,7 +30,7 @@ source(here("code", "functions.R"))
 ### Targets of Candidate Drugs  
 Targets of all FDA-approved drugs
 ```{r}
-fda_approved_p70 <- readRDS(here("res", "sigsearch_outputs", "p70_fdaapproved_drugs_copy.rds"))
+fda_approved_p70 <- readRDS(here("res", "sigsearch_outputs", "p70_fdaapproved_drugs.rds"))
 fda_approved_p70_targets <- tidyr::separate_rows(fda_approved_p70, t_gn_sym, sep = "; ")
 #remove drugs with empty 'target' field
 fda_approved_p70_targets <- dplyr::filter(fda_approved_p70_targets, t_gn_sym != "")
@@ -40,7 +40,7 @@ fda_approved_p70_targets <- dplyr::filter(fda_approved_p70_targets, t_gn_sym != 
 Save
 ```{r }
 #target-separated, rhub-annotated drug results for p70
-write.csv(fda_approved_p70_targets, file = here("res", "sigsearch_outputs", "fda_drug_targets_p70_copy.csv"))
+write.csv(fda_approved_p70_targets, file = here("res", "sigsearch_outputs", "fda_drug_targets_p70.csv"))
 ```
 
 

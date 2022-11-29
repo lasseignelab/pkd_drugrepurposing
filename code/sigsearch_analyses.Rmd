@@ -35,9 +35,9 @@ source(here("code", "functions.R"))
 Pull LINCS data from Experiment Hub
 ```{r message=FALSE, warning = FALSE}
 eh <- ExperimentHub()
-cmap <- eh[["EH3223"]]; cmap_expr <- eh[["EH3224"]]
-lincs <- eh[["EH3226"]]; lincs_expr <- eh[["EH3227"]]
-h5ls(lincs)
+cmap <- eh[["EH3223"]]; cmap_expr <- eh[["EH3224"]] #cmap data locations in experimenthub
+lincs <- eh[["EH3226"]]; lincs_expr <- eh[["EH3227"]] #lincs data locations in experimenthub
+h5ls(lincs) #reading hdf5 file
 db_path <- system.file("extdata", "sample_db.h5", package = "signatureSearch")
 
 ```
@@ -223,8 +223,8 @@ fda_approved_p70 <- dplyr::distinct(fda_approved_p70, pert, .keep_all = TRUE)
 
 save FDA-approved drug candidates
 ```{r}
-saveRDS(fda_approved_p70, file = here("res", "sigsearch_outputs", "p70_fdaapproved_drugs_copy.rds"))
-write.csv(fda_approved_p70, file = here("res", "sigsearch_outputs", "p70_fdaapproved_drugs_copy.csv"))
+saveRDS(fda_approved_p70, file = here("res", "sigsearch_outputs", "p70_fdaapproved_drugs.rds"))
+write.csv(fda_approved_p70, file = here("res", "sigsearch_outputs", "p70_fdaapproved_drugs.csv"))
 ```
 
 

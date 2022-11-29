@@ -223,10 +223,10 @@ ggsave(heatmap_p70, filename = here("res/deseq2_outputs", "heatmap_p70_signature
 __Filepath to fastq's and metadata__: /data/project/lasseigne_lab/DATASET_dir/pkdDrugRepurposing/pkd2/GSE69556/SraRunTable.txt  
 __Filepath to counts data__: /data/project/lasseigne_lab/Lizzy/PKD_drugrepurposing_220324/GSE69556_nfcore/results/star_salmon/salmon.merged.gene_counts.rds  
 ```{r}
-cts_p21 <- readRDS(here("data", "GSE695p21_salmonmerged_gene_counts.rds"))
+cts_p21 <- readRDS(here("data", "GSE69556_salmonmerged_gene_counts.rds"))
 cts_p21 <- cts_p21@assays@data@listData[["counts"]]
 colnames(cts_p21) <- str_sub(colnames(cts_p21), 1, -2) #remove random period at the end of the sample names
-meta_p21 <- read.csv(here("data", "GSE695p21_metadata.txt"), row.names = 1)
+meta_p21 <- read.csv(here("data", "GSE69556_metadata.txt"), row.names = 1)
 ```
 
 
@@ -380,8 +380,8 @@ ggsave(heatmap_p21, filename = here("res/deseq2_outputs", "heatmap_p21_signature
 __Filepath to fastq's and metadata__: /data/project/lasseigne_lab/DATASET_dir/pkdDrugRepurposing/pkd2/GSE134719/SraRunTable.txt  
 __Filepath to counts data__: /data/project/lasseigne_lab/Lizzy/PKD_drugrepurposing_220324/GSE134719_nfcore/results/star_salmon/salmon.merged.gene_counts.rds  
 ```{r}
-cts_p28 <- readRDS(here("data", "GSE1347p28_salmonmerged_gene_counts.rds"))
-meta_p28 <- read.csv(here("data", "GSE1347p28_metadata.txt"), row.names = 1)
+cts_p28 <- readRDS(here("data", "GSE134719_salmonmerged_gene_counts.rds"))
+meta_p28 <- read.csv(here("data", "GSE134719_metadata.txt"), row.names = 1)
 ```
 
 #### DDS
