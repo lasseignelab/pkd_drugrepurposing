@@ -68,7 +68,7 @@ head(gess_kidneycells_p70, 30)
 
 
 ```{r }
-write.csv(gess_kidneycells_p70, file = here("res", "sigsearch_outputs", "gess_kidneycells_p70_220819.csv"))
+write.csv(gess_kidneycells_p70, file = here("res", "sigsearch_outputs", "gess_kidneycells_p70.csv"))
  
 ```
 
