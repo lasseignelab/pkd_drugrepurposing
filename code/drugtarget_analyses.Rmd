@@ -17,6 +17,7 @@ __Data Sets__
 Load libraries  
 ```{r message=FALSE, warning = FALSE}
 library(signatureSearch)
+library(biomaRt)
 library(ggplot2)
 library(ggalluvial)
 #library(readr)
@@ -123,7 +124,7 @@ length(unique(cystic_targets$t_gn_sym.x))
 
 Alluvial plot of drugs-targets with just FDA approved drugs
 ```{r}
-cystic_targets <- read.csv(file = here("res/sigsearch_outputs", "drug_targets_oe_cysticdegs.csv"), row.names = 1)
+#cystic_targets <- read.csv(file = here("res/sigsearch_outputs", "drug_targets_oe_cysticdegs.csv"), row.names = 1)
 #target_alluvial <- tidyr::separate_rows(cystic_overlap_drugs, t_gn_sym, sep = "; ")
 #target_tbl <- cbind(pert = cystic_targets$pert, Upregulated_Target = cystic_targets$t_gn_sym.x) %>% as.data.frame()
 ```
