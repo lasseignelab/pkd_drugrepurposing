@@ -1,14 +1,18 @@
 ---
 title: "drugtarget_analyses"
-author: "Lizzy Ramsey"
+author: "Lizzy Wilk"
 date: "11/11/2022"
+output:
     html_document:
       toc: true
       toc_depth: 4
       toc_float: true
+
 ---
 
-### Purpose  drug target analyses from pre-cystic kidney data P70 (GSE149739) compared to cystic kidney data P21 (GSE69556) and P28 (GSE134719) from __deseq2_analyses.Rmd__ and __sigsearch_analyses.Rmd__.  
+
+### Purpose  
+drug target analyses from pre-cystic kidney data P70 (GSE149739) compared to cystic kidney data P21 (GSE69556) and P28 (GSE134719) from __deseq2_analyses.Rmd__ and __sigsearch_analyses.Rmd__.  
 __Data Sets__
 - '39 / Pre-Cystic P70: [GSE149739](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE149739)  
 - '56 / Cystic P21: [GSE69556](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE69556)  

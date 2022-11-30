@@ -1,6 +1,6 @@
 ---
 title: "sigsearch_analyses"
-author: "Lizzy Ramsey"
+author: "Lizzy Wilk "
 date: "4/7/2022"
 output:
     html_document:

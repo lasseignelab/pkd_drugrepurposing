@@ -1,6 +1,6 @@
 ---
 title: "DESeq2 Pkd2-KO Analyses"
-author: "Lizzy Ramsey"
+author: "Lizzy Wilk"
 date: "3/30/2022"
 output:
     html_document:
