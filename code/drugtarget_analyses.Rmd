@@ -25,6 +25,7 @@ library(signatureSearch)
 library(ExperimentHub); library(rhdf5)
 library(here)
 library(dplyr)
+library(EnhancedVolcano)
 source(here("code", "functions.R"))
 ```
 
@@ -114,36 +115,38 @@ ggsave(volcano_p28, filename =  here("res/sigsearch_outputs", "volcano_drugtarge
 
 Targets upregulated in both cystic data sets
 ```{r}
-cystic_targets <- merge(targetdegs_p21$targetdegs, targetdegs_p28$targetdegs, by = "pert")
+cystic_targets <- intersect(targetdegs_p21$targetdegs$pert, targetdegs_p28$targetdegs$pert)
 
+cysticdf <- rbind(targetdegs_p21$targetdegs, targetdegs_p28$targetdegs) 
+cystic_targets <- dplyr::filter(cysticdf, pert %in% cystic_targets)
+
+```
+
+```{r}
 #unique overlapping drugs
 length(unique(cystic_targets$pert))
 #unique overlapping targets
-length(unique(cystic_targets$t_gn_sym.x))
+length(unique(cystic_targets$t_gn_sym))
+```
+
+Finding frequency of each drug target in cystic DEGs
+```{r}
+#number of targets per drug
+t <- table(cystic_targets$t_gn_sym) %>% as.data.frame()
+t$Var1 <- as.character(t$Var1)
+
+#cystic_targets$Drug <- as.factor(cystic_targets$Drug)
+cystic_targets <- dplyr::full_join(cystic_targets, t, by= c("t_gn_sym" = "Var1"))
 ```
 
 Alluvial plot of drugs-targets with just FDA approved drugs
 ```{r}
-#cystic_targets <- read.csv(file = here("res/sigsearch_outputs", "drug_targets_oe_cysticdegs.csv"), row.names = 1)
-#target_alluvial <- tidyr::separate_rows(cystic_overlap_drugs, t_gn_sym, sep = "; ")
-#target_tbl <- cbind(pert = cystic_targets$pert, Upregulated_Target = cystic_targets$t_gn_sym.x) %>% as.data.frame()
-```
-
-plot
-```{r}
-#number of targets per drug
-t <- table(cystic_targets$Drug_Targets) %>% as.data.frame()
-t$Var1 <- as.character(t$Var1)
-
-#cystic_targets$Drug <- as.factor(cystic_targets$Drug)
-cystic_targets <- dplyr::full_join(cystic_targets, t, by= c("Drug_Targets" = "Var1"))
-
-target_alluvial <- cystic_targets %>% mutate(Drug_Targets = forcats::fct_reorder(Drug_Targets, desc(Freq))) %>%  ggplot(aes(axis1 = Drug, axis2 = Drug_Targets)) +
-  geom_alluvium(color = "black", aes(fill = Drug_Targets), show.legend=FALSE) + # , colour = trend)) + 
+target_alluvial <- cystic_targets %>% mutate(t_gn_sym = forcats::fct_reorder(t_gn_sym, desc(Freq))) %>%  ggplot(aes(axis1 = pert, axis2 = t_gn_sym)) +
+  geom_alluvium(color = "black", aes(fill = t_gn_sym), show.legend=FALSE) + # , colour = trend)) + 
   geom_stratum(width = 3/12, color = "black") + #the border of the stratum
   scale_fill_viridis_d(aesthetics = c("colour", "fill")) +
   geom_text(stat = "stratum", size = 5, fontface = "bold", aes(label = after_stat(stratum))) +
-  theme(axis.title.x = element_blank(), plot.title = element_text(size = 24, face = "bold", hjust = 0.5), axis.text.x = element_blank(), axis.text.y = element_blank(), axis.ticks = element_blank()) + ggtitle(label = "Drug Targets in P21 and P28 Cystic DEGs") + 
+  theme(axis.title.x = element_blank(), plot.title = element_text(size = 24, face = "bold", hjust = 0.5, vjust = -6.5), axis.text.x = element_blank(), axis.text.y = element_blank(), axis.ticks = element_blank()) + ggtitle(label = "Drug Targets in P21 and P28 Cystic DEGs") + 
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
 panel.background = element_blank() )
 
@@ -153,7 +156,7 @@ target_alluvial
 
 
 ```{r}
-#ggsave(here("res/sigsearch_outputs", "targets_cysticupregulated_alluvial.pdf"), target_alluvial, width = 8, height = 22)
+ggsave(here("res/sigsearch_outputs", "targets_cysticupregulated_alluvial.png"), target_alluvial, width = 8, height = 16)
 ```
 
 
