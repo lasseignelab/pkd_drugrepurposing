@@ -1,0 +1,57 @@
+{
+    "description": "<p>Code for PKD drug repurposing signature reversion analysis on publicly available data</p>", 
+    "license": "other-open", 
+    "title": "Drug Repurposing Analyses in Polycystic Kidney Disease", 
+    "version": "v1.0.0", 
+    "upload_type": "software", 
+    "keywords": [
+        "Polycystic Kidney Disease", 
+        "Drug Repurposing"
+    ], 
+    "publication_date": "2022-08-02", 
+    "creators": [
+        {
+            "orcid": "0000-0002-7078-1215", 
+            "affiliation": "CDIB, Heersink School of Medicine, UAB", 
+            "name": "Elizabeth J. Wilk"
+        }, 
+        {
+            "orcid": "0000-0002-9423-0135", 
+            "affiliation": "CDIB, Heersink School of Medicine, UAB", 
+            "name": "Timothy C. Howton"
+        }, 
+        {
+            "orcid": "0000-0002-9657-1216", 
+            "affiliation": "CDIB, Heersink School of Medicine, UAB", 
+            "name": "Jennifer L. Fisher"
+        }, 
+        {
+            "orcid": "0000-0001-6990-0267", 
+            "affiliation": "CDIB, Heersink School of Medicine, UAB", 
+            "name": "Vishal H. Oza"
+        }, 
+        {
+            "orcid": "0000-0002-8516-8210", 
+            "affiliation": "CDIB, Heersink School of Medicine, UAB", 
+            "name": "Ryan T. Brownlee"
+        }, 
+        {
+            "orcid": "0000-0002-1642-8904", 
+            "affiliation": "CDIB, Heersink School of Medicine, UAB", 
+            "name": "Brittany N. Lasseigne"
+        }
+    ], 
+    "access_right": "open", 
+    "related_identifiers": [
+        {
+            "scheme": "url", 
+            "identifier": "https://github.com/lasseignelab/pkd_drugrepurposing/tree/v1.0.0", 
+            "relation": "isSupplementTo"
+        }, 
+        {
+            "scheme": "doi", 
+            "identifier": "10.5281/zenodo.6954715", 
+            "relation": "isVersionOf"
+        }
+    ]
+}
