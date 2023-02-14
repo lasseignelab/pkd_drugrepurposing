@@ -30,5 +30,13 @@
             "affiliation": "CDIB, Heersink School of Medicine, UAB", 
             "name": "Brittany N. Lasseigne"
         }
+    ], 
+    "access_right": "open", 
+    "related_identifiers": [
+        {
+            "scheme": "url", 
+            "identifier": "https://github.com/lasseignelab/pkd_drugrepurposing/tree/v1.1.1", 
+            "relation": "isSupplementTo"
+        }
     ]
 }
