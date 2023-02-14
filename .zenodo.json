@@ -1,14 +1,4 @@
 {
-    "description": "<p>Code for PKD drug repurposing signature reversion analysis on publicly available data</p>", 
-    "license": "other-open", 
-    "title": "Drug Repurposing Analyses in Polycystic Kidney Disease", 
-    "version": "v1.1.1", 
-    "upload_type": "software", 
-    "keywords": [
-        "Polycystic Kidney Disease", 
-        "Drug Repurposing"
-    ], 
-    "publication_date": "2023-02-14", 
     "creators": [
         {
             "orcid": "0000-0002-7078-1215", 
