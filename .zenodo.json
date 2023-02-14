@@ -2,13 +2,13 @@
     "description": "<p>Code for PKD drug repurposing signature reversion analysis on publicly available data</p>", 
     "license": "other-open", 
     "title": "Drug Repurposing Analyses in Polycystic Kidney Disease", 
-    "version": "v1.0.0", 
+    "version": "v1.1.2", 
     "upload_type": "software", 
     "keywords": [
         "Polycystic Kidney Disease", 
         "Drug Repurposing"
     ], 
-    "publication_date": "2022-08-02", 
+    "publication_date": "2023-02-14", 
     "creators": [
         {
             "orcid": "0000-0002-7078-1215", 
@@ -45,7 +45,7 @@
     "related_identifiers": [
         {
             "scheme": "url", 
-            "identifier": "https://github.com/lasseignelab/pkd_drugrepurposing/tree/v1.0.0", 
+            "identifier": "https://github.com/lasseignelab/pkd_drugrepurposing/tree/v1.1.2", 
             "relation": "isSupplementTo"
         }, 
         {
