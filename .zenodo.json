@@ -2,7 +2,7 @@
     "description": "<p>Code for PKD drug repurposing signature reversion analysis on publicly available data</p>", 
     "license": "other-open", 
     "title": "Drug Repurposing Analyses in Polycystic Kidney Disease", 
-    "version": "v1.1.2", 
+    "version": "v1.1.1", 
     "upload_type": "software", 
     "keywords": [
         "Polycystic Kidney Disease", 
@@ -39,19 +39,6 @@
             "orcid": "0000-0002-1642-8904", 
             "affiliation": "CDIB, Heersink School of Medicine, UAB", 
             "name": "Brittany N. Lasseigne"
-        }
-    ], 
-    "access_right": "open", 
-    "related_identifiers": [
-        {
-            "scheme": "url", 
-            "identifier": "https://github.com/lasseignelab/pkd_drugrepurposing/tree/v1.1.2", 
-            "relation": "isSupplementTo"
-        }, 
-        {
-            "scheme": "doi", 
-            "identifier": "10.5281/zenodo.6954715", 
-            "relation": "isVersionOf"
         }
     ]
 }
