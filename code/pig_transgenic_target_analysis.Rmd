@@ -1,0 +1,144 @@
+---
+title: "pig_transgenic_target_analysis"
+author: "Lizzy Wilk"
+date: "3/16/2023"
+output:
+    html_document:
+      toc: true
+      toc_float: true
+      toc_depth: 5
+
+---
+
+### Purpose  
+This markdown uses STAR-salmon counts from nf-core for RNAseq alignment. All data from publicly available humanized Pkd2 variant (pathogenic for human ADPKD) from pig kidney RNAseq data comparing Pkd2-mutants and WT.  
+__pig__: AKA 39/GSE149739/precystic/p70, induced-KO model, samples collected at p70 when tubules were dilated with no overt cyst formation. Total n = 6 samples, 3 Pkd2fl/fl;Pax8rtTA;TetO-Cre and 3 WT  
+Dataset: [GSE149739](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE149739)  
+Processed data filepath: /data/project/lasseigne_lab/Lizzy/PKD_drugrepurposing_220324/  
+
+#### Load in libraries
+```{r message=FALSE, warning = FALSE}
+library(DESeq2)
+library(apeglm)
+library(tidyverse)
+library(signatureSearch)
+library(ExperimentHub); library(rhdf5)
+library(biomaRt)
+library(viridis)
+library(here)
+#library(EnhancedVolcano)
+source(here("code", "functions.R"))
+```
+
+### DEA
+
+#### Read in data  
+Filepath to counts data: /data/project/lasseigne_lab/Lizzy/nfcore_rnaseq/results/star_salmon/salmon.merged.gene_counts.rds  
+Metadata and SRA: 
+
+```{r}
+pig_cts <- readRDS(here("data", "salmon.merged.gene_counts_pkd2pig.rds.rds"))
+pig_meta <- read.csv(here("../data/metadata_pkd2pig.txt"), row.names = 1)
+```
+
+Remove IFT88
+```{r}
+ift88 <- grep("Ift88", meta_p70$Genotype, ignore.case = TRUE, value = TRUE)
+nonift88 <- meta_p70$Genotype[!(meta_p70$Genotype %in% ift88)]
+meta_p70 <- dplyr::filter(meta_p70, Genotype %in% nonift88)
+```
+
+#### DDS
+```{r}
+cts_p70 <- cts_p70@assays@data@listData[["counts"]]
+dds_p70 <- salmon2dds(cts_p70, meta_p70)
+```
+
+
+#### Run DESeq2
+```{r}
+#relevel to make wildtype the reference instead of first alphabetical factor
+dds_p70$Genotype <- relevel(dds_p70$Genotype, ref = "Wildtype")
+#run DESeq: estimates size factors, estimates dispersion, fits negative binomial GLM's and performs Wald stats
+dds_p70 <- DESeq(dds_p70) 
+```
+
+#### Results  
+
+```{r}
+#extract results table with log2 fold changes, p values and adjusted p values for desired coefficients
+#alpha 0.05 cutoff
+#res_nf <- results(dds_p70, alpha = 0.05, contrast = c("Genotype", "Pkd2flflPax8rtTATetOcre", "Wildtype"))
+res_nf <- lfcShrink(dds_p70, coef = c("Genotype_Pkd2flflPax8rtTATetOcre_vs_Wildtype"), type="apeglm")
+res_nf
+```
+
+DESeq2 results
+```{r}
+dsq2_p70 <- as.data.frame(res_nf)
+```
+
+Save full deseq results
+```{r}
+write.csv(dsq2_p70, file = here("res", "deseq2_outputs", "deseq2_fullres_p70.csv"))
+saveRDS(dsq2_p70, file = here("res", "deseq2_outputs", "deseq2_fullres_p70.rds"))
+```
+
+#### LFC cutoffs
+Using < -2 and > 2 LFC threshold for up and downregulated genes 
+```{r}
+musdegs_p70_UP <- uplfc(dsq2_p70, lfcutoff = 1.1)
+musdegs_p70_DOWN <- downlfc(dsq2_p70, lfcutoff = -1.1)
+```
+
+Total genes above threshold before mapping from mouse ensembl to human symbol/entrez
+```{r}
+dim(musdegs_p70_UP) #159 at lfc > 1.3 , 194 at lfc > 1.1
+dim(musdegs_p70_DOWN) #43 at lfc < -1.3  , 63 at lfc <   63
+```
+
+```{r }
+write.csv(musdegs_p70_UP, file = here("res", "deseq2_outputs", "deseq2_upgenes_res_p70.csv"))
+write.csv(musdegs_p70_DOWN, file = here("res", "deseq2_outputs", "deseq2_downgenes_res_p70.csv"))
+```
+
+
+Regularized log transformation  
+rlog() is better to use for these datasets -- better for high count variance by sample (in this case, one sample has over 2x the reads compared to the others in one data set) and for smaller datasets "if you have many samples (e.g. 100s), the rlog function might take too long, and so the vst function will be a faster choice. The rlog and VST have similar properties, but the rlog requires fitting a shrinkage term for each sample and each gene which takes time. See the DESeq2 paper for more discussion on the differences (Love, Huber, and Anders 2014)."  
+```{r}
+#vsd_nf <- vst(dds_p70, blind = FALSE) #if blind, could minimize large count differences due to anticipated experimental variation
+rld_nf <- rlog(dds_p70, blind = FALSE) 
+```
+
+#### Visualizations
+PCA
+```{r}
+plotPCA(rld_nf, intgroup=c("Genotype")) + geom_label_repel(aes(label = rld_nf@colData@rownames), box.padding   = 0.15, label.padding = 0.15, point.padding = 0.3, segment.color = 'grey50') + scale_colour_viridis_d() + theme(axis.title.x = element_text(size = 20)) + theme_minimal()
+```
+
+#### Mouse to Human Ortholog Mapping
+Map to human entrez and filter by LINCS genes
+```{r}
+hom_degs_UP <- lincsGenes(musdegs_p70_UP, "up")
+ 
+hom_degs_DOWN <-  lincsGenes(musdegs_p70_DOWN, "down")
+#should be 100 or less
+length(unique(hom_degs_UP$entrezgene_id)) #99
+length(unique(hom_degs_DOWN$entrezgene_id)) #31
+```
+
+```{r}
+write.csv(hom_degs_UP, file = here("res", "deseq2_outputs", "p70_signature_UP.csv"))
+write.csv(hom_degs_DOWN, file = here("res", "deseq2_outputs", "p70_signature_DOWN.csv"))
+```
+
+
+
+```{r}
+R.Version()
+```
+
+
+```{r}
+installed.packages()[names(sessionInfo()$otherPkgs), "Version"]
+```
