@@ -30,16 +30,34 @@ library(here)
 library(dplyr)
 library(stringr)
 source(here("code", "functions.R"))
+library(readr)
 ```
 
 Pull LINCS data from Experiment Hub
 ```{r message=FALSE, warning = FALSE}
 eh <- ExperimentHub()
-cmap <- eh[["EH3223"]]; cmap_expr <- eh[["EH3224"]] #cmap data locations in experimenthub
-lincs <- eh[["EH3226"]]; lincs_expr <- eh[["EH3227"]] #lincs data locations in experimenthub
-h5ls(lincs) #reading hdf5 file
-db_path <- system.file("extdata", "sample_db.h5", package = "signatureSearch")
+#cmap <- eh[["EH3223"]]; cmap_expr <- eh[["EH3224"]] #cmap data locations in experimenthub
+#lincs <- eh[["EH3226"]]; lincs_expr <- eh[["EH3227"]] #lincs data locations in experimenthub
+#h5ls(lincs) #reading hdf5 file
+#db_path <- system.file("extdata", "sample_db.h5", package = "signatureSearch")
+#new lincs data
+query(eh, c("signatureSearchData", "lincs2"))
+lincs2_path <- eh[['EH7297']]
+rhdf5::h5ls(lincs2_path) 
 
+
+data("lincs_pert_info2")
+#downloaded level 5 compound data from CLUE
+#siginfo_beta <- fread("https://s3.amazonaws.com/macchiato.clue.io/builds/LINCS2020/siginfo_beta.txt")
+#siginfo_beta <- read_delim(here("data/siginfo_beta.txt"))
+#exemplar <- siginfo_beta %>% filter(pert_type=="trt_cp" & is_exemplar_sig == 1)
+#new_cid <- paste(exemplar$pert_id, exemplar$cell_iname, rep("trt_cp", #length(exemplar$cmap_name)), sep="__")
+#gctx2h5(here("data/level5_beta_trt_cp_n720216x12328.gctx"), cid=exemplar$sig_id, new_cid=new_cid,
+#        h5file="lincs2.h5", by_ncol=5000, overwrite=TRUE)
+#DBpath <- "lincs2.h5"
+#sedb <- SummarizedExperiment(HDF5Array(DBpath, name="assay"))
+#rownames(sedb) <- HDF5Array(DBpath, name="rownames")
+#colnames(sedb) <- HDF5Array(DBpath, name="colnames")
 ```
 
 ### Pre-cystic (P70) Signature Reversion
@@ -53,12 +71,12 @@ hom_p70_DOWN <- read.csv(here("res", "deseq2_outputs", "p70_signature_DOWN.csv")
 
 Run signatureSearch, filter for kidney cell lines  
 ```{r}
-gess_kidneycells_p70 <- ssRun(upgenes = hom_p70_UP$entrezgene_id, downgenes = hom_p70_DOWN$entrezgene_id, cells = "kidney")
+gess_kidneycells_p70 <- ssRun(upgenes = hom_p70_UP$entrezgene_id, downgenes = hom_p70_DOWN$entrezgene_id, cells = "kidney", refdb = "lincs2") #original lincs: 100 up genes 31 down genes
 ```
 
 Total results (inversely related)
 ```{r}
-dim(gess_kidneycells_p70)
+dim(gess_kidneycells_p70) #730 16
 ```
 
 #### Top 30 Results by NCS
@@ -68,7 +86,7 @@ head(gess_kidneycells_p70, 30)
 
 
 ```{r }
-write.csv(gess_kidneycells_p70, file = here("res", "sigsearch_outputs", "gess_kidneycells_p70.csv"))
+write.csv(gess_kidneycells_p70, file = here("res", "sigsearch_outputs", "gess_kidneycells_precystic.csv"))
  
 ```
 
@@ -83,26 +101,26 @@ rHub_p70 <- dplyr::inner_join(gess_kidneycells_p70, repurpHub, by= c("pert" = "N
 
 P70/'39 Already-Launched Drugs
 ```{r}
-rhub_launched_p70 <- dplyr::filter(rHub_p70, Phase == "Launched")
+rhub_launched_precystic <- dplyr::filter(rHub_p70, Phase == "Launched")
 
 ```
 
 ```{r}
-write.csv(rhub_launched_p70, file = here("res", "sigsearch_outputs", "rhub_launcheddrugs_p70.csv"))
+write.csv(rhub_launched_precystic, file = here("res", "sigsearch_outputs", "rhub_launcheddrugs_precystic.csv"))
 ```
 
 Alluvial plot of drugs-targets with just launched drugs
 ```{r}
-rhub_launched_p70_top30 <- dplyr::slice_min(rhub_launched_p70, order_by = Tau, n = 30)
+rhub_launched_precystic_top30 <- dplyr::slice_min(rhub_launched_precystic, order_by = Tau, n = 30)
 
-rhub_launched_p70_top_septarget <- tidyr::separate_rows(rhub_launched_p70_top30, Target, sep = ", ")
+rhub_launched_precystic_top_septarget <- tidyr::separate_rows(rhub_launched_precystic_top30, Target, sep = ", ")
 #remove drugs with empty 'target' field
-rhub_launched_p70_top_septarget <- dplyr::filter(rhub_launched_p70_top_septarget, Target != "")
+rhub_launched_precystic_top_septarget <- dplyr::filter(rhub_launched_precystic_top_septarget, Target != "")
 ```
 
 plot
 ```{r}
-target_alluvial <- ggplot(data = rhub_launched_p70_top_septarget,
+target_alluvial <- ggplot(data = rhub_launched_precystic_top_septarget,
        aes(axis1 = pert, axis2 = Target)) +
   geom_alluvium(color = "black", aes(fill = WTCS)) + # , colour = trend)) + 
   geom_stratum(width = 3/12, color = "black") + #the border of the stratum
@@ -120,16 +138,16 @@ target_alluvial
 
 MOA's separated, string wrap labels
 ```{r}
-rhub_launched_p70_top_moasep <- tidyr::separate_rows(rhub_launched_p70_top30, MOA, sep = ",")
+rhub_launched_precystic_top_moasep <- tidyr::separate_rows(rhub_launched_precystic_top30, MOA, sep = ",")
 
-rhub_launched_p70_top_moasep$MOA <- stringr::str_wrap(rhub_launched_p70_top_moasep$MOA, width = 20)
+rhub_launched_precystic_top_moasep$MOA <- stringr::str_wrap(rhub_launched_precystic_top_moasep$MOA, width = 20)
 
-rhub_launched_p70_top_moasep$Disease.Area <- stringr::str_wrap(rhub_launched_p70_top_moasep$Disease.Area, width = 30)
+rhub_launched_precystic_top_moasep$Disease.Area <- stringr::str_wrap(rhub_launched_precystic_top_moasep$Disease.Area, width = 30)
 ```
 
 plot
 ```{r}
-moa_alluvial <- ggplot(data = rhub_launched_p70_top_moasep,
+moa_alluvial <- ggplot(data = rhub_launched_precystic_top_moasep,
        aes(axis1 = pert, axis2 = MOA)) +
   geom_alluvium(color = "black", aes(fill = WTCS)) + # , colour = trend)) + 
   geom_stratum(width = 3/12, color = "black") + #the border of the stratum
@@ -146,7 +164,7 @@ moa_alluvial
 
 
 ```{r }
-ggsave(here("res", "sigsearch_outputs", "moa_alluvial_wtcs_220819.pdf"), moa_alluvial, width = 10, height = 15)
+ggsave(here("res", "sigsearch_outputs", "moa_alluvial_wtcs_230320.pdf"), moa_alluvial, width = 10, height = 15)
 
 ```
 
@@ -159,7 +177,7 @@ rhub_launched_p70 <- dplyr::filter(rHub_p70, Phase == "Launched")
 
 Save
 ```{r }
-write.csv(rHub_p70, file = here("res", "sigsearch_outputs", "ssresults_rHub_p70.csv"))
+write.csv(rHub_p70, file = here("res", "sigsearch_outputs", "ssresults_rHub_precystic.csv"))
 ```
 
 
@@ -208,8 +226,8 @@ write.csv(fda_approved, file = here("data", "FDA_approved_unique_ingredients.csv
 
 Repurposing hub 'launched' drugs
 ```{r}
-rhub_launched_p70 <- read.csv(here("res", "sigsearch_outputs", "rhub_launcheddrugs_p70.csv"), row.names = 1)
-fda_approved <- read.csv(here("data", "FDA_approved_unique_ingredients.csv"), row.names = 1)
+#rhub_launched_p70 <- read.csv(here("res", "sigsearch_outputs", "rhub_launcheddrugs_p70.csv"), row.names = 1)
+#fda_approved <- read.csv(here("data", "FDA_approved_unique_ingredients.csv"), row.names = 1)
 ```
 
 Test for FDA approval
