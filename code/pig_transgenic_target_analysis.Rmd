@@ -25,14 +25,11 @@ library(ggrepel)
 library(signatureSearch)
 library(ExperimentHub); library(rhdf5)
 library(biomaRt)
-library(org.Ss.eg.db) #genome wide annotation for pig
 library(viridis)
 library(here)
 #library(EnhancedVolcano)
 source(here("code", "functions.R"))
 ```
-
-### DEA
 
 #### Read in data  
 Filepath to counts data: /data/project/lasseigne_lab/Lizzy/nfcore_rnaseq/results/star_salmon/salmon.merged.gene_counts.rds  
@@ -42,10 +39,187 @@ Metadata and SRA:
 pig_rse <- readRDS(here("data/salmon.merged.gene_counts_pkd2pig.rds"))
 pig_meta <- read.csv(here("data/metadata_pkd2pig.txt"), row.names = 1)
 pig_meta$Genotype <- pig_meta$Ecotype #new column to use as genotype for DDS function
-salmon2dds()
 ```
 
-Remove outlier -- WT sample explaining the majority of variation, separating apart from all other samples in PC1 (full multiQC results )
+# All samples
+
+deseq2 with all samples
+```{r}
+rownames(pig_meta) <- c("WT_SRR21600987", "WT_SRR21600988", "WT_SRR21600989", "WT_SRR21600990", "PKD2_SRR21600991", "PKD2_SRR21600992", "PKD2_SRR21600993", "PKD2_SRR21600994", "PKD2_SRR21600995")
+
+dds <- salmon2dds(pig_rse@assays@data$counts, pig_meta)
+```
+
+run deseq2
+```{r}
+#relevel to make wildtype the reference instead of first alphabetical factor
+dds@colData@listData$Genotype <- relevel(dds@colData@listData$Genotype, ref = "wildtype")
+#run DESeq: estimates size factors, estimates dispersion, fits negative binomial GLM's and performs Wald stats
+dsq2 <- DESeq(dds) 
+```
+
+rlog
+```{r}
+rld <- rlog(dds)
+```
+
+#### PCA
+```{r}
+ntop = 500
+#plotPCA_vst <- function (object,  ntop = 500, assay=length(assays(object))) {
+    rv         <- rowVars(assay(rld))
+    select     <- order(rv, decreasing = TRUE)[seq_len(min(ntop, length(rv)))]
+    pca        <- prcomp(t(assay(rld)[select, ]), center=TRUE, scale=FALSE)
+    percentVar <- pca$sdev^2/sum(pca$sdev^2)
+    df         <- cbind( as.data.frame(colData(rld)), pca$x)
+    #Order points so extreme samples are more likely to get label
+    ord        <- order(abs(rank(df$PC1)-median(df$PC1)), abs(rank(df$PC2)-median(df$PC2)))
+    df         <- df[ord,]
+    attr(df, "percentVar") <- data.frame(PC=seq(along=percentVar), percentVar=100*percentVar)
+#    return(df)
+#}
+pca.data <- df
+
+top <- c(500, Inf)
+for (n_top_var in ntop) {
+    #pca.data      <- plotPCA_vst(dds, assay=vst_name, ntop=n_top_var)
+    percentVar    <- round(attr(pca.data, "percentVar")$percentVar)
+    plot_subtitle <- ifelse(n_top_var==Inf, "All genes", paste("Top", n_top_var, "genes"))
+    pl <- ggplot(pca.data, aes(PC1, PC2, label=paste0(" ", Genotype, " ", Sample.Name, " "))) +
+        geom_point() +
+        geom_text(check_overlap=TRUE, vjust=0.5, hjust="inward") +
+        xlab(paste0("PC1: ",percentVar[1],"% variance")) +
+        ylab(paste0("PC2: ",percentVar[2],"% variance")) +
+        labs(title = paste0("First PCs on transformed data"), subtitle = plot_subtitle) +
+        theme(legend.position="top",
+            #panel.grid.major = element_blank(),
+            #panel.grid.minor = element_blank(),
+            panel.background = element_blank())#,
+#            panel.border = element_rect(colour = "black", fill=NA, size=1))
+    print(pl)
+}
+```
+
+
+#### Results  
+
+```{r}
+#extract results table with log2 fold changes, p values and adjusted p values for desired coefficients
+#alpha 0.05 cutoff
+resultsNames(dsq2) #list coefficients
+res <- lfcShrink(dsq2, coef = c("Genotype_humanizedmutantPKD2transgenicpig_vs_wildtype"), type="apeglm")
+res
+```
+
+DESeq2 results
+```{r}
+res_df <- as.data.frame(res)
+```
+
+Save full deseq results
+```{r}
+write.csv(res_df, file = here("res/deseq2_outputs/pig_outlier_included/deseq2_fullres_humanized_pig_pkd2.csv"))
+saveRDS(res, file = here("res/deseq2_outputs/pig_outlier_included/deseq2_fullres_humanized_pig_pkd2.rds"))
+```
+
+#### LFC cutoffs
+Using < -2 and > 2 LFC threshold for up and downregulated genes 
+```{r}
+res_df <- res_df[!is.na(res_df$padj),]
+
+pig_degs_up <- res_df[res_df$log2FoldChange > 1.0 & res_df$padj < 0.05,]
+  #uplfc(res_df, lfcutoff = 1.1) #downfc <- res[res$log2FoldChange < lfcutoff & res$padj < 0.05,]
+#pig_degs_down <- downlfc(res_df, lfcutoff = -1.1)
+pig_degs_down <- res_df[res_df$log2FoldChange < -1.0 & res_df$padj < 0.05,]
+```
+
+Total genes above threshold before mapping from mouse ensembl to human symbol/entrez
+```{r}
+#from paper:  449 upregulated genes and 389 downregulated genes
+dim(pig_degs_up) # at 1.1, 255 at 1.0
+dim(pig_degs_down) # at -1.1, 338 at -1.0
+```
+
+```{r }
+write.csv(pig_degs_up, file = here("res/deseq2_outputs/pig_outlier_included/pig_degs_up.csv"))
+write.csv(pig_degs_down, file = here("res/deseq2_outputs/pig_outlier_included/pig_degs_down.csv"))
+```
+
+
+#### Visualizations
+PCA
+```{r}
+plotPCA(rld, intgroup=c("Genotype")) + geom_label_repel(aes(label = rld@colData@rownames), box.padding   = 0.15, label.padding = 0.15, point.padding = 0.3, segment.color = 'grey50') + scale_colour_viridis_d() + theme(axis.title.x = element_text(size = 20)) + theme_minimal()
+```
+
+#### Pig to Human Ortholog Mapping
+Downloaded from ensembl.org/biomart using pig genes (Sscrofa11.1) and human genes (GRCh38.p13) (filters for orthologous genes only) (accessed 230317)
+Map to human entrez and filter by LINCS genes
+```{r}
+pig_human_conv <- read.delim("../data/mart_export_pig2human.txt")
+
+pig_deseqres_anno <- res_df %>% rownames_to_column(., var = "Gene.stable.ID") %>% inner_join(., pig_human_conv, by = "Gene.stable.ID")
+
+degs_up <- pig_degs_up %>% rownames_to_column(., var = "Gene.stable.ID") %>% inner_join(., pig_human_conv, by = "Gene.stable.ID")
+
+degs_down <- pig_degs_down %>% rownames_to_column(., var = "Gene.stable.ID") %>% inner_join(., pig_human_conv, by = "Gene.stable.ID")
+
+#hom_degs_UP <- lincsGenes(musdegs_p70_UP, "up")
+ 
+#hom_degs_DOWN <-  lincsGenes(musdegs_p70_DOWN, "down")
+#should be 100 or less
+#length(unique(hom_degs_UP$entrezgene_id)) #99
+#length(unique(hom_degs_DOWN$entrezgene_id)) #31
+```
+
+```{r}
+write.csv(degs_up, file = here("res/deseq2_outputs/pig_outlier_included/pig_humanortho_degs_up.csv"))
+write.csv(degs_down, file = here("res/deseq2_outputs/pig_outlier_included/pig_humanortho_degs_down.csv"))
+```
+
+#### Compare DEGs to Targets  
+
+```{r}
+drug_targets <- read.csv(here("res/sigsearch_outputs/drug_targets_oe_cysticdegs.csv"), row.names = 1)
+
+#drug targets available in pig - human orthologs
+drug_targets_avail_pig <- inner_join(drug_targets, pig_deseqres_anno, by = c("Drug_Targets" = "Gene.name.1"))
+
+drug_targets_in_pkd2_pig <- dplyr::filter(drug_targets, Drug_Targets %in% degs_up$Gene.name.1)
+```
+
+double check up genes are same as up genes from the paper (pulling from supp Table 1, sheets 3 and 4 for up and down enrichment)
+```{r}
+library(readxl)
+reported_upgenes <- read_xlsx("~/Downloads/Table 1.XLSX", sheet = 3, skip = 1)
+reported_upgenes <- separate_rows(reported_upgenes, Genes, sep = ", ")
+reported_upgenes <- unique(reported_upgenes$Genes)
+
+reported_downgenes <- read_xlsx("~/Downloads/Table 1.XLSX", sheet = 4, skip = 1)
+reported_downgenes <- separate_rows(reported_downgenes, Genes, sep = ", ")
+reported_downgenes <- unique(reported_downgenes$Genes)
+
+intersect(degs_up$Gene.name.1, reported_upgenes) #only 41 of reported
+#intersect(degs_down$Gene.name.1, reported_upgenes) #triple checking there's few to none that are opposite of what's reported
+
+intersect(degs_down$Gene.name.1, reported_downgenes)#only 30 of reported
+#intersect(degs_up$Gene.name.1, reported_downgenes) #triple checking there's few to none that are opposite of what's reported
+```
+
+
+
+# Remove outlier -- WT sample explaining the majority of variation, separating apart from all other samples in PC1 (full multiQC results )
+#### Read in data  
+Filepath to counts data: /data/project/lasseigne_lab/Lizzy/nfcore_rnaseq/results/star_salmon/salmon.merged.gene_counts.rds  
+Metadata and SRA: 
+
+```{r}
+pig_rse <- readRDS(here("data/salmon.merged.gene_counts_pkd2pig.rds"))
+pig_meta <- read.csv(here("data/metadata_pkd2pig.txt"), row.names = 1)
+pig_meta$Genotype <- pig_meta$Ecotype #new column to use as genotype for DDS function
+```
+
+
 ```{r}
 pig_cts <- dplyr::select(pig_rse@assays@data$counts, !WT_SRR21600987)
 pig_meta <- pig_meta[rownames(pig_meta) != "SRR21600987",]
@@ -101,8 +275,9 @@ pig_degs_down <- res_df[res_df$log2FoldChange < -1.0 & res_df$padj < 0.05,]
 
 Total genes above threshold before mapping from mouse ensembl to human symbol/entrez
 ```{r}
-dim(pig_degs_up) #548 at 1.1, 628 at 1.0
+dim(pig_degs_up) #548 at 1.1, 628 at 1.0 
 dim(pig_degs_down) #566 at -1.1, 624 at 1.0
+##from paper:  449 upregulated genes and 389 downregulated genes
 ```
 
 ```{r }
@@ -126,22 +301,21 @@ plotPCA(rld, intgroup=c("Genotype")) + geom_label_repel(aes(label = rld@colData@
 
 #### Pig to Human Ortholog Mapping
 Downloaded from ensembl.org/biomart using pig genes (Sscrofa11.1) and human genes (GRCh38.p13) (filters for orthologous genes only) (accessed 230317)
-Map to human entrez and filter by LINCS genes
+Map to human ortholog genes
 ```{r}
 pig_human_conv <- read.delim("../data/mart_export_pig2human.txt")
 
 pig_deseqres_anno <- res_df %>% rownames_to_column(., var = "Gene.stable.ID") %>% inner_join(., pig_human_conv, by = "Gene.stable.ID")
 
+#convert to entrez as well
+human <- useEnsembl("ensembl", dataset = "hsapiens_gene_ensembl", mirror = "useast")
+genes <- getBM(filters = "ensembl_gene_id", attributes = c("ensembl_gene_id","entrezgene_id"), values = ens_mouse2human$Gene.stable.ID.1, mart = human)
+
+
 degs_up <- pig_degs_up %>% rownames_to_column(., var = "Gene.stable.ID") %>% inner_join(., pig_human_conv, by = "Gene.stable.ID")
 
 degs_down <- pig_degs_down %>% rownames_to_column(., var = "Gene.stable.ID") %>% inner_join(., pig_human_conv, by = "Gene.stable.ID")
 
-#hom_degs_UP <- lincsGenes(musdegs_p70_UP, "up")
- 
-#hom_degs_DOWN <-  lincsGenes(musdegs_p70_DOWN, "down")
-#should be 100 or less
-#length(unique(hom_degs_UP$entrezgene_id)) #99
-#length(unique(hom_degs_DOWN$entrezgene_id)) #31
 ```
 
 ```{r}
@@ -175,7 +349,39 @@ intersect(degs_up$Gene.name.1, reported_upgenes) #only 46 of reported
 #intersect(degs_down$Gene.name.1, reported_upgenes) #triple checking there's few to none that are opposite of what's reported
 
 intersect(degs_down$Gene.name.1, reported_downgenes)#only 31 of reported
-intersect(degs_up$Gene.name.1, reported_downgenes)
+#intersect(degs_up$Gene.name.1, reported_downgenes)
+```
+
+# DEGs to LINCS-Gene Mapping
+#__toplincs__: Uses uplfc and downlfc outputs to then find top 100 genes that are available in LINCS (best input for signature reversion)
+eh <- ExperimentHub()
+lincs <- eh[["EH3226"]]; lincs_expr <- eh[["EH3227"]]
+
+lincs_genes <- rhdf5:::h5read(lincs, "rownames", drop=TRUE)
+
+toplincs <- function(conv_tbl, direction){
+  lincs_genes <- cbind(entrezgene_id = lincs_genes)
+  conv_tbl <- merge(conv_tbl, lincs_genes, by = "entrezgene_id")
+  #conv_tbl$log2FoldChange <- as.numeric(conv_tbl$log2FoldChange)
+  if(direction == "up"){
+    top100 <- slice_max(conv_tbl, n = 100, order_by = log2FoldChange)
+  }
+  else{
+    top100 <- slice_min(conv_tbl, n = 100, order_by = log2FoldChange)
+  }
+  return(top100)
+}
+```{r}
+eh <- ExperimentHub()
+lincs <- eh[["EH3226"]]; lincs_expr <- eh[["EH3227"]]
+
+lincs_genes <- rhdf5:::h5read(lincs, "rownames", drop=TRUE)
+
+```
+
+convert degs from human ensembl to entrez
+```{r}
+
 ```
 
 ```{r}
