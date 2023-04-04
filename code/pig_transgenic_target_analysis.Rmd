@@ -29,6 +29,7 @@ library(viridis)
 library(here)
 #library(EnhancedVolcano)
 source(here("code", "functions.R"))
+library(gprofiler2)
 ```
 
 #### Read in data  
@@ -307,14 +308,16 @@ pig_human_conv <- read.delim("../data/mart_export_pig2human.txt")
 
 pig_deseqres_anno <- res_df %>% rownames_to_column(., var = "Gene.stable.ID") %>% inner_join(., pig_human_conv, by = "Gene.stable.ID")
 
-#convert to entrez as well
-human <- useEnsembl("ensembl", dataset = "hsapiens_gene_ensembl", mirror = "useast")
-genes <- getBM(filters = "ensembl_gene_id", attributes = c("ensembl_gene_id","entrezgene_id"), values = ens_mouse2human$Gene.stable.ID.1, mart = human)
+human_conv <- gprofiler2::gconvert(pig_deseqres_anno$Gene.stable.ID.1, organism = "hsapiens", target = "ENTREZGENE_ACC")
 
+pig_human_conv <- left_join(pig_human_conv, human_conv, by = c("Gene.stable.ID.1" = "input"))
+```
 
-degs_up <- pig_degs_up %>% rownames_to_column(., var = "Gene.stable.ID") %>% inner_join(., pig_human_conv, by = "Gene.stable.ID")
+up and down gene lists w/ gene annotations (ensembl, entrez, names, and pig - human orthologs)
+```{r}
+degs_up <- pig_degs_up %>% rownames_to_column(., var = "Gene.stable.ID") %>% inner_join(., pig_human_conv, by = "Gene.stable.ID", multiple = "all")
 
-degs_down <- pig_degs_down %>% rownames_to_column(., var = "Gene.stable.ID") %>% inner_join(., pig_human_conv, by = "Gene.stable.ID")
+degs_down <- pig_degs_down %>% rownames_to_column(., var = "Gene.stable.ID") %>% inner_join(., pig_human_conv, by = "Gene.stable.ID", multiple = "all")
 
 ```
 
@@ -353,36 +356,23 @@ intersect(degs_down$Gene.name.1, reported_downgenes)#only 31 of reported
 ```
 
 # DEGs to LINCS-Gene Mapping
-#__toplincs__: Uses uplfc and downlfc outputs to then find top 100 genes that are available in LINCS (best input for signature reversion)
-eh <- ExperimentHub()
-lincs <- eh[["EH3226"]]; lincs_expr <- eh[["EH3227"]]
-
-lincs_genes <- rhdf5:::h5read(lincs, "rownames", drop=TRUE)
-
-toplincs <- function(conv_tbl, direction){
-  lincs_genes <- cbind(entrezgene_id = lincs_genes)
-  conv_tbl <- merge(conv_tbl, lincs_genes, by = "entrezgene_id")
-  #conv_tbl$log2FoldChange <- as.numeric(conv_tbl$log2FoldChange)
-  if(direction == "up"){
-    top100 <- slice_max(conv_tbl, n = 100, order_by = log2FoldChange)
-  }
-  else{
-    top100 <- slice_min(conv_tbl, n = 100, order_by = log2FoldChange)
-  }
-  return(top100)
-}
+Filter for LINCS-available genes and then take top 100 up and down DEGs for signatures
 ```{r}
 eh <- ExperimentHub()
 lincs <- eh[["EH3226"]]; lincs_expr <- eh[["EH3227"]]
 
 lincs_genes <- rhdf5:::h5read(lincs, "rownames", drop=TRUE)
 
+sig_up <- degs_up %>% filter(., target %in% lincs_genes) %>% distinct(target, .keep_all = TRUE) %>% slice_max(., n = 100, order_by = log2FoldChange)
+
+sig_down <- degs_down %>% filter(., target %in% lincs_genes) %>% distinct(target, .keep_all = TRUE)%>% slice_min(., n = 100, order_by = log2FoldChange)
 ```
 
-convert degs from human ensembl to entrez
 ```{r}
-
+write.csv(sig_up, file = here("res/deseq2_outputs/pig_signature_up.csv"))
+write.csv(sig_down, file = here("res/deseq2_outputs/pig_signature_down.csv"))
 ```
+
 
 ```{r}
 R.Version()
