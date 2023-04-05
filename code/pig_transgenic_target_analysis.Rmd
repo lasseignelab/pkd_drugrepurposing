@@ -355,7 +355,78 @@ intersect(degs_down$Gene.name.1, reported_downgenes)#only 31 of reported
 #intersect(degs_up$Gene.name.1, reported_downgenes)
 ```
 
-# DEGs to LINCS-Gene Mapping
+##### Top Drugs, All Targets Comparison  
+Instead of just the prioritized targets, looking at all prioritzed targets of the top drugs
+```{r}
+prioritized_drugs <- read.csv(here("res/sigsearch_outputs/drugtarget_cysticoverlap_simpletbl.csv"), row.names = 1)
+prioritized_drugs <- tidyr::separate_rows(prioritized_drugs, Drug_Targets, sep = "; ")
+
+#prioritized_drugs_pig_oe <- filter(prioritized_drugs, Drug_Targets %in% pig_humanortho_degs_up$Gene.name.1)
+prioritized_drugs_pig_oe <- inner_join(prioritized_drugs,pig_humanortho_degs_up, by = c( "Drug_Targets" = "Gene.name.1"))
+```
+
+```{r}
+#unique drugs
+unique(prioritized_drugs_pig_oe$Drug)
+```
+
+```{r}
+#unique targets
+#unique drugs
+unique(prioritized_drugs_pig_oe$Drug_Targets)
+```
+
+
+#### Plots
+alluvial
+```{r}
+target_alluvial <- ggplot(data = prioritized_drugs_pig_oe,
+       aes(axis1 = Drug, axis2 = Drug_Targets)) +
+  geom_alluvium(color = "black", aes(fill = Drug_Targets %in% drug_targets_in_pkd2_pig$Drug_Targets)) + # , colour = trend)) + 
+  geom_stratum(width = 3/12, color = "black") + #the border of the stratum
+  #scale_x_discrete(expand = c(.07, .07)) + 
+  #scale_y_discrete(expand = c(.007, .007)) + 
+  scale_fill_viridis_d("Target \nUpregulated in \nPkd2-KO Cystic Mice", aesthetics = c("colour", "fill")) +
+  geom_text(stat = "stratum", size = 3.5, fontface = "bold", aes(label = after_stat(stratum))) +
+  #labs(title = "Prioritized Drugs with Targets \nUpregulated in Pkd2-Pig") +
+  #theme(legend.title = element_text("Target Upregulated in Pkd2-KO Cystic Mice")) 
+  theme(axis.title.x = element_blank(), plot.title = element_text(size = 18, face = "bold", hjust = 0.5, vjust = -3.5), axis.text.x = element_blank(), axis.text.y = element_blank(), axis.ticks = element_blank()) +
+        #, title = element_text("Target Upregulated in Pkd2-KO Cystic Mice")) + 
+  ggtitle(label = "Prioritized Drugs with \nTargets Upregulated in Pkd2-Pig") + 
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+panel.background = element_blank() )
+
+target_alluvial
+ggsave("../res/paper_supplementary/pig_drugtarget_alluvial.png", target_alluvial)
+```
+target_deg_plot <- function(targetdegs, cutoff, title){
+
+  #targetdegs <- dplyr::distinct(targetdegs, t_gn_sym, .keep_all = TRUE)
+
+  volcanoplot <- EnhancedVolcano(targetdegs$degs, lab = targetdegs$degs$hgnc_symbol,
+  x = 'log2FoldChange', y = 'padj', selectLab = unique(targetdegs$targetdegs$t_gn_sym),
+  pCutoff = 0.05, FCcutoff = cutoff, pointSize = 3.0, labSize = 5.0,
+  col = c("#440154", "#21918c", "#fde725", "#5ec962"), title = title,
+  labFace = 'bold', boxedLabels = TRUE,drawConnectors = TRUE,widthConnectors = 0.5,colConnectors = 'black',
+  max.overlaps = 25)
+  return(volcanoplot)
+}
+volcano plot
+```{r}
+#vp_df <- res_df %>% rownames_to_column(., var = "Gene.Stable.ID") %>% full_join(., prioritized_drugs_pig_oe, by = "Gene.Stable.ID", multiple = "all")
+
+vp <- EnhancedVolcano::EnhancedVolcano(pig_deseqres_anno, lab = pig_deseqres_anno$Gene.name.1,
+  x = 'log2FoldChange', y = 'padj', selectLab = unique(prioritized_drugs_pig_oe$Drug_Targets,),
+  pCutoff = 0.05, FCcutoff = 1, pointSize = 3.0, labSize = 5.0,
+  col = c("#440154", "#21918c", "#fde725", "#5ec962"), title = "Prioritized Drugs with \nTargets Upregulated in Pkd2-Pig",
+  labFace = 'bold', boxedLabels = TRUE,drawConnectors = TRUE,widthConnectors = 0.5,colConnectors = 'black',
+  max.overlaps = 25)
+
+vp
+ggsave("../res/paper_supplementary/pig_drugtarget_volcanoplot.png", vp)
+```
+
+## Signature by DEGs to LINCS-Gene Mapping
 Filter for LINCS-available genes and then take top 100 up and down DEGs for signatures
 ```{r}
 eh <- ExperimentHub()
