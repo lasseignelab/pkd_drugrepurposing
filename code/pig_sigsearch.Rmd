@@ -1,0 +1,177 @@
+---
+title: "pig_sigsearch"
+author: "Lizzy Wilk"
+date: "4/4/2023"
+output: html_document
+---
+
+
+Load libraries  
+```{r message=FALSE, warning = FALSE}
+library(signatureSearch)
+library(ggplot2)
+library(ggalluvial)
+#library(readr)
+library(signatureSearch)
+library(ExperimentHub); library(rhdf5)
+library(here)
+library(dplyr)
+library(stringr)
+source(here("code", "functions.R"))
+library(readr)
+```
+
+lincs data
+```{r}
+eh <- ExperimentHub()
+#cmap <- eh[["EH3223"]]; cmap_expr <- eh[["EH3224"]] #cmap data locations in experimenthub
+#lincs <- eh[["EH3226"]]; lincs_expr <- eh[["EH3227"]] #lincs data locations in experimenthub
+#h5ls(lincs) #reading hdf5 file
+#db_path <- system.file("extdata", "sample_db.h5", package = "signatureSearch")
+```
+
+read in data
+```{r}
+sig_up <- read.csv(file = here("res/deseq2_outputs/pig_signature_up.csv"))
+sig_down <- read.csv(file = here("res/deseq2_outputs/pig_signature_down.csv"))
+```
+
+Run signatureSearch, filter for kidney cell lines  
+```{r}
+gess <- ssRun(upgenes = sig_up$target, downgenes = sig_down$target, cells = "kidney", refdb = "lincs") 
+```
+
+```{r }
+write.csv(gess, file = here("res", "sigsearch_outputs", "gess_kidneycells_pigdata.csv"))
+```
+
+
+### Repurposing Hub Annotations
+LINCS [Drug Repurposing Hub](https://www.nature.com/articles/nm.4306), contains drug names, MOAs, original indications, and targets
+```{r}
+repurpHub <- read.delim(here("data", "Repurposing_Hub_export.txt"))
+
+rhub_res <- dplyr::inner_join(gess, repurpHub, by= c("pert" = "Name"))
+```
+
+Already-Launched Drugs
+```{r}
+rhub_res_launched <- dplyr::filter(rhub_res, Phase == "Launched")
+```
+
+```{r}
+write.csv(rhub_res_launched, file = here("res", "sigsearch_outputs", "rhub_launcheddrugs_pigdata.csv"))
+```
+
+### MOA Plot
+MOA's separated, string wrap labels
+```{r}
+rhub_res_launched_moasep <- tidyr::separate_rows(rhub_res_launched, MOA, sep = ",")
+
+rhub_res_launched_moasep$MOA <- stringr::str_wrap(rhub_res_launched_moasep$MOA, width = 20)
+
+rhub_res_launched_moasep$Disease.Area <- stringr::str_wrap(rhub_res_launched_moasep$Disease.Area, width = 30)
+```
+
+plot
+```{r}
+moa_alluvial <- ggplot(data = rhub_res_launched_moasep,
+       aes(axis1 = pert, axis2 = MOA)) +
+  geom_alluvium(color = "black", aes(fill = WTCS)) + # , colour = trend)) + 
+  geom_stratum(width = 3/12, color = "black") + #the border of the stratum
+  scale_x_discrete(expand = c(.07, .07)) + 
+  scale_y_discrete(expand = c(.007, .007)) + 
+  scale_fill_viridis_c(aesthetics = c("colour", "fill")) +
+  geom_text(stat = "stratum", size = 3.5, fontface = "bold", aes(label = after_stat(stratum))) +
+  labs(title = "MOA of Top 30 Launched Drugs") +
+  theme_void() 
+
+
+moa_alluvial
+```
+
+
+### Compare Drugs to Mouse Results 
+The Drug Repurposing Hub 'Launched' Drugs
+```{r}
+mouse_rhub_res <- read.csv("../res/sigsearch_outputs/rhub_launcheddrugs_p70.csv", row.names = 1)
+
+intersect(rhub_res_launched$pert, mouse_rhub_res$pert) #19 overlap of the 64 launched res for pig and 183 launchedres for mouse (precystic)
+```
+
+
+## FDA Approval
+Test for FDA approval
+```{r}
+fda_approved <- read.csv(file = here("data", "FDA_approved_unique_ingredients.csv"))
+
+fda_approved_pig <- FDA_APPROVAL_CHECK(rhub_res_launched$pert, fda_approved)
+fda_approved_pig <- mutate(rhub_res_launched, fda_approval = fda_approved_pig)
+fda_approved_pig <- dplyr::filter(fda_approved_pig, fda_approval == TRUE)
+#results for both kidney cell lines for some drugs
+#fda_approved_p70 <- dplyr::distinct(fda_approved_p70, pert, .keep_all = TRUE)
+```
+
+save FDA-approved drug candidates
+```{r}
+write.csv(fda_approved_pig, file = here("res", "sigsearch_outputs", "pig_fdaapproved_drugs.csv"))
+```
+
+#### MOA Frequency
+
+Frequency of MOA's
+```{r}
+moa_freq <- as.data.frame(table(fda_approved_pig$MOA))
+other <- moa_freq$Var1[moa_freq$Freq==1]
+#other <- cbind(Var1 = as.character(other), Freq = rep("other", length(other)))
+multi_moa <- dplyr::filter(moa_freq, Freq > 1)
+multi_moa$Var1 <- as.character(multi_moa$Var1)
+moa_freqs <- rbind(multi_moa, c(Var1 = "other", Freq = length(other)))
+moa_freqs$Freq <- as.numeric(moa_freqs$Freq)
+#moa_freq$Var1 <- stringr::str_replace(moa_freq$Var1 %in% other == "other")
+
+#moa_freq <- dplyr::filter(moa_freq, Freq > 1)
+```
+
+
+```{r}
+# Stacked + percent
+moa_freqs %>% mutate(MOA = forcats::fct_reorder(Var1, Freq)) %>%
+ggplot(aes(fill=MOA, y=Freq, x="MOA")) + 
+    geom_bar(position="fill", stat="identity") + 
+  scale_fill_viridis_d(aesthetics = c("colour", "fill")) 
+
+#visualize
+moa_freq <- dplyr::filter(moa_freqs, Freq > 2)
+moa_freq$Var1 <- str_wrap(moa_freq$Var1, width = 25)
+moa_frq <- moa_freq %>% mutate(MOA = forcats::fct_reorder(Var1, desc(Freq))) %>% ggplot(aes(x = MOA, y = Freq, fill = Freq)) +  
+  geom_bar(stat = "identity") + 
+  scale_fill_viridis_c(aesthetics = c("colour", "fill")) +
+  theme(axis.text.x = element_text(size = 13.5, face = "bold", angle = 50, vjust = 0.97, hjust=0.95), axis.title.x = element_blank(), plot.title = element_text(size = 14, face = "bold", hjust = 0.5)) + ggtitle(label = "Most Frequent Mechanisms of Action") + 
+  theme(plot.margin = unit(c(.2,.2,.2,1.5), "cm"), panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+panel.background = element_blank(), axis.line = element_line(colour = "black")) 
+  
+
+moa_frq
+```
+
+#### Original Disease Indication Frequency
+Frequency of original disease area indications
+```{r}
+indication_freq <- as.data.frame(table(fda_approved_pig$Disease.Area))
+indication_freq <- dplyr::filter(indication_freq, Freq > 2)
+```
+
+plot
+```{r}
+#visualize
+indication_plot <- indication_freq %>% mutate(indication = forcats::fct_reorder(Var1, desc(Freq))) %>% ggplot(aes(x = indication, y = Freq, fill = Freq)) +  
+  geom_bar(stat = "identity") + 
+  scale_fill_viridis_c(aesthetics = c("colour", "fill")) +
+   theme(axis.text.x = element_text(size = 13.5, face = "bold", angle = 50, vjust = 0.92, hjust=0.85), axis.title.x = element_blank(), plot.title = element_text(size = 14, face = "bold", hjust = 0.5)) + ggtitle(label = "Most Frequent Disease Area Indications") + 
+  theme(plot.margin = unit(c(.2,.2,.2,1), "cm"), panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+panel.background = element_blank(), axis.line = element_line(colour = "black"))
+
+
+indication_plot
+```
