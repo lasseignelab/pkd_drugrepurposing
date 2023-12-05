@@ -1,42 +1,31 @@
 {
-    "creators": [
+  "creators": [
+    {
+      "affiliations": [
         {
-            "orcid": "0000-0002-7078-1215", 
-            "affiliation": "CDIB, Heersink School of Medicine, UAB", 
-            "name": "Elizabeth J. Wilk"
-        }, 
-        {
-            "orcid": "0000-0002-9423-0135", 
-            "affiliation": "CDIB, Heersink School of Medicine, UAB", 
-            "name": "Timothy C. Howton"
-        }, 
-        {
-            "orcid": "0000-0002-9657-1216", 
-            "affiliation": "CDIB, Heersink School of Medicine, UAB", 
-            "name": "Jennifer L. Fisher"
-        }, 
-        {
-            "orcid": "0000-0001-6990-0267", 
-            "affiliation": "CDIB, Heersink School of Medicine, UAB", 
-            "name": "Vishal H. Oza"
-        }, 
-        {
-            "orcid": "0000-0002-8516-8210", 
-            "affiliation": "CDIB, Heersink School of Medicine, UAB", 
-            "name": "Ryan T. Brownlee"
-        }, 
-        {
-            "orcid": "0000-0002-1642-8904", 
-            "affiliation": "CDIB, Heersink School of Medicine, UAB", 
-            "name": "Brittany N. Lasseigne"
+          "id": "008s83205",
+          "name": "University of Alabama at Birmingham"
         }
-    ], 
-    "access_right": "open", 
-    "related_identifiers": [
-        {
-            "scheme": "url", 
-            "identifier": "https://github.com/lasseignelab/pkd_drugrepurposing/tree/v1.1.3", 
-            "relation": "isSupplementTo"
+      ],
+      "person_or_org": {
+        "family_name": "Wilk",
+        "given_name": "Elizabeth J.",
+        "identifiers": [
+          {
+            "identifiers": "0000-0002-7078-1215",
+            "scheme": "orcid"
+          }
+        ],
+        "name": "Wilk, Elizabeth J.",
+        "type": "personal"
+      },
+      "role": {
+        "id": "researcher",
+        "title": {
+          "de": "WissenschaftlerIn",
+          "en": "Researcher"
         }
-    ]
+      }
+    }
+  ]
 }
