@@ -1,31 +1,33 @@
 {
-  "creators": [
-    {
-      "affiliations": [
-        {
-          "id": "008s83205",
-          "name": "University of Alabama at Birmingham"
-        }
-      ],
-      "person_or_org": {
-        "family_name": "Wilk",
-        "given_name": "Elizabeth J.",
-        "identifiers": [
+  "metadata": {
+    "creators": [
+      {
+        "affiliations": [
           {
-            "identifiers": "0000-0002-7078-1215",
-            "scheme": "orcid"
+            "id": "008s83205",
+            "name": "University of Alabama at Birmingham"
           }
         ],
-        "name": "Wilk, Elizabeth J.",
-        "type": "personal"
-      },
-      "role": {
-        "id": "researcher",
-        "title": {
-          "de": "WissenschaftlerIn",
-          "en": "Researcher"
+        "person_or_org": {
+          "family_name": "Wilk",
+          "given_name": "Elizabeth J.",
+          "identifiers": [
+            {
+              "identifiers": "0000-0002-7078-1215",
+              "scheme": "orcid"
+            }
+          ],
+          "name": "Wilk, Elizabeth J.",
+          "type": "personal"
+        },
+        "role": {
+          "id": "researcher",
+          "title": {
+            "de": "WissenschaftlerIn",
+            "en": "Researcher"
+          }
         }
       }
-    }
-  ]
+    ]
+  }
 }
