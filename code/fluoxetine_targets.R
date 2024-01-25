@@ -17,11 +17,14 @@ library(ComplexHeatmap)
 # lincs2_path <- eh[['EH7297']]
 # rhdf5::h5ls(lincs2_path)
 
+# read in pharos fluoxetine targets
+pharos_fluoxetine <- read_csv("./data/pharos_fluoxetine_targets.csv")
+
 # read in gtex specificity data
-t <- read_rds("./data/sexde.ez.fl_pc3.v_mle.mash_model.FILTERED2.rds")
+gtex_sexde_mash <- read_rds("./data/sexde.ez.fl_pc3.v_mle.mash_model.FILTERED2.rds")
 # lfsr = local false sign rate, used with 0.05 cutoff in gtex paper
 # PosteriorMean = Mash 'beta' used in gtex paper
-gtex_sexde <- as.data.frame(gtex_sexde$result)
+gtex_sexde <- as.data.frame(gtex_sexde_mash$result)
 # remove enembl gene versions
 rownames(gtex_sexde) <- gsub("\\.\\d+$", "", rownames(gtex_sexde))
 
@@ -45,7 +48,7 @@ drugtargets_p70 <- read_csv("res/sigsearch_outputs/drugtargets_p70.csv")
 fluox <- drugtargets_p70[,-1] %>%
   filter(pert == "fluoxetine")
 
-fluox_targets <- fluox$t_gn_sym
+fluox_targets <- c(fluox$t_gn_sym, pharos_fluoxetine$Symbol)
 fluox_ensmbl <- gprofiler2::gconvert(fluox_targets)
 
 # filter GTEx sex-specific degs for fluox targets
@@ -55,7 +58,11 @@ fluox_beta <- gtex_fluox %>%
   select(starts_with("PosteriorMean")) %>%
 #  select(sum(is.na(everything)) != nrow(.))
   purrr::discard(~all(is.na(.))) %>%
-  rename_all(~stringr::str_remove(., "PosteriorMean."))
+  rename_all(~stringr::str_remove(., "PosteriorMean.")) %>%
+  cbind(Symbol = fluox_ensmbl$input, .)
+
+# save
+write_csv(fluox_beta, "./res/fluoxetine/mash_sexbias_target_exp.csv")
 
 fluox_sd <- gtex_fluox %>%
   select(starts_with("PosteriorSD"))
@@ -66,10 +73,10 @@ fluox_lfsr <- gtex_fluox %>%
   select(contains(colnames(fluox_beta)))
 
 
-png("./res/test.png", width = 25, height = 40, units = "cm", res = 300)
+png("./res/fluoxetine_target_sexbias_exp.png", width = 50, height = 40, units = "cm", res = 300)
 
-ComplexHeatmap::Heatmap(as.matrix(fluox_beta), cluster_rows = FALSE, cluster_columns = FALSE,
-                        row_labels = fluox_ensmbl$input,
+ComplexHeatmap::Heatmap(as.matrix(fluox_beta[,-1]), cluster_rows = FALSE, cluster_columns = FALSE,
+                        row_labels = fluox_beta$Symbol,
                         cell_fun = function(j,i,x,y,w,h,fill){
                           if(is.na(as.matrix(fluox_lfsr)[i,j])){
                             grid.text(" ", x, y)
