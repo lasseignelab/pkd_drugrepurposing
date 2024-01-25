@@ -42,4 +42,7 @@ cyst_p21_reversion <- find_reverse_genes(cyst_p21_sig, rbind(fluox_up, fluox_dow
 
 cyst_p28_reversion <- find_reverse_genes(cyst_p28_sig, rbind(fluox_up, fluox_down))
 
-
+# save results
+write_csv(precyst_fluox_reversion, "./res/fluoxetine/precystic_fluoxetine_reversed_genes.csv")
+write_csv(cyst_p21_reversion, "./res/fluoxetine/cysticp21_fluoxetine_reversed_genes.csv")
+write_csv(cyst_p28_reversion, "./res/fluoxetine/cysticp28_fluoxetine_reversed_genes.csv")
