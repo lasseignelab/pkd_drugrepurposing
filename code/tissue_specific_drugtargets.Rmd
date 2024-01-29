@@ -1,0 +1,150 @@
+---
+title: "tissue_specificity_ade"
+author: "Lizzy Wilk"
+date: "1/3/2023"
+output: html_document
+---
+
+load libraries
+```{r}
+library(readxl)
+library(dplyr)
+library(tidyr)
+library(ComplexHeatmap)
+library(viridis)
+library(RColorBrewer)
+library(ggplot2)
+library(ggalluvial)
+library(circlize)
+library(signatureSearch)
+library(signatureSearchData)
+```
+
+gtex_tissue_specificity
+read in gtex
+```{r}
+gtex <- read.csv("/Users/eramsey/Downloads/PKD/kidney_drugrepurposing/data/gtex_tissue_specificity.txt", sep = "\t")
+
+gtex <- gtex[3:nrow(gtex),] 
+gtex <- dplyr::select(gtex, !c(2,3))
+```
+
+read in previously prioritized drugs
+```{r}
+top_16drugs <- read.csv("/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/sigsearch_outputs/drug_summaries_oe_cystic.csv", row.names = 1)
+test <- tidyr::separate_rows(top_16drugs, Drug_Targets, sep = "; ")
+#add tolvaptan and metformin, previously investigated drugs for PKD
+other_targets <- signatureSearch::get_targets(c("metformin", "tolvaptan"))
+other_targets <- data.frame(Drug = other_targets$drug_name, Drug_Targets = other_targets$t_gn_sym, MOA = "NA", Original_Indication = "NA")
+
+#combine top prioritized and previously investigated drugs for PKD
+top_drugs <- rbind(top_16drugs, other_targets)
+
+#separate out drug targets
+top_drugs <- tidyr::separate_rows(top_drugs, Drug_Targets, sep = "; ")
+length(unique(top_drugs$Drug_Targets))
+```
+
+Select drugs based on black box warnings + tolvaptan + control (bromocriptine which has less frequent and less severe ADE's) (more here: https://www.wrike.com/open.htm?id=1030046456 )
+```{r}
+drugs <- dplyr::filter(top_drugs, Drug %in% c("tolvaptan", "amiloride", "paclitaxel", "perphenazine", "bromocriptine"))
+length(unique(drugs$Drug_Targets))
+
+```
+
+
+```{r}
+tis_spec_targets <- dplyr::filter(gtex, `X.` %in% drugs$Drug_Targets)
+temp <- tibble::column_to_rownames(tis_spec_targets, var = "X.") 
+tis_spec_targets <- lapply(temp, as.numeric) %>% as.data.frame()
+row.names(tis_spec_targets) <- row.names(temp)
+```
+
+drug targets that have a specificity in more than 1 tissue, and tisues with no specificity
+```{r}
+#test <- filter(tis_spec_targets, rowSums(tis_spec_targets == 0) != ncol(tis_spec_targets))
+#test <- tis_spec_targets %>%  dplyr::mutate(dplyr::rowwise(), variance = var(c_across(everything)) ) #%>% dplyr::filter()
+#test <- dplyr::mutate(tis_spec_targets, variance = rowVars(as.matrix(tis_spec_targets)) )
+
+test <- colVars(as.matrix(tis_spec_targets), useNames = TRUE)
+sort(test)
+
+#focus on the top tissues 
+#tis_spec_targets <- dplyr::select(tis_spec_targets, c(blood, liver, muscle, brain, pituitary, spleen, pancreas, heart, blood.vessel, adrenal.gland, uterus, kidney, small.intestine, skin, salivary.gland, colon, nerve, stomach, lung, cervix.uteri))
+tis_spec_targets <- dplyr::select(tis_spec_targets, c(liver, muscle, brain, pituitary, spleen, pancreas, heart, blood.vessel, adrenal.gland, kidney, small.intestine, skin, colon, nerve, stomach, lung))
+
+#reordering
+tis_spec_targets <- tis_spec_targets[order(row.names(tis_spec_targets)), ]
+```
+
+
+annotate genes by drugs that target them
+```{r}
+drugtargets <- drugs[,1:2]
+#drugtargets <- tidyr::pivot_wider(drugtargets, names_from = "Drug")
+drugtargets <- as.data.frame(table(drugtargets))
+drugtargets <- drugtargets %>% tidyr::pivot_wider(names_from = "Drug", values_from = "Freq") %>% tibble::column_to_rownames("Drug_Targets")
+drugtargets <- as.data.frame(ifelse(drugtargets==0,"FALSE","TRUE"))
+
+#reorder
+drugtargets <- drugtargets[order(row.names(drugtargets)), ]
+
+#color_anno <- list(amiloride = c("FALSE" = "darkgreen" , "TRUE" = "blueviolet"), bromocriptine = c("FALSE" = "darkgreen" , "TRUE" = "blueviolet"), paclitaxel = c("FALSE" = "darkgreen" , "TRUE" = "blueviolet"), perphenazine = c("FALSE" = "darkgreen" , "TRUE" = "blueviolet"),  tolvaptan = c("FALSE" = "darkgreen" , "TRUE" = "blueviolet"))
+
+
+#color_anno <- ComplexHeatmap::rowAnnotation( amiloride = drugtargets$amiloride, 
+#                                 bromocriptine = drugtargets$bromocriptine, 
+#                                 paclitaxel = drugtargets$paclitaxel,
+#                                 perphenazine = drugtargets$perphenazine,
+#                                 tolvaptan = drugtargets$tolvaptan,
+#  col = list(amiloride = c("FALSE" = "gray" , "TRUE" = "gold"), bromocriptine = c("FALSE" = "gray" , "TRUE" = "gold"), paclitaxel = c("FALSE" = "gray" , "TRUE" = "gold"), perphenazine = c("FALSE" = "gray" , "TRUE" = "gold"),  tolvaptan = c("FALSE" = "gray" , "TRUE" = "gold"))
+#)
+
+#viridis for colors and mapping different colors for 'true' on different drugs
+#color_anno <- ComplexHeatmap::rowAnnotation( amiloride = drugtargets$amiloride, 
+#                                 bromocriptine = drugtargets$bromocriptine, 
+#                                 paclitaxel = drugtargets$paclitaxel,
+#                                 perphenazine = drugtargets$perphenazine,
+#                                 tolvaptan = drugtargets$tolvaptan,
+#  col = list(amiloride = c("FALSE" = "gray" , "TRUE" = viridis(length(drugtargets))[1]), bromocriptine = c("FALSE" = "gray" , "TRUE" = viridis(length(drugtargets))[2]), paclitaxel = c("FALSE" = "gray" , "TRUE" = viridis(length(drugtargets))[3]), perphenazine = c("FALSE" = "gray" , "TRUE" = viridis(length(drugtargets))[4]),  tolvaptan = c("FALSE" = "gray" , "TRUE" = viridis(length(drugtargets))[5]))
+#)
+color_anno <- ComplexHeatmap::rowAnnotation(df = drugtargets,
+  col = list(amiloride = c("FALSE" = "gray" , "TRUE" = viridis(length(drugtargets))[1]), bromocriptine = c("FALSE" = "gray" , "TRUE" = viridis(length(drugtargets))[2]), paclitaxel = c("FALSE" = "gray" , "TRUE" = viridis(length(drugtargets))[3]), perphenazine = c("FALSE" = "gray" , "TRUE" = viridis(length(drugtargets))[4]),  tolvaptan = c("FALSE" = "gray" , "TRUE" = viridis(length(drugtargets))[5]))
+)
+
+myColor <- colorRampPalette(c("darkgreen", "white", "blueviolet"))(3)
+```
+
+plot heatmap
+```{r}
+png("/Users/eramsey/Downloads/PKD/kidney_drugrepurposing/figures/gtex_tissuespecificDEG_drugtarget_heatmap.png", width = 25, height = 40, units = "cm", res = 300)
+
+ComplexHeatmap::Heatmap(tis_spec_targets, row_labels = rownames(tis_spec_targets), right_annotation = color_anno, col = myColor) 
+#        col = brewer.pal(100, name = "PRGn"), 
+#        name = "Sex-Biased DE")
+
+dev.off()
+```
+
+plot heatmap (pheatmap version)
+```{r}
+png("/Users/eramsey/Downloads/PKD/kidney_drugrepurposing/figures/gtex_tissuespecificDEG_drugtarget_heatmap.png", width = 25, height = 40, units = "cm", res = 300)
+
+
+ComplexHeatmap::pheatmap(tis_spec_targets,  annotation_row = drugtargets, annotation_colors = color_anno,
+                         #annotation_col = colnames(target_tissue_exp), 
+                         cluster_rows = FALSE, cluster_cols = FALSE, show_rownames = TRUE, #labels_col = stringr::str_trunc(colnames(target_tissue_exp_hp), 18), color = myColor, #color = brewer.pal(100, name = "PRGn"), 
+                         fontsize = 20, fontface = "bold", fontsize_row = 10, fontsize_col = 16, #annotation_col = tissue_annot,# viridis(n= 10000, alpha = 1, begin = 0, end = 1, option = "viridis"), 
+                         border_color = "NA", main = "Tissue Specific DE of \n Drug Targets by Tissue", angle_col = "90" )#, breaks = myBreaks, heatmap_legend_param = list(title = "Expression", at = c(-1, 0, 1), labels = c("Decr", "None", "Incr")))
+dev.off()
+```
+
+#### Versions
+```{r}
+R.Version()
+```
+
+
+```{r}
+installed.packages()[names(sessionInfo()$otherPkgs), "Version"]
+```

@@ -1,0 +1,178 @@
+---
+title: "synergyseq_testing"
+author: "Lizzy Wilk"
+date: "12/20/2022"
+output: html_document
+---
+
+load libraries
+```{r}
+library(dplyr)
+library(readxl)
+```
+
+### PKD Disease Signature  
+read in pre-cystic signature from PKD drug repurposing analyses
+```{r}
+precyst_signature_full <- read.csv("/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/deseq2_outputs/signature_annotation_p70.csv")
+
+```
+
+filter for genes with absolute LFC > 1.1
+```{r}
+precyst_signature <- precyst_signature_full %>% dplyr::filter(log2FoldChange > 1.1 | log2FoldChange < -1.1) 
+precyst_signature <- data.frame(Genes = precyst_signature$hgnc_symbol, log2FoldChange = precyst_signature$log2FoldChange)
+
+```
+
+save as txt for synergyseq.com input
+```{r}
+write.table(precyst_signature, file =  "/Users/eramsey/Downloads/PKD/kidney_drugrepurposing/res/deseq2_outputs/synergyseq_precyst_signature.txt", sep = "\t", quote = FALSE, row.names = FALSE)
+```
+
+compare to 978 landmark genes lincs_l1000_landmarkgenes
+```{r}
+landmarkgenes <- read_excel("/Users/eramsey/Downloads/lincs_l1000_landmarkgenes.xlsx", sheet = 2, col_names = TRUE)
+
+geneoverlap <- intersect(landmarkgenes$`Gene Symbol`, precyst_signature$Genes)
+geneoverlap
+```
+
+lincs landmark genes in the disease signature
+```{r}
+precyst_signature_landmarkgenes <- dplyr::filter(precyst_signature, Genes %in% landmarkgenes$`Gene Symbol`)
+
+write.table(precyst_signature_landmarkgenes, file = "/Users/eramsey/Downloads/PKD/kidney_drugrepurposing/res/deseq2_outputs/synergyseq_precyst_signature_landmarkgenes.txt", sep = "\t", quote = FALSE, row.names = FALSE)
+```
+
+### Drug Comparisons  
+read in drug signatures and synergy plot data for each drug
+```{r}
+crizotinib_res <- read.csv("/Users/eramsey/Downloads/PKD/kidney_drugrepurposing/data/synergyseq_downloads/crizotinib_plotdata.txt", sep = "\t") %>% dplyr::mutate(Reference_Drug = "crizotinib")
+
+paclitaxel_res <- read.csv("/Users/eramsey/Downloads/PKD/kidney_drugrepurposing/data/synergyseq_downloads/paclitaxel_plotdata.txt", sep = "\t") %>% dplyr::mutate(Reference_Drug = "paclitaxel")
+
+amitriptyline_res <- read.csv("/Users/eramsey/Downloads/PKD/kidney_drugrepurposing/data/synergyseq_downloads/amitriptyline_plotdata.txt", sep = "\t") %>% dplyr::mutate(Reference_Drug = "amitriptyline")
+
+bromocriptine_res <- read.csv("/Users/eramsey/Downloads/PKD/kidney_drugrepurposing/data/synergyseq_downloads/bromocriptine_plotdata.txt", sep = "\t") %>% dplyr::mutate(Reference_Drug = "bromocriptine")
+
+fluoxetine_res <- read.csv("/Users/eramsey/Downloads/PKD/kidney_drugrepurposing/data/synergyseq_downloads/fluoxetine_plotdata.txt", sep = "\t") %>% dplyr::mutate(Reference_Drug = "fluoxetine")
+
+fluphenazine_res <- read.csv("/Users/eramsey/Downloads/PKD/kidney_drugrepurposing/data/synergyseq_downloads/fluphenazine_plotdata.txt", sep = "\t") %>% dplyr::mutate(Reference_Drug = "fluphenazine")
+
+imipramine_res <- read.csv("/Users/eramsey/Downloads/PKD/kidney_drugrepurposing/data/synergyseq_downloads/imipramine_plotdata.txt", sep = "\t") %>% dplyr::mutate(Reference_Drug = "imipramine")
+
+mirtazapine_res <- read.csv("/Users/eramsey/Downloads/PKD/kidney_drugrepurposing/data/synergyseq_downloads/mirtazapine_plotdata.txt", sep = "\t") %>% dplyr::mutate(Reference_Drug = "mirtazapine")
+
+```
+
+combine drug results
+```{r}
+drugres_comb <- rbind(crizotinib_res, paclitaxel_res, amitriptyline_res, bromocriptine_res, fluoxetine_res, fluphenazine_res, imipramine_res, mirtazapine_res)
+
+summary(drugres_comb)
+plot(drugres_comb$Reference_Drug_Orthogonality, drugres_comb$Disease_Discordance)
+```
+
+filter for synergies for only our top drugs
+```{r}
+drugres_prioritized <- dplyr::filter(drugres_comb, Drug %in% unique(Reference_Drug))
+summary(drugres_prioritized)
+plot(drugres_prioritized$Reference_Drug_Orthogonality, drugres_prioritized$Disease_Discordance)
+```
+
+https://r-graph-gallery.com/violin_horizontal_ggplot2.html
+violin plot
+```{r}
+# Libraries
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+library(forcats)
+library(hrbrthemes)
+library(viridis)
+
+violin_all <- drugres_comb %>%
+  mutate(Reference_Drug = fct_reorder(Reference_Drug, Disease_Discordance)) %>% # Reorder data
+  ggplot( aes(x=Reference_Drug, y=Disease_Discordance, fill=Reference_Drug, color=Reference_Drug)) +
+    geom_violin(width=2.1, size=0.2) +
+    scale_fill_viridis(discrete=TRUE) +
+    scale_color_viridis(discrete=TRUE) +
+    theme_ipsum() +
+    theme(
+      legend.position="none"
+    ) +
+    coord_flip() + # This switch X and Y axis and allows to get the horizontal version
+    xlab("") +
+    ylab("Disease Discordance")
+
+violin_all
+
+
+violinp <- drugres_prioritized %>%
+  mutate(Reference_Drug = fct_reorder(Reference_Drug, Disease_Discordance)) %>% # Reorder data
+  ggplot( aes(x=Reference_Drug, y=Disease_Discordance, fill=Reference_Drug, color=Reference_Drug)) +
+    geom_violin(width=2.1, size=0.2) +
+    scale_fill_viridis(discrete=TRUE) +
+    scale_color_viridis(discrete=TRUE) +
+    theme_ipsum() +
+    theme(
+      legend.position="none"
+    ) +
+    coord_flip() + # This switch X and Y axis and allows to get the horizontal version
+    xlab("") +
+    ylab("Disease Discordance")
+
+violinp
+```
+
+bubbleplot
+```{r}
+
+# The dataset is provided in the gapminder library
+library(gapminder)
+data <- gapminder %>% filter(year=="2007") %>% dplyr::select(-year)
+
+# Most basic bubble plot
+data %>%
+  arrange(desc(pop)) %>%
+  mutate(country = factor(country, country)) %>%
+  ggplot(aes(x=gdpPercap, y=lifeExp, size=pop, fill=continent)) +
+    geom_point(alpha=0.5, shape=21, color="black") +
+    scale_size(range = c(.1, 24), name="Population (M)") +
+    scale_fill_viridis(discrete=TRUE, guide=FALSE, option="A") +
+    theme_ipsum() +
+    theme(legend.position="bottom") +
+    ylab("Life Expectancy") +
+    xlab("Gdp per Capita") +
+    theme(legend.position = "none")
+
+
+bp <- drugres_prioritized %>%
+#  arrange(desc(pop)) %>%
+#  mutate(country = factor(country, country)) %>%
+  ggplot(aes(x=Reference_Drug, y=Drug, size=Disease_Discordance, fill=Reference_Drug_Orthogonality)) +
+    geom_point(alpha=0.75, shape=21, color="black") +
+    scale_size(range = c(2, 24), name="Disease Discordance") +
+    scale_fill_viridis(discrete=FALSE, option="D") +
+    #theme_ipsum() +
+    #theme(legend.position="bottom") +
+    ylab("Paired Drug") +
+    xlab("Reference Drug") +
+    ggtitle(label = "Synergy of Top Prioritzed Drugs") + 
+    theme(text = element_text(face = "bold", size = 16), panel.grid = element_blank(), panel.background = element_blank(), plot.title = element_text(hjust = 0.5))
+
+ggsave(filename = "/Users/eramsey/Downloads/PKD/kidney_drugrepurposing/figures/synergyseq_topdrugs_bubbleplot.png", plot = bp, height = 7, width = 15)
+```
+
+
+#### Versions
+```{r}
+R.Version()
+```
+
+
+```{r}
+installed.packages()[names(sessionInfo()$otherPkgs), "Version"]
+```
+  

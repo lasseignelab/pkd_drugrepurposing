@@ -1,0 +1,290 @@
+---
+title: "tissue_sex_specificity"
+author: "Lizzy Wilk"
+date: "12/12/2022"
+output: html_document
+---
+
+load libraries
+```{r}
+library(readxl)
+library(dplyr)
+library(tidyr)
+library(ComplexHeatmap)
+library(viridis)
+library(RColorBrewer)
+library(ggplot2)
+library(ggalluvial)
+library(circlize)
+```
+
+__gtex_readin__: function to read in gtex top 500 sex-biased DEGs and add column for the tissue name  
+__comb_tissues__: function to combine tissue tables and filter genes for drug targets  
+__targetsintissues__:  function to data wrangle output of comb_tissues, returns a matrix of just MASH beta values (from sex bias LFC, < 0 = M, > 0 = F) for each tissue 
+```{r}
+gtex_readin <- function(gtex_acron, exppath = "/Users/eramsey/Downloads/PKD/kidney_drugrepurposing/data/gtex_sexspecificity_s2.xlsx", metapath = "/Users/eramsey/Downloads/PKD/kidney_drugrepurposing/data/gtex_sexspecificity_s1.xlsx"){
+  gtex <- read_excel(exppath, sheet = gtex_acron, col_names = TRUE)
+  #gtex <- gtex %>% dplyr::mutate(tissue = tissue) 
+  meta <- read_excel(metapath, sheet = 2, col_names = TRUE)
+
+  meta_sub <- meta %>% dplyr::filter(`Abbreviation Id` == gtex_acron)
+  gtex <- gtex %>% dplyr::mutate(Tissue = meta_sub$Id) %>% dplyr::left_join( meta_sub, by = c("Tissue" = "Id"))
+  
+return(gtex)
+}
+#adrenal_gland <- gtex_readin("ADRNLG", "adrenal_gland")
+
+
+comb_tissues <- function(tissue_list, target_table){
+  #combine drugs that target the same gene to avoid duplicate gene targets
+  target_table <- target_table %>% dplyr::group_by(Drug_Targets) %>% mutate(Drugs = stringr::str_flatten(Drug, ", "))
+  #remove gene target duplicates
+  target_table <- dplyr::distinct(target_table, Drug_Targets, .keep_all = TRUE)
+  comb <- do.call("rbind", tissue_list)
+  #filter for targets of prioritized drugs
+  comb <- dplyr::left_join(target_table, comb, by = c("Drug_Targets" = "HUGO_gene_id"))
+  
+return(comb)
+}
+
+targetsintissues <- function(combinedtissues){
+  #need wide format, genes by tissues
+  tissues_exp <- combinedtissues %>% dplyr::select(Drug_Targets, Tissue, `MASH beta`) %>% tidyr::pivot_wider(names_from = Tissue, values_from = `MASH beta`)
+  #remove gene target duplicates
+  #tissues_exp <- dplyr::distinct(tissues_exp, Drug_Targets, .keep_all = TRUE)
+  
+  #make new table of just gene target sex-biased DE for each tissue
+  #mat <- cbind(tissues_exp[,11:length(tissues_exp)])
+  #remove NA column from NA's in original "tissue" column
+  mat <- tissues_exp[,-2]
+  mat <- tibble::column_to_rownames(mat, var = "Drug_Targets")
+
+return(mat)
+}
+```
+
+read in gtex sex-specific, tissue-specific data and add column of tissue group (top 500 sex-biased genes, pre-filtered by local false sign rate (LFSR) ≤ 0.05)    
+looking at supplementary table 3, looks like > 0 = F bias, < 0 = M
+```{r}
+adrenal_gland <- gtex_readin("ADRNLG")
+
+colon_transverse <- gtex_readin("CLNTRN")
+
+heart_atrial_appendage <- gtex_readin("HRTAA")
+
+heart_left_ventricle <- gtex_readin("HRTLV")
+
+minor_salivary_gland <- gtex_readin("SLVRYG")
+
+pituitary <- gtex_readin("PTTARY")
+
+small_intestine <- gtex_readin("SNTTRM")
+
+brain_cortex <- gtex_readin("BRNCTXA")
+
+brain_frontal_cortex <- gtex_readin("BRNCTXB")
+
+brain_hippocampus <- gtex_readin("BRNHPP")
+
+brain_hypothalamus <- gtex_readin("BRNHPT")
+
+brain_spinalcord <- gtex_readin("BRNSPC")
+
+colon_sigmoid <- gtex_readin("CLNSGM")
+
+kidney <- gtex_readin("KDNCTX")
+
+liver <- gtex_readin("LIVER")
+
+lung <- gtex_readin("LUNG")
+
+muscle <- gtex_readin("MSCLSK")
+
+pancreas <- gtex_readin("PNCREAS")
+
+stomach <- gtex_readin("STMACH")
+
+whole_blood <- gtex_readin("WHLBLD")
+
+```
+
+read in previously prioritized drugs
+```{r}
+top_16drugs <- read.csv("/Users/eramsey/Downloads/kidney_drugrepurposing/pkd_drugrepurposing/res/sigsearch_outputs/drug_summaries_oe_cystic.csv", row.names = 1)
+#separate out drug targets
+top_16drugs <- tidyr::separate_rows(top_16drugs, Drug_Targets, sep = "; ")
+length(unique(top_16drugs$Drug_Targets))
+```
+
+
+
+comb_tissues: function to combine tissue tables and filter genes for drug targets  
+targetsintissues:  function to data wrangle output of comb_tissues, returns a matrix of just MASH beta values (from sex bias LFC, < 0 = M, > 0 = F) for each tissue 
+```{r}
+tissue_list <- list(adrenal_gland, brain_cortex, heart_atrial_appendage, heart_left_ventricle, minor_salivary_gland, pituitary, small_intestine, brain_frontal_cortex, brain_hippocampus, brain_hypothalamus, brain_spinalcord, colon_sigmoid, colon_transverse, kidney, liver, lung, muscle, pancreas, stomach, whole_blood)
+
+combined_tissues <- comb_tissues(tissue_list, top_16drugs)
+
+target_tissue_exp <- targetsintissues(combined_tissues)
+
+```
+
+
+drug targets that are sex biased in at least 1 tissue
+```{r}
+target_tissue_exp <- filter(target_tissue_exp, rowSums(is.na(target_tissue_exp)) != ncol(target_tissue_exp))
+
+```
+
+table of na frequency of sex-biased de across tissues
+```{r}
+target_tissue_exp <- target_tissue_exp %>% tibble::rownames_to_column(var = "targets") %>%
+  rowwise %>%
+  mutate(NA_per_row = sum(is.na(across()))) %>% 
+  #mutate(Median_Bias = median(across())) #%>% 
+  arrange(NA_per_row) #%>% tibble::column_to_rownames(var = "targets")
+
+```
+
+drug-target annotations (color of simple annotation should be specified as a list with names for which names in the color list (here it is type in following example) correspond to the names in the data frame. Each color vector should better has names as well to map to the levels of annotations https://bioconductor.riken.jp/packages/3.8/bioc/vignettes/ComplexHeatmap/inst/doc/s4.heatmap_annotation.html )
+```{r}
+#remove gene dupicates and filter for genes with sex bias in at least 1 tissue
+drug_categ <- combined_tissues %>% dplyr::select(Drug_Targets, Drugs) %>% dplyr::distinct( Drug_Targets, .keep_all = TRUE) %>% dplyr::filter(Drug_Targets %in% row.names(target_tissue_exp))
+#make annotation table
+#drug_categ <- as.data.frame(factor(drug_categ$Drugs), row.names = drug_categ$Drug_Targets)
+
+#drug_categ <- as.data.frame(drug_categ$Drugs, row.names = drug_categ$Drug_Targets)
+#drug_ha <- factor(drug_categ$Drugs, labels = drug_categ$Drug_Targets)
+#names(drug_ha) <- drug_categ$Drug_Targets
+#drug_categ <- as.data.frame(Drugs = drug_categ, row.names = combined_tissues$Drug_Targets)
+#pdf(file = "colorpallette.pdf")
+#scales::show_col(viridis(length(drug_categ$Drug_Targets), option = "D")) #selecting colors
+#dev.off()
+
+#named list ?
+drug_ha <- drug_categ$Drugs
+names(drug_ha) <- drug_categ$Drug_Targets
+drug_ha <- rowAnnotation(Drugs = drug_ha)
+#drug_ha <- rowAnnotation(Drugs = drug_ha, col = list(Drugs = colorRamp2(c(0, length(drug_categ$Drug_Targets)), c("white", "purple"))))
+
+Drug_Targets <- drug_categ$Drug_Targets
+names(Drug_Targets) <- Drug_Targets
+
+```
+
+colors for annotations
+```{r}
+#drugtarget_ha <- rowAnnotation(Drug_Targets = Drug_Targets, col = list(Drugs = c("ADRA1A" = "#440154", "ADRA2C" = "#470D60", "PRLR" = "#481A6CFF", "CYP3A5" = "#482576FF", "IRAK1"  = "#472F7DFF", "LTK" = "#443A83FF", "KCND2" = "#414487FF", "KCNH2" = "#3D4D8AFF", "SLC6A3" = "#39568CFF", "KCNA1" = "#35608DFF", "OPRD1" = "#31688EFF", "KIF1A" = "#2D718EFF", "KIF1C" = "#2A788EFF", "MAP4" = "#27808EFF", "CACNA2D1" = "#23888EFF", "CYP3A7" = "#21908CFF", "AOX1" = "#1F988BFF", "ABCD2" = "#1FA188FF", "ABCD3" = "#22A884FF", "CETP"  = "#29AF7FFF", "CRAT" = "#35B779FF", "LPL" = "#43BF71FF", "PPARG" = "#54C568FF", "SERPINE1" = "#66CB5DFF", "CHRNA1" = "#7AD151FF", "CHRNA5" = "#8FD744FF", "CYP2U1" = "#A5DB36FF", "FMO5" = "#BBDF27FF", "PNMT" = "#D2E21BFF", "SELP" = "#E9E519FF", "AR" = "#FDE725FF")))
+drugtarget_ha <- rowAnnotation(Drug_Targets = Drug_Targets, col = list(Drugs = c("ADRA1A" = magma(31)[5], "ADRA2C" = magma(31)[7], "PRLR" = magma(31)[10], "CYP3A5" = magma(31)[12], "IRAK1"  = magma(31)[15],  "LTK" = magma(31)[18], "KCND2" = magma(31)[21], "KCNH2" = "#3D4D8AFF", "SLC6A3" = "#39568CFF", "KCNA1" = "#35608DFF", "OPRD1" = "#31688EFF", "KIF1A" = "#2D718EFF", "KIF1C" = "#2A788EFF", "MAP4" = "#27808EFF", "CACNA2D1" = "#23888EFF", "CYP3A7" = "#21908CFF", "AOX1" = "#1F988BFF", "ABCD2" = "#1FA188FF", "ABCD3" = "#22A884FF", "CETP"  = "#29AF7FFF", "CRAT" = "#35B779FF", "LPL" = "#43BF71FF", "PPARG" = "#54C568FF", "SERPINE1" = "#66CB5DFF", "CHRNA1" = "#7AD151FF", "CHRNA5" = "#8FD744FF", "CYP2U1" = "#A5DB36FF", "FMO5" = "#BBDF27FF", "PNMT" = "#D2E21BFF", "SELP" = "#E9E519FF", "AR" = "#FDE725FF")))
+
+
+colorfill <- c("ADRA1A" = "#440154", "ADRA2C" = "#470D60", "PRLR" = "#481A6CFF", "CYP3A5" = "#482576FF", "IRAK1"  = "#472F7DFF", "LTK" = "#443A83FF", "KCND2" = "#414487FF", "KCNH2" = "#3D4D8AFF", "SLC6A3" = "#39568CFF", "KCNA1" = "#35608DFF", "OPRD1" = "#31688EFF", "KIF1A" = "#2D718EFF", "KIF1C" = "#2A788EFF", "MAP4" = "#27808EFF", "CACNA2D1" = "#23888EFF", "CYP3A7" = "#21908CFF", "AOX1" = "#1F988BFF", "ABCD2" = "#1FA188FF", "ABCD3" = "#22A884FF", "CETP"  = "#29AF7FFF", "CRAT" = "#35B779FF", "LPL" = "#43BF71FF", "PPARG" = "#54C568FF", "SERPINE1" = "#66CB5DFF", "CHRNA1" = "#7AD151FF", "CHRNA5" = "#8FD744FF", "CYP2U1" = "#A5DB36FF", "FMO5" = "#BBDF27FF", "PNMT" = "#D2E21BFF", "SELP" = "#E9E519FF", "AR" = "#FDE725FF")
+#tissue_ha = HeatmapAnnotation(df = data.frame(tissue = colnames(target_tissue_exp), group = ifelse(target_tissue_exp starts"")), col = list(age = colorRamp2(c(0, 20), c("white", "red"))))
+#df = data.frame(tissue = colnames(target_tissue_exp), group = ifelse(target_tissue_exp starts_with()))
+#my_color = list(Direction = c(aki_down = "#575C6DFF", aki_up = "#FFEA46FF"), Cystic_Status = c(Precystic = "#00204DFF", Cystic = "#A69D75FF"))
+my_color = list(Target = c("ADRA1A" = "#440154", "ADRA2C" = "#470D60", "PRLR" = "#481A6CFF", "CYP3A5" = "#482576FF", "IRAK1"  = "#472F7DFF", "LTK" = "#443A83FF", "KCND2" = "#414487FF", "KCNH2" = "#3D4D8AFF", "SLC6A3" = "#39568CFF", "KCNA1" = "#35608DFF", "OPRD1" = "#31688EFF", "KIF1A" = "#2D718EFF", "KIF1C" = "#2A788EFF", "MAP4" = "#27808EFF", "CACNA2D1" = "#23888EFF", "CYP3A7" = "#21908CFF", "AOX1" = "#1F988BFF", "ABCD2" = "#1FA188FF", "ABCD3" = "#22A884FF", "CETP"  = "#29AF7FFF", "CRAT" = "#35B779FF", "LPL" = "#43BF71FF", "PPARG" = "#54C568FF", "SERPINE1" = "#66CB5DFF", "CHRNA1" = "#7AD151FF", "CHRNA5" = "#8FD744FF", "CYP2U1" = "#A5DB36FF", "FMO5" = "#BBDF27FF", "PNMT" = "#D2E21BFF", "SELP" = "#E9E519FF", "AR" = "#FDE725FF"))
+
+```
+
+
+data wrangling for alluvial plot
+```{r}
+#merge sex bias values from each tissue with drug table?
+#top_16drugs_sb <- merge(top_16drugs, )
+
+#top_16drugs_sb <- dplyr::filter(top_16drugs, Drug_Targets %in% target_tissue_exp$targets) #row.names(target_tissue_exp))
+top_16drugs_sb <- merge(top_16drugs, target_tissue_exp, by.x = "Drug_Targets", by.y = "targets")
+#top_16drugs_sb <- mutate(top_16drugs_sb, Drug_Targets = forcats::fct_reorder(Drug_Targets, NA_per_row))
+top_16drugs_sb <- top_16drugs_sb %>% mutate(Drug_Targets = forcats::fct_reorder(Drug_Targets, NA_per_row)) 
+#top_16drugs_sb <- dplyr::inner_join(target_tissue_exp, top_16drugs, by = c("targets" = "Drug_Targets"))
+```
+
+plot alluvial plot
+```{r}
+target_alluvial <- top_16drugs_sb %>% 
+  #arrange(NA_per_row) %>%
+  mutate(Drug_Targets = forcats::fct_reorder(Drug_Targets, NA_per_row)) %>%
+  #ggplot(aes(x = NA_per_row, stratum = targets, alluvium = Drug)) +
+  ggplot(aes( axis1 = Drug_Targets, axis2 = Drug)) +
+  geom_alluvium(color = "black", aes(fill = Drug_Targets), show.legend=FALSE) + # , colour = trend)) + 
+  geom_stratum(width = 3/12, color = "black") + #the border of the stratum
+  scale_fill_viridis_d(aesthetics = c("colour", "fill")) +
+  #scale_fill_manual(values = colorfill) +
+  scale_x_discrete(limits = c("Drug_Targets", "Drug"),
+                   expand = c(0.05, .05)) +
+  geom_text(stat = "stratum", size = 4.5, fontface = "bold", aes(label = after_stat(stratum))) +
+  theme(axis.title.x = element_blank(), plot.title = element_text(size = 16, face = "bold", hjust = 0.5, vjust = -5), axis.text.x = element_blank(), axis.text.y = element_blank(), axis.ticks = element_blank()) + ggtitle(label = "Drugs Targetting Sex-Biased Genes") + 
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+panel.background = element_blank() )
+
+target_alluvial
+
+ggsave("/Users/eramsey/Downloads/PKD/kidney_drugrepurposing/figures/gtex_sexbiasDEG_drugtarget_alluvial.png", target_alluvial, width = 6, height = 10)
+```
+
+heatmap data wrangling
+```{r}
+#target_tissue_exp_hp <- target_tissue_exp %>% mutate(targets = forcats::fct_reorder(targets, NA_per_row)) %>% tibble::column_to_rownames(var = "targets") %>% dplyr::select(!"NA_per_row") 
+target_tissue_exp_hp <- top_16drugs_sb %>% dplyr::distinct(Drug_Targets, .keep_all = TRUE)  %>% arrange(NA_per_row) %>% tibble::column_to_rownames(var = "Drug_Targets") %>% dplyr::select(c(sort(na.omit(combined_tissues$Tissue)))) 
+
+tissue_annot <- data.frame(Tissue = na.omit(combined_tissues$Tissue), Group = na.omit(combined_tissues$`Tissue group`)) 
+#tissue_annot <- complete.cases(tissue_annot)
+#tissue_annot <- dplyr::filter(tissue_annot, Tissue %in% colnames(target_tissue_exp_hp))
+tissue_annot <- tissue_annot %>% dplyr::distinct(Tissue, .keep_all = TRUE) %>% dplyr::arrange(Tissue) %>% tibble::column_to_rownames("Tissue")
+
+#color palette for annotations
+#color_anno <- viridis(n= length(row.names(tissue_annot)), alpha = 1, begin = 0, end = 1, option = "viridis")
+#names(color_anno) <- row.names(tissue_annot)
+
+color_anno <- list(Tissue = row.names(tissue_annot), Group = c(viridis(n= length(unique(tissue_annot$Group)), alpha = 1, begin = 0, end = 1, option = "viridis")))
+#tissue_annot$Color =  c(viridis(n= length(unique(tissue_annot$Group))))
+
+#[17] "#94D840FF" "#B8DE29FF" "#DCE318FF" "#FDE725FF"
+color_anno <- list(Group = c("Adrenal Gland" = "#440154FF" , "Brain" = "#481D6FFF", "Colon" = "#453581FF", "Heart" = "#3D4D8AFF", "Kidney" = "#34618DFF", "Liver" = "#2B748EFF", "Lung" = "#24878EFF", "Salivary Gland" = "#1F998AFF","Muscle" = "#25AC82FF", "Pancreas" = "#40BC72FF", "Pituitary" = "#67CC5CFF", "Small Intestine" = "#97D83FFF", "Stomach" = "#CBE11EFF", "Blood" = "#FDE725FF"))
+
+```
+ 
+
+color breaks (https://gist.github.com/xdoan/e39ded4d4680354f063ff16a3318e1e5)
+```{r}
+myBreaks <- c(
+              seq(min(target_tissue_exp_hp, na.rm=T), 0, length.out=ceiling(3/3) + 1), #minimum to 0 log2FC
+              seq((-1*min(target_tissue_exp_hp, na.rm=T))/3, (-1*min(target_tissue_exp_hp, na.rm=T)), length.out=floor(3/3)), #0 to absolute value of minimum
+              seq((-1*min(target_tissue_exp_hp, na.rm=T))+max(target_tissue_exp_hp, na.rm=T)/3, 
+                  max(target_tissue_exp_hp, na.rm=T), length.out=floor(3/3)) # absolute value of min to max
+              )
+
+paletteLength <- 100
+
+myColor <- colorRampPalette(c("darkgreen", "white", "blueviolet"))(paletteLength)
+
+myBreaks <- c(seq(min(target_tissue_exp_hp, na.rm=T), 0, length.out=ceiling(paletteLength/2) + 1), 
+              seq(max(target_tissue_exp_hp, na.rm=T)/paletteLength, max(target_tissue_exp_hp, na.rm=T), length.out=floor(paletteLength/2)))
+
+
+
+```
+
+plot heatmap
+```{r}
+png("/Users/eramsey/Downloads/PKD/kidney_drugrepurposing/figures/gtex_sexbiasDEG_drugtarget_heatmap.png", width = 25, height = 40, units = "cm", res = 300)
+
+ComplexHeatmap::pheatmap(target_tissue_exp_hp, annotation_colors = color_anno, #annotation_row = Target, 
+                         #annotation_col = colnames(target_tissue_exp), 
+                         cluster_rows = FALSE, cluster_cols = FALSE, show_rownames = TRUE, labels_col = stringr::str_trunc(colnames(target_tissue_exp_hp), 18), color = myColor, #color = brewer.pal(100, name = "PRGn"), 
+                         fontsize = 20, fontface = "bold", fontsize_row = 16, fontsize_col = 16, annotation_col = tissue_annot,# viridis(n= 10000, alpha = 1, begin = 0, end = 1, option = "viridis"), 
+                         border_color = "NA", main = "Sex-Biased DE of \n Drug Targets by Tissue", angle_col = "90", breaks = myBreaks, heatmap_legend_param = list(title = "Expression", at = c(-1, 0, 1), labels = c("Male", "None", "Female")))
+dev.off()
+```
+
+
+#### Versions
+```{r}
+R.Version()
+```
+
+
+```{r}
+installed.packages()[names(sessionInfo()$otherPkgs), "Version"]
+```
+  
